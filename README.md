@@ -9,7 +9,7 @@ A very flexible layered approach has been adopted adhering to SOLID principles,
 https://en.wikipedia.org/wiki/SOLID_(object-oriented_design).
 
 Microservice based architecture approach has been taken for software design and
-and implementation. One benefit of it is to have flexibility in production deployment such ascloud-ready.
+and implementation. One benefit of it is to have flexibility in production deployment such as being cloud-ready.
 
 Layers
 ------
@@ -22,7 +22,7 @@ The fourth layer is the User (or Host) Layer, which belongs to the client of thi
 
 ###  Key Management System (KMS)
 
-KMS layer provides an application's interface for fetching keys for symmetric
+KMS layer provides an application interface for fetching keys for symmetric
 cryptography.
 
 KMS layer comprises following microservices:
