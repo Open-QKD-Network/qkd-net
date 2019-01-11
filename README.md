@@ -56,11 +56,11 @@ Make sure the executables are in system path.
 1. Java SDK 8 or later - http://www.oracle.com/technetwork/java/javase/downloads/index.html
 2. Maven - https://maven.apache.org/ or apt-get, if on Ubuntu
 3. screen - apt-get, if on Ubuntu
-4. git - apt-get, if on Ubuntu 
+4. git - apt-get, if on Ubuntu
 
 #### Prerequisites for testing (Optional)
 
-On a Linux(Ubuntu) system apt-get can be used to install the programs. 
+On a Linux(Ubuntu) system apt-get can be used to install the programs.
 
 1. Curl
 2. jq
@@ -69,7 +69,7 @@ On a Linux(Ubuntu) system apt-get can be used to install the programs.
 
 ##### kms.conf
 
-Applications like qTox and tls-demo require kms.conf to be present under 
+Applications like qTox and tls-demo require kms.conf to be present under
 $HOME/.kms.
 
 This file can be manually created by puting following entries:
@@ -106,10 +106,10 @@ kms.keys.bytesize=32<br/>
 kms.keys.dir=${HOME}/.qkd/kms/pools/<br/>
 //IP address of the host where key routing service is running<br/>
 qnl.ip=localhost<br/>
-//Port on which key routing service is listening for key block requests<br/> 
+//Port on which key routing service is listening for key block requests<br/>
 qnl.port=9292<br/>
 
-##### config.yaml (KMS QNL Service) 
+##### config.yaml (KMS QNL Service)
 
 
 This file is copied from <top level directory>/qkd/kms/kms-qnl-service/src/main/resources/
@@ -129,41 +129,41 @@ keyBlockSz: 1024<br/>
 //routing service<br/>
 poolLoc: kms/pools<br/>
 
-##### config.yaml and routes.json (Key Routing Service) 
+##### config.yaml and routes.json (Key Routing Service)
 
 ###### routes.json:
 
 This file is copied from <top level directory>/qkd/qnl/conf/ to
-$HOME/.qkd/qnl. 
+$HOME/.qkd/qnl.
 
 Topology information is contained in route.json.
 Currently this information is populated manually.
 There are two sections here, one mentioning nodes which are adjacent
-and the other, non-adjacent. Adjacent nodes section contains the name 
+and the other, non-adjacent. Adjacent nodes section contains the name
 of the node as key and it's IP address as the value.
-Non-adjacent nodes section contians name of the node as key and the name of 
+Non-adjacent nodes section contians name of the node as key and the name of
 the node it's reachable from as value. Key's value here will always be one
 of the nodes mentioned in the adjacent nodes section.   
 
 ###### config.yaml:
 
 This file is copied from <top level directory>/qkd/qnl/conf/ to
-$HOME/.qkd/qnl. 
+$HOME/.qkd/qnl.
 
-Contains various configuration parameters for the key routing service 
-running as a network layer. 
+Contains various configuration parameters for the key routing service
+running as a network layer.
 
 Brief explanation of various properties:
 
 Example file:
 
-//Base location for finding other paths and configuration files.<br/> 
-base: .qkd/qnl<br/> 
+//Base location for finding other paths and configuration files.<br/>
+base: .qkd/qnl<br/>
 //Route configuration file name.<br/>
 routeConfigLoc: routes.json<br/>
 //Location where QLL puts the key blocks for QNL to carve out key blocks for KMS.<br/>
 qnlSiteKeyLoc: qll/keys<br/>
-//Each site has an identifier uniquely identifying that site.<br/> 
+//Each site has an identifier uniquely identifying that site.<br/>
 siteId: A<br/>
 //Port on which key routing service is listening for key block requests.<br/>
 port: 9292<br/>
@@ -231,13 +231,13 @@ There are two endpoints:
 1. New Key
 
 Application at site B makes a newkey call.
- 
+
 Request
 
   Method :      POST
   URL path :    /api/newkey
   URL params:   siteid=[alhpanumeric] e.g. siteid=A
-              
+
 Response
   Format JSON
 
@@ -278,7 +278,7 @@ Response
 
   {
     index: Index of he key
-    hexKey: Key in hexadecimal format 
+    hexKey: Key in hexadecimal format
     blockId: Id of the block containing the key
   }
 
@@ -292,3 +292,14 @@ curl 'http://localhost:8095/api/getkey?siteid=B&index=1&blockid=' -H"Authorizati
   "blocId": ""
 }
 
+TEAM
+----
+
+The Open Quantum Safe project is led by Michele Mosca at the University of Waterloo.
+
+### Contributors
+
+Contributors to this master branch of qkd-net include:
+
+- Shravan Mishra (University of Waterloo)
+- Xinhua Ling (University of Waterloo)
