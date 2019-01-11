@@ -1,0 +1,53 @@
+VERS=6.2.1
+PLATFORM=linux-x86_64
+BASEURL=https://artifacts.elastic.co/downloads
+KB=kibana
+LS=logstash
+ES=elasticsearch
+TAR=tar.gz
+ELK_DIR=$HOME/elk
+
+arg=$1
+
+
+if [ -d "${ELK_DIR}" ];then
+  if [ ! -d "${ELK_DIR}" ];then
+    mkdir $HOME/elk
+    wget $BASEURL/$ES/${ES}-${VERS}.$TAR  -P $HOME/elk
+    wget $BASEURL/$LS/${LS}-${VERS}.$TAR  -P $HOME/elk
+    wget $BASEURL/$KB/${KB}-${VERS}-${PLATFORM}.$TAR  -P $HOME/elk
+
+    if [ -f ${ELK_DIR}/${ES}-${VERS}.$TAR ];then
+      tar -xvzf ${ELK_DIR}/${ES}-${VERS}.$TAR -C ${ELK_DIR} 
+    fi
+    if [ -f ${ELK_DIR}/${LS}-${VERS}.$TAR ];then
+      tar -xvzf ${ELK_DIR}/${LS}-${VERS}.$TAR -C ${ELK_DIR} 
+    fi
+    if [ -f ${ELK_DIR}/${KB}-${VERS}-${PLATFORM}.$TAR ];then
+      tar -xvzf ${ELK_DIR}/${KB}-${VERS}-${PLATFORM}.$TAR -C ${ELK_DIR} 
+    fi
+  fi
+fi
+
+case $arg in
+
+start)
+  screen -Sdm ess-svc ${ELK_DIR}/${ES}-${VERS}/bin/elasticsearch
+  screen -Sdm kib-svc ${ELK_DIR}/${KB}-${VERS}-${PLATFORM}/bin/kibana
+  screen -Sdm logstash-svc ${ELK_DIR}/${LS}-${VERS}/bin/logstash -f conf/logstash.conf
+  sleep 10
+;;
+
+stop)
+  ps -ef | grep logstash | grep -v -i "screen\|grep" | awk '{print $2}'| xargs kill -TERM
+  ps -ef | grep kibana | grep -v -i "screen\|grep" | awk '{print $2}'| xargs kill -TERM
+  ps -ef | grep elastic | grep -v -i "screen\|grep" | awk '{print $2}'| xargs kill -TERM
+;;
+esac
+
+
+
+
+
+
+

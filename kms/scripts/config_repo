@@ -1,0 +1,7 @@
+    mkdir $HOME/config-repo
+    cp config-repo/* $HOME/config-repo
+    cd $HOME/config-repo
+    git init
+    git add -u
+    git commit -m "Config files"
+

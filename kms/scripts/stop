@@ -1,0 +1,7 @@
+screen -S kms-svc -X quit
+screen -S kms-gw -X quit
+screen -S auth-svc -X quit
+screen -S reg-svc -X quit
+screen -S config-svc -X quit
+screen -S kms-qnl-svc -X quit
+screen -S kms-routing-svc -X quit

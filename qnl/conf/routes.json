@@ -1,0 +1,10 @@
+{ 
+  "adjacent": {
+    "B": "ip:port"
+  }  ,
+  "nonAdjacent": {
+    "C": "B", "D": "B"
+  }  
+}
+
+

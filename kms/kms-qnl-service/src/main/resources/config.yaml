@@ -1,0 +1,4 @@
+port: 9393
+keyByteSz: 32
+keyBlockSz: 4 
+poolLoc: kms/pools

@@ -1,0 +1,85 @@
+cd ../qnl
+cd qnl-utils
+mvn -N io.takari:maven:wrapper
+./mvnw clean install
+git update-index --assume-unchanged mvnw
+git update-index --assume-unchanged mvnw.cmd
+
+cd ..
+cd key-routing-service
+mvn -N io.takari:maven:wrapper
+./mvnw clean install
+git update-index --assume-unchanged mvnw
+git update-index --assume-unchanged mvnw.cmd
+
+cd ../../kms
+cd auth-service
+mvn -N io.takari:maven:wrapper
+./mvnw clean install
+git update-index --assume-unchanged mvnw
+git update-index --assume-unchanged mvnw.cmd
+
+cd ..
+cd config-service
+mvn -N io.takari:maven:wrapper
+./mvnw clean install
+git update-index --assume-unchanged mvnw
+git update-index --assume-unchanged mvnw.cmd
+
+cd ..
+cd registration-service
+mvn -N io.takari:maven:wrapper
+./mvnw clean install
+git update-index --assume-unchanged mvnw
+git update-index --assume-unchanged mvnw.cmd
+
+cd ..
+cd kms-service
+mvn -N io.takari:maven:wrapper
+./mvnw clean install
+git update-index --assume-unchanged mvnw
+git update-index --assume-unchanged mvnw.cmd
+
+cd ..
+cd kms-api-gateway
+mvn -N io.takari:maven:wrapper
+./mvnw clean install
+git update-index --assume-unchanged mvnw
+git update-index --assume-unchanged mvnw.cmd
+
+cd ..
+cd kms-qnl-service
+mvn -N io.takari:maven:wrapper
+./mvnw clean install
+git update-index --assume-unchanged mvnw
+git update-index --assume-unchanged mvnw.cmd
+
+cd ..
+cd qll_sim
+mvn -N io.takari:maven:wrapper
+./mvnw clean install
+git update-index --assume-unchanged mvnw
+git update-index --assume-unchanged mvnw.cmd
+
+
+
+if [ ! -d "$HOME/config-repo" ]; then
+  mkdir $HOME/config-repo
+  cp config-repo/*.properties $HOME/config-repo
+  cd $HOME/config-repo
+  git init
+  git add -u
+  git commit -m "Initial Checkin"
+fi
+
+if [ ! -d "$HOME/.qkd" ]; then
+  mkdir -p $HOME/.qkd/kms/qnl
+  cp  kms-qnl-service/src/main/resources/config.yaml $HOME/.qkd/kms/qnl
+  mkdir -p $HOME/.qkd/qnl
+  cp ../qnl/conf/config.yaml $HOME/.qkd/qnl
+  cp ../qnl/conf/routes.json $HOME/.qkd/qnl
+  mkdir -p $HOME/.qkd/qll-sim
+  cp ../qll-sim/conf/qll-sim.conf $HOME/.qkd/qll-sim
+fi
+
+
