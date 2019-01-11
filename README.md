@@ -9,8 +9,7 @@ A very flexible layered approach has been adopted adhering to SOLID principles,
 https://en.wikipedia.org/wiki/SOLID_(object-oriented_design).
 
 Microservice based architecture approach has been taken for software design and
-and implementation. Our goal is to have the qkd infrastructure cloud-ready from
-the outset.
+and implementation. One benefit of it is to have flexibility in production deployment such as being cloud-ready.
 
 Layers
 ------
@@ -19,9 +18,11 @@ Layers
 2. Quantum Network Layer (QNL)
 3. Quantum Link Layer (QLL)
 
+The fourth layer is the User (or Host) Layer, which belongs to the client of this system, and thus is beyond the scope of this project.
+
 ###  Key Management System (KMS)
 
-KMS layer is an application's interface for fetching keys for symmetric
+KMS layer provides an application interface for fetching keys for symmetric
 cryptography.
 
 KMS layer comprises following microservices:
@@ -35,18 +36,22 @@ KMS layer comprises following microservices:
 
 ### Quantum Network Layer (QNL)
 
-QNL is the middle layer sandwiched between KMS layer and QLL (Quantum Link Layer).
+QNL is the core compoent to extend QKD technology from point-to-point to network level. It is the middle layer sandwiched between KMS layer and QLL (Quantum Link Layer).
 QNL provides key blocks to KMS after fetching it from QLL. QNL, thus, keeps KMS
 layer hardware agnostic and at the same time allowing itself the flexibility to
 generate key bocks through alternative mechanisms should QLL fail to meet the
 needs of KMS layer.  
 
-QNL consists of a single service:
+QNL currently consists of a single microservice:
 
 1. Key Routing Service
 
 Key routing service not only pushes key blocks to KMS QNL service for KMS
 service but also responds to pull requests for key blocks directly from KMS service.
+
+### QKD Link Layer (QLL)
+
+Ideally, QLL consists of working QKD devices. A QLL simulator is provided in this project for situations where real QKD devices based links are unavailable, e.g., a planned satellite based QKD link between two nodes that are geographically far away.
 
 #### Prerequisites (Required)
 
@@ -295,7 +300,7 @@ curl 'http://localhost:8095/api/getkey?siteid=B&index=1&blockid=' -H"Authorizati
 TEAM
 ----
 
-The Open Quantum Safe project is led by Michele Mosca at the University of Waterloo.
+The Open QKD Network project is led by Professor [Michele Mosca](http://faculty.iqc.uwaterloo.ca/mmosca/) at the University of Waterloo.
 
 ### Contributors
 
