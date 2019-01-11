@@ -54,7 +54,7 @@ mvn -N io.takari:maven:wrapper
 git update-index --assume-unchanged mvnw
 git update-index --assume-unchanged mvnw.cmd
 
-cd ..
+cd ../..
 cd qll_sim
 mvn -N io.takari:maven:wrapper
 ./mvnw clean install
