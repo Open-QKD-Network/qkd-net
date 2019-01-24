@@ -94,12 +94,12 @@ correct site id. Above is just an example.
 config-repo directory under $HOME/ contains all the configuration property
 files required by all the microservices.
 
-All the files reside under <top level directory>/qkd/kms/config-repo from where
+All the files reside under <top level directory>/qkd-net/kms/config-repo from where
 they are copied to $HOME/config-repo and checked in local git repository.
 
 ##### site.properties
 
-This file is located under <top level directory>/qkd/kms/kms-service/src/main/resources/.
+This file is located under <top level directory>/qkd-net/kms/kms-service/src/main/resources/.
 
 Explanation of site specific configuration properties used by KMS service
 
@@ -117,7 +117,7 @@ qnl.port=9292<br/>
 ##### config.yaml (KMS QNL Service)
 
 
-This file is copied from <top level directory>/qkd/kms/kms-qnl-service/src/main/resources/
+This file is copied from <top level directory>/qkd-net/kms/kms-qnl-service/src/main/resources/
 to $HOME/.qkd/kms/qnl from where it is used by KMS QNL service
 
 
@@ -138,7 +138,7 @@ poolLoc: kms/pools<br/>
 
 ###### routes.json:
 
-This file is copied from <top level directory>/qkd/qnl/conf/ to
+This file is copied from <top level directory>/qkd-net/qnl/conf/ to
 $HOME/.qkd/qnl.
 
 Topology information is contained in route.json.
@@ -152,7 +152,7 @@ of the nodes mentioned in the adjacent nodes section.
 
 ###### config.yaml:
 
-This file is copied from <top level directory>/qkd/qnl/conf/ to
+This file is copied from <top level directory>/qkd-net/qnl/conf/ to
 $HOME/.qkd/qnl.
 
 Contains various configuration parameters for the key routing service
@@ -195,12 +195,12 @@ OTPConfig:<br/>
 
 For building the services,
 
-cd <top level director>/qkd/kms<br/>
+cd <top level director>/qkd-net/kms<br/>
 ./scripts/build
 
 For running the services
 
-cd <top level director>/qkd/kms<br/>
+cd <top level director>/qkd-net/kms<br/>
 ./scripts/run
 
 #### Checking registration service
@@ -300,7 +300,7 @@ curl 'http://localhost:8095/api/getkey?siteid=B&index=1&blockid=' -H"Authorizati
 TEAM
 ----
 
-The Open QKD Network project is led by Professor [Michele Mosca](http://faculty.iqc.uwaterloo.ca/mmosca/) at the University of Waterloo.
+The Open QKD Network project is led by Professors [Michele Mosca](http://faculty.iqc.uwaterloo.ca/mmosca/) and [Norbert Lutkenhaus[(http://services.iqc.uwaterloo.ca/people/profile/nlutkenh) at Institute for Quantum Computing (IQC) of the University of Waterloo.
 
 ### Contributors
 

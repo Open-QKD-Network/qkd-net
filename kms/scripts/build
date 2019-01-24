@@ -68,7 +68,9 @@ if [ ! -d "$HOME/config-repo" ]; then
   cp config-repo/*.properties $HOME/config-repo
   cd $HOME/config-repo
   git init
-  git add -u
+  git config user.email "confadmin@my.org"
+  git config user.name "config admin"
+  git add -A
   git commit -m "Initial Checkin"
 fi
 
