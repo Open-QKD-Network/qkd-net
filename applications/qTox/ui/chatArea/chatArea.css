@@ -1,0 +1,10 @@
+QTextEdit
+{
+    background: white;
+    color: black;
+}
+
+QGraphicsView
+{
+    border: none;
+}

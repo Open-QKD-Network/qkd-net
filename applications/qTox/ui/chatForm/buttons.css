@@ -1,0 +1,159 @@
+/* Message edit */
+
+QAbstractButton#emoteButton
+{
+    background-image: url(":/ui/chatForm/emoteButton.svg");
+    border-top-right-radius: 5px;
+    width: 24px;
+    height: 24px;
+}
+
+QAbstractButton#fileButton
+{
+    background-image: url(":/ui/chatForm/fileButton.svg");
+    border-bottom-right-radius: 5px;
+    width: 24px;
+    height: 24px;
+}
+
+QAbstractButton#screenshotButton
+{
+    background-image: url(":/ui/chatForm/screenshotButton.svg");
+    border-top-left-radius: 5px;
+    width: 24px;
+    height: 24px;
+}
+
+QAbstractButton#sendButton
+{
+    background-image: url(":/ui/chatForm/sendButton.svg");
+    border-radius: 5px;
+    width: 50px;
+    height: 50px;
+
+}
+
+/* Header */
+
+QAbstractButton#volButton
+{
+    border-image: url(":/ui/chatForm/volButton.svg");
+    border-radius: 5px;
+    width: 22px;
+    height: 18px;
+}
+
+QAbstractButton#micButton
+{
+    border-image: url(":/ui/chatForm/micButton.svg");
+    border-radius: 5px;
+    width: 22px;
+    height: 18px;
+}
+
+QAbstractButton#videoButton
+{
+    background-image: url(":/ui/chatForm/videoButton.svg");
+    border-radius: 5px;
+    width: 50px;
+    height: 40px;
+}
+
+QAbstractButton#callButton
+{
+    background-image: url(":/ui/chatForm/callButton.svg");
+    border-radius: 5px;
+    width: 50px;
+    height: 40px;
+}
+
+/* SearchLine */
+
+QAbstractButton#searchHideButton
+{
+    background-image: url(":/ui/chatForm/searchHideButton.svg");
+    border-radius: 5px;
+    width: 35px;
+    height: 35px;
+}
+
+
+QAbstractButton#searchUpButton
+{
+    background-image: url(":/ui/chatForm/searchUpButton.svg");
+    border-radius: 5px;
+    width: 35px;
+    height: 35px;
+}
+
+QAbstractButton#searchDownButton
+{
+    background-image: url(":/ui/chatForm/searchDownButton.svg");
+    border-radius: 5px;
+    width: 35px;
+    height: 35px;
+}
+
+/* Common */
+
+QAbstractButton
+{
+    background-repeat: none;
+    background-position: center;
+    border: none;
+}
+
+QAbstractButton:disabled
+{
+    background-color: #919191;
+}
+
+QAbstractButton:focus
+{
+    outline: none;
+}
+
+QAbstractButton[state="green"]
+{
+    background-color: #6bc260;
+}
+
+QAbstractButton[state="green"]:hover
+{
+    background-color: #79c76f;
+}
+
+QAbstractButton[state="green"]:pressed
+{
+    background-color: #51b244;
+}
+
+QAbstractButton[state="red"]
+{
+    background-color: #c84e4e;
+}
+
+QAbstractButton[state="red"]:hover
+{
+    background-color: #e87474;
+}
+
+QAbstractButton[state="red"]:pressed
+{
+    background-color: #df3b3b;
+}
+
+QAbstractButton[state="yellow"]
+{
+    background-color: #e6e465;
+}
+
+QAbstractButton[state="yellow"]:hover
+{
+    background-color: #e8e774;
+}
+
+QAbstractButton[state="yellow"]:pressed
+{
+    background-color: #e3e155;
+}

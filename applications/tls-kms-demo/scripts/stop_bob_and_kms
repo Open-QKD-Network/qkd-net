@@ -1,0 +1,3 @@
+pidof kms | xargs kill -9
+pidof bob | xargs kill -9
+pidof tail | xargs kill -9

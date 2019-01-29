@@ -1,0 +1,19 @@
+sudo apt-get update
+sudo apt-get install -y build-essential
+sudo apt-get install -y autotools-dev
+sudo apt-get install -y autoconf
+sudo apt install -y libglfw3-dev
+sudo apt install -y pkg-config
+sudo apt install -y cmake
+sudo apt install -y libavcodec-dev
+sudo apt install -y libavcdevice-dev
+sudo apt install -y libexif-dev
+sudo apt install -y libqrencode-dev
+sudo apt install -y libsqlcipher-dev
+sudo apt install -y libvpx-dev
+sudo apt install -y libopenal-dev
+sudo apt-get install -y libxss-dev
+sudo apt-get install -y libgdk-pixbuf2.0-dev
+sudo apt-get install -y libgtk2.0-dev
+sudo apt-get install -y libopus-dev
+

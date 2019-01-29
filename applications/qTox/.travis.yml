@@ -1,0 +1,143 @@
+sudo: required
+dist: trusty
+language: cpp
+cache: ccache
+
+# regex is for release tags
+branches:
+  only:
+    - master
+    - /^v(\d+\.){2}\d+$/
+
+matrix:
+  fast_finish: true
+  include:
+    - stage: Linux
+      os: linux
+      env: JOB=verify-commit-format
+    - stage: Linux
+      os: linux
+      env: JOB=build-docs DOXYGEN_CONFIG_FILE=doxygen.conf
+    - stage: Linux
+      os: linux
+      env: JOB=build-gitstats GITSTATS_DIR=gitstats
+      addons:
+        apt:
+          packages:
+            - gitstats
+    # the actual compilin'
+    - stage: Linux
+      os: linux
+      env: JOB=build-ubuntu-14-04
+    - stage: "Windows Stage 1: Dependencies (OpenSSL, Qt)"
+      os: linux
+      # Makes the cache this job creates avaiable only to jobs with WINDOWS_BUILD_ARCH_CACHE_TRICK_VARIABLE=i686,
+      # making sure that i686 and x86_64 caches don't overwrite each other
+      env: WINDOWS_BUILD_ARCH_CACHE_TRICK_VARIABLE=i686
+      script: ./.travis/build-windows.sh i686 release /opt/build-windows/i686 stage1
+      services:
+        - docker
+      cache:
+        directories:
+          - /opt/build-windows/i686
+    - stage: "Windows Stage 1: Dependencies (OpenSSL, Qt)"
+      os: linux
+      env: WINDOWS_BUILD_ARCH_CACHE_TRICK_VARIABLE=x86_64
+      script: ./.travis/build-windows.sh x86_64 release /opt/build-windows/x86_64 stage1
+      services:
+        - docker
+      cache:
+        directories:
+          - /opt/build-windows/x86_64
+    - stage: "Windows Stage 2: Dependencies (other)"
+      os: linux
+      env: WINDOWS_BUILD_ARCH_CACHE_TRICK_VARIABLE=i686
+      script: ./.travis/build-windows.sh i686 release /opt/build-windows/i686 stage2
+      services:
+        - docker
+      cache:
+        directories:
+          - /opt/build-windows/i686
+    - stage: "Windows Stage 2: Dependencies (other)"
+      os: linux
+      env: WINDOWS_BUILD_ARCH_CACHE_TRICK_VARIABLE=x86_64
+      script: ./.travis/build-windows.sh x86_64 release /opt/build-windows/x86_64 stage2
+      services:
+        - docker
+      cache:
+        directories:
+          - /opt/build-windows/x86_64
+    - stage: "Windows Stage 3: qTox"
+      os: linux
+      env: WINDOWS_BUILD_ARCH_CACHE_TRICK_VARIABLE=i686
+      script: ./.travis/build-windows.sh i686 release /opt/build-windows/i686 stage3
+      services:
+        - docker
+      cache:
+        directories:
+          - /opt/build-windows/i686
+    - stage: "Windows Stage 3: qTox"
+      os: linux
+      env: WINDOWS_BUILD_ARCH_CACHE_TRICK_VARIABLE=x86_64
+      script: ./.travis/build-windows.sh x86_64 release /opt/build-windows/x86_64 stage3
+      services:
+        - docker
+      cache:
+        directories:
+          - /opt/build-windows/x86_64
+    - stage: "Windows Stage 3: qTox"
+      os: linux
+      env: WINDOWS_BUILD_ARCH_CACHE_TRICK_VARIABLE=i686
+      script: ./.travis/build-windows.sh i686 debug /opt/build-windows/i686 stage3
+      services:
+        - docker
+      cache:
+        directories:
+          - /opt/build-windows/i686
+    - stage: "Windows Stage 3: qTox"
+      os: linux
+      env: WINDOWS_BUILD_ARCH_CACHE_TRICK_VARIABLE=x86_64
+      script: ./.travis/build-windows.sh x86_64 debug /opt/build-windows/x86_64 stage3
+      services:
+        - docker
+      cache:
+        directories:
+          - /opt/build-windows/x86_64
+    - stage: macOS
+      os: osx
+      osx_image: xcode7.3
+      env: JOB=build-osx
+
+script: "./.travis/$JOB.sh"
+
+deploy:
+  # osx binary
+  - provider: releases
+    api_key:
+      secure: "BRbzTWRvadALRQSTihMKruOj64ydxusMUS9FQR//qFlS345ZYfYta43W//4LcWWDKtj6IvA6DRqNdabgWnpbpxpnm9gVftGUdOKlU3niPZhwsMkB2M12QHUnAP6DVOfGPvdciBV+6mu73SSxniEcrYjZ1CrRX7mknmehPpVKxNk="
+    file: "./qTox.dmg"
+    on:
+      condition: $TRAVIS_OS_NAME == osx
+      repo: qTox/qTox
+      tags: true
+    skip_cleanup: true
+
+  # branch for windows jenkins build
+  - provider: script
+    script: .travis/deploy-jenkins-branch.sh
+    on:
+      tags: true
+    skip_cleanup: true
+
+
+after_success:
+  - >
+    test $TRAVIS_PULL_REQUEST == "false"
+    && test $TRAVIS_BRANCH == "master"
+    && test $JOB == "build-docs"
+    && bash ./.travis/deploy-docs.sh
+  - >
+    test $TRAVIS_PULL_REQUEST == "false"
+    && test $TRAVIS_BRANCH == "master"
+    && test $JOB == "build-gitstats"
+    && bash ./.travis/deploy-gitstats.sh

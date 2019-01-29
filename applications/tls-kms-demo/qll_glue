@@ -1,0 +1,23 @@
+blocksz=$((${1:-4096} - 1))
+s=1
+e=$((s + $blocksz))
+n=$((e + 1))
+
+file_cnt=0
+
+while true; do
+  count=`sed -n "${s},${e}p;${n}q" keys | wc -l`
+  echo $count
+ # echo ${s}
+ # echo ${e}
+ # echo ${n}
+
+  if [ $count -eq 1024 ];then
+    sed -n "${s},${e}p;${n}q" keys > keys_${file_cnt}
+    file_cnt=$((file_cnt+1))
+    s=$n
+    e=$((s + $blocksz))
+    n=$((e + 1))
+  fi
+  sleep 5
+done

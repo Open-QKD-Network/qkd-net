@@ -1,0 +1,5 @@
+rm -f kms.bin
+tail -F test.bin >> kms.bin &
+./kms -p 10445 -k kms.bin  & #bob's kms 
+./bob -p 10445 -b 10446 -f bobdemo  &
+

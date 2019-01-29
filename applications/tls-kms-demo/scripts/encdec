@@ -1,0 +1,2 @@
+openssl enc -aes-256-cbc -k abc123 -in Whale.mp3 -out enc_Whale.mp3
+openssl enc -d -aes-256-cbc -k abc123 -in enc_Whale.mp3 -out dec_Whale.mp3

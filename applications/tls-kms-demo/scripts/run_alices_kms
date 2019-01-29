@@ -1,0 +1,2 @@
+./kms -p 10443 -k kms.bin  & #alice's kms 
+

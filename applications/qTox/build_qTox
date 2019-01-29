@@ -1,0 +1,42 @@
+
+# ./build_qTox {install_dir}
+#
+cd ..
+
+export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:$1/lib/pkgconfig
+
+#:<<'END'
+cd libsodium
+git fetch
+git checkout qkd_sodium 
+git pull
+./autogen.sh
+./configure --prefix=$1
+make clean;make -j8;make install
+cd ..
+#END
+
+cd c-toxcore
+git fetch
+git checkout qkd_c-toxcore
+git pull
+./autogen.sh
+./configure --prefix=$1 CFLAGS=-g3 --enable-qkd-keys --with-libsodium-headers=$1/include --with-libsodium-libs=$1/lib LIBS="-lssl -lcrypto" --no-recursion
+make clean;make -j8;make install
+cd ..
+#END
+
+#:<<'END'
+cd qTox
+git fetch
+git checkout qkd_qTox
+git pull
+./bootstrap.sh --without-tox 
+rm -rf build
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-DQKD" -DCMAKE_PREFIX_PATH="$1" ..
+#-DCMAKE_PREFIX_PATH="$1;$HOME/Qt/5.11.1/gcc_64/lib/cmake" 
+make -j8
+cd ..
+#END
