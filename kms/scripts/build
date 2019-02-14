@@ -1,61 +1,54 @@
-cd ../qnl
-cd qnl-utils
+QKD_HOME=`pwd`/..
+
+cd ${QKD_HOME}/qnl/qnl-utils
 mvn -N io.takari:maven:wrapper
 ./mvnw clean install
 git update-index --assume-unchanged mvnw
 git update-index --assume-unchanged mvnw.cmd
 
-cd ..
-cd key-routing-service
+cd ${QKD_HOME}/qnl/key-routing-service
 mvn -N io.takari:maven:wrapper
 ./mvnw clean install
 git update-index --assume-unchanged mvnw
 git update-index --assume-unchanged mvnw.cmd
 
-cd ../../kms
-cd auth-service
+cd ${QKD_HOME}/kms/auth-service
 mvn -N io.takari:maven:wrapper
 ./mvnw clean install
 git update-index --assume-unchanged mvnw
 git update-index --assume-unchanged mvnw.cmd
 
-cd ..
-cd config-service
+cd ${QKD_HOME}/kms/config-service
 mvn -N io.takari:maven:wrapper
 ./mvnw clean install
 git update-index --assume-unchanged mvnw
 git update-index --assume-unchanged mvnw.cmd
 
-cd ..
-cd registration-service
+cd ${QKD_HOME}/kms/registration-service
 mvn -N io.takari:maven:wrapper
 ./mvnw clean install
 git update-index --assume-unchanged mvnw
 git update-index --assume-unchanged mvnw.cmd
 
-cd ..
-cd kms-service
+cd ${QKD_HOME}/kms/kms-service
 mvn -N io.takari:maven:wrapper
 ./mvnw clean install
 git update-index --assume-unchanged mvnw
 git update-index --assume-unchanged mvnw.cmd
 
-cd ..
-cd kms-api-gateway
+cd ${QKD_HOME}/kms/kms-api-gateway
 mvn -N io.takari:maven:wrapper
 ./mvnw clean install
 git update-index --assume-unchanged mvnw
 git update-index --assume-unchanged mvnw.cmd
 
-cd ..
-cd kms-qnl-service
+cd ${QKD_HOME}/kms/kms-qnl-service
 mvn -N io.takari:maven:wrapper
 ./mvnw clean install
 git update-index --assume-unchanged mvnw
 git update-index --assume-unchanged mvnw.cmd
 
-cd ../..
-cd qll_sim
+cd ${QKD_HOME}/qll_sim
 mvn -N io.takari:maven:wrapper
 ./mvnw clean install
 git update-index --assume-unchanged mvnw
@@ -76,12 +69,12 @@ fi
 
 if [ ! -d "$HOME/.qkd" ]; then
   mkdir -p $HOME/.qkd/kms/qnl
-  cp  kms-qnl-service/src/main/resources/config.yaml $HOME/.qkd/kms/qnl
+  cp  ${QKD_HOME}/kms/kms-qnl-service/src/main/resources/config.yaml $HOME/.qkd/kms/qnl
   mkdir -p $HOME/.qkd/qnl
-  cp ../qnl/conf/config.yaml $HOME/.qkd/qnl
-  cp ../qnl/conf/routes.json $HOME/.qkd/qnl
+  cp ${QKD_HOME}/qnl/conf/config.yaml $HOME/.qkd/qnl
+  cp ${QKD_HOME}/qnl/conf/routes.json $HOME/.qkd/qnl
   mkdir -p $HOME/.qkd/qll-sim
-  cp ../qll-sim/conf/qll-sim.conf $HOME/.qkd/qll-sim
+  cp ${QKD_HOME}/qll_sim/conf/qll-sim.conf $HOME/.qkd/qll-sim
 fi
 
 
