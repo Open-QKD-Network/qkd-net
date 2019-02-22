@@ -75,7 +75,7 @@ fi
 
 if [ ! -d "$HOME/.qkd/kms/qnl" ]; then
   mkdir -p $HOME/.qkd/kms/qnl
-  mkdir -p $HOME/.qkd/kms/qnl/qll/keys
+  mkdir -p $HOME/.qkd/qnl/qll/keys
   cp  ${QKD_HOME}/kms/kms-qnl-service/src/main/resources/config.yaml $HOME/.qkd/kms/qnl
   mkdir -p $HOME/.qkd/qnl
   cp ${QKD_HOME}/qnl/conf/config.yaml $HOME/.qkd/qnl
