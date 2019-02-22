@@ -12,7 +12,7 @@ static const char *query_str = "siteid=";
 
 
 void prepare_kms_access(struct Net_Crypto *m) {
-  char *str = ".qkd/kms/kms.conf";
+  char *str = "/.qkd/kms/kms.conf";
   FILE *fp;
   char buffer[128];
   
