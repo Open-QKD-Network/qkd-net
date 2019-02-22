@@ -18,7 +18,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import com.uwaterloo.iqc.kms.controller.KMSController;
 
 @Configuration
-@PropertySource("classpath:site.properties")
+@PropertySource(value = "file:${SITE_PROPERTIES}", ignoreResourceNotFound = true)
 public class KeyPoolManager {
 
     class PoolLock {
