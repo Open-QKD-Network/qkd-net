@@ -19,6 +19,8 @@ public class QNLRequest {
     private ByteBuf payBuf;
     private boolean payLoadMode = false;
     private String uuid;
+    private String peerIP;
+    private int peerIPLen;
 
     public QNLRequest(int kpBlockByteSz) {
         this.kpBlockBytesSz = kpBlockByteSz;
@@ -33,6 +35,16 @@ public class QNLRequest {
 
     public short getOpId() {
         return opId;
+    }
+    
+    public void setPeerIP(String ip) {
+        peerIPLen = ip.length();
+        frameSz += peerIPLen + 2;
+        peerIP = ip;
+    }
+    
+    public String getPeerIP() {
+    	return peerIP;
     }
 
     public void setRespOpId(short op) {
@@ -94,12 +106,23 @@ public class QNLRequest {
         case QNLConstants.REQ_POST_KP_BLOCK_INDEX:
             break;
         }
-        out.writeInt(frameSz);
-        out.writeShort(opId);
-        out.writeShort(srcSiteIdLen);
-        out.writeBytes(srcSiteId.getBytes(), 0, srcSiteIdLen);
-        out.writeShort(dstSiteIdLen);
-        out.writeBytes(dstSiteId.getBytes(), 0, dstSiteIdLen);
+        
+        switch (opId) {
+        case QNLConstants.REQ_GET_PEER_SITE_ID:
+            out.writeInt(frameSz);
+            out.writeShort(opId);
+            out.writeShort(peerIPLen);
+            out.writeBytes(peerIP.getBytes(), 0, peerIPLen);
+        	break;
+        default:
+            out.writeInt(frameSz);
+            out.writeShort(opId);
+            out.writeShort(srcSiteIdLen);
+            out.writeBytes(srcSiteId.getBytes(), 0, srcSiteIdLen);
+            out.writeShort(dstSiteIdLen);
+            out.writeBytes(dstSiteId.getBytes(), 0, dstSiteIdLen);
+        	break;
+        }
 
         switch (opId) {
         case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
@@ -143,21 +166,33 @@ public class QNLRequest {
             frameSz = frame.readInt();
             this.opId = frame.readShort();
             frameSz -= Short.BYTES;
+            
+            switch (opId) {
+            case QNLConstants.REQ_GET_PEER_SITE_ID:
+                this.peerIPLen = frame.readShort();
+                frameSz -= Short.BYTES;
+                byte [] ip = new byte[this.peerIPLen];
+                frame.readBytes(ip);
+                this.peerIP = new String(ip);
+                frameSz -= this.peerIPLen;
+            	break;
+            default:
+                this.srcSiteIdLen = frame.readShort();
+                frameSz -= Short.BYTES;
+                byte [] src = new byte[srcSiteIdLen];
+                frame.readBytes(src);
+                this.srcSiteId = new String(src);
+                frameSz -= this.srcSiteIdLen;
 
-            this.srcSiteIdLen = frame.readShort();
-            frameSz -= Short.BYTES;
-            byte [] src = new byte[srcSiteIdLen];
-            frame.readBytes(src);
-            this.srcSiteId = new String(src);
-            frameSz -= this.srcSiteIdLen;
-
-            this.dstSiteIdLen = frame.readShort();
-            frameSz -= Short.BYTES;
-            byte [] dst = new byte[dstSiteIdLen];
-            frame.readBytes(dst);
-            this.dstSiteId = new String(dst);
-            frameSz -= this.dstSiteIdLen;
-
+                this.dstSiteIdLen = frame.readShort();
+                frameSz -= Short.BYTES;
+                byte [] dst = new byte[dstSiteIdLen];
+                frame.readBytes(dst);
+                this.dstSiteId = new String(dst);
+                frameSz -= this.dstSiteIdLen;
+            	break;
+            }
+            
             switch (opId) {
             case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
             case QNLConstants.REQ_GET_KP_BLOCK_INDEX:
@@ -230,6 +265,8 @@ public class QNLRequest {
             return "REQ_POST_OTP_BLOCK_INDEX";
         case QNLConstants.REQ_POST_KP_BLOCK_INDEX:
             return "REQ_POST_KP_BLOCK_INDEX";
+        case QNLConstants.REQ_GET_PEER_SITE_ID:
+            return "REQ_GET_PEER_SITE_ID";
         default:
             return "";
         }
@@ -238,8 +275,18 @@ public class QNLRequest {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         Formatter fmt = new Formatter(sb);
-        fmt.format("QNLRequest:%n  opId: %s%n  srcSiteId: %s%n  dstSiteId: %s%n",
-                   opIdToString(opId), srcSiteId, dstSiteId);
+        
+        switch (opId) {
+        case QNLConstants.REQ_GET_PEER_SITE_ID:
+        	fmt.format("QNLRequest:%n  opId: %s%n  peerIP: %s%n",
+        			opIdToString(opId), peerIP);
+        	break;
+        default:
+        	fmt.format("QNLRequest:%n  opId: %s%n  srcSiteId: %s%n  dstSiteId: %s%n",
+        			opIdToString(opId), srcSiteId, dstSiteId);
+        	break;
+        }
+        
         switch (opId) {
         case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
         case QNLConstants.REQ_GET_KP_BLOCK_INDEX:

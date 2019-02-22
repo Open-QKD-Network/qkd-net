@@ -12,6 +12,8 @@ public class QNLConstants {
     public static final short REQ_POST_KP_BLOCK_INDEX = 5;
     public static final short REQ_POST_PEER_ALLOC_KP_BLOCK = 6;
 
+    public static final short REQ_GET_PEER_SITE_ID = 701;
+    
     //Corresponding responses
     public static final short RESP_GET_ALLOC_KP_BLOCK = 101;
     public static final short RESP_POST_ALLOC_KP_BLOCK = 102;
@@ -20,6 +22,9 @@ public class QNLConstants {
     public static final short RESP_GET_KP_BLOCK_INDEX = 104;
     public static final short RESP_POST_KP_BLOCK_INDEX = 105;
     public static final short RESP_POST_PEER_ALLOC_KP_BLOCK = 106;
+    
+
+    public static final short RESP_GET_PEER_SITE_ID = 801;
 
 
 

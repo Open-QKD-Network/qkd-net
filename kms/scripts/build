@@ -42,6 +42,11 @@ git update-index --assume-unchanged mvnw.cmd
 
 cd ..
 cd kms-api-gateway
+mkdir -p $HOME/.qkd/kms/
+if [ ! -f src/main/resources/site.properties ];then
+  cp src/main/resources/site.properties $HOME/.qkd/kms/
+fi
+export SITE_PROPERTIES=$HOME/.qkd/kms/site.properties
 mvn -N io.takari:maven:wrapper
 ./mvnw clean install
 git update-index --assume-unchanged mvnw

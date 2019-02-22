@@ -4,14 +4,15 @@ screen -Sdm reg-svc java -jar registration-service/target/registration-service-0
 sleep 20s
 screen -Sdm auth-svc java -jar auth-service/target/auth-service-0.0.1-SNAPSHOT.jar
 sleep 20s
-screen -Sdm kms-svc java -jar kms-service/target/kms-service-0.0.1-SNAPSHOT.jar
+screen -Sdm kms-svc java -Dspring.config.additional-location=classpath:$HOME/config-repo/site.properties -jar kms-service/target/kms-service-0.0.1-SNAPSHOT.jar
 sleep 20s
 screen -Sdm kms-gw java -jar kms-api-gateway/target/kms-api-gateway-0.0.1-SNAPSHOT.jar
 sleep 20s
 cd kms-qnl-service
+export SITE_PROPERTIES=$HOME/.qkd/kms/site.properties
 screen -Sdm kms-qnl-svc ./mvnw exec:java
 cd ../../qnl/key-routing-service
 screen -Sdm kms-routing-svc ./mvnw exec:java
-cd ../../qll_sim
-screen -Sdm qll-sim MAVEN_OPTS="-Dconfig.file=$HOME/.qkd/qll-sim/qll-sim.conf" ./mvnw exec:java
+#cd ../../qll_sim
+#screen -Sdm qll-sim MAVEN_OPTS="-Dconfig.file=$HOME/.qkd/qll-sim/qll-sim.conf" ./mvnw exec:java
  

@@ -18,6 +18,8 @@ public class QNLResponse {
     private int kpBlockBytesSz;
     private String uuid;
     private boolean payLoadMode =  false;
+    private String peerSiteID;
+    private int peerSiteIDLen;
 
     public QNLResponse(int kpBlockByteSz) {
         frameSz = 0;
@@ -70,6 +72,16 @@ public class QNLResponse {
         frameSz += dstSiteIdLen + 2;
         dstSiteId = dst;
     }
+    
+    public void setPeerSiteID(String peerID) {
+    	peerSiteIDLen = peerID.length();
+        frameSz += peerSiteIDLen + 2;
+        peerSiteID = peerID;
+    }
+    
+    public String getPeerSiteID() {
+        return peerSiteID;
+    }
 
     public String getSrcSiteId() {
         return srcSiteId;
@@ -89,12 +101,23 @@ public class QNLResponse {
         case QNLConstants.RESP_POST_ALLOC_KP_BLOCK:
             break;
         }
-        out.writeInt(frameSz);
-        out.writeShort(opId);
-        out.writeShort(srcSiteIdLen);
-        out.writeBytes(srcSiteId.getBytes(), 0, srcSiteIdLen);
-        out.writeShort(dstSiteIdLen);
-        out.writeBytes(dstSiteId.getBytes(), 0, dstSiteIdLen);
+        
+        switch (opId) {
+        case QNLConstants.REQ_GET_PEER_SITE_ID:
+            out.writeInt(frameSz);
+            out.writeShort(opId);
+            out.writeShort(peerSiteIDLen);
+            out.writeBytes(peerSiteID.getBytes(), 0, peerSiteIDLen);
+        	break;
+        default:
+            out.writeInt(frameSz);
+            out.writeShort(opId);
+            out.writeShort(srcSiteIdLen);
+            out.writeBytes(srcSiteId.getBytes(), 0, srcSiteIdLen);
+            out.writeShort(dstSiteIdLen);
+            out.writeBytes(dstSiteId.getBytes(), 0, dstSiteIdLen);
+        	break;
+        }
 
         switch (opId) {
         case QNLConstants.RESP_POST_ALLOC_KP_BLOCK:
@@ -135,20 +158,32 @@ public class QNLResponse {
             this.opId = frame.readShort();
             frameSz -= Short.BYTES;
 
-            this.srcSiteIdLen = frame.readShort();
-            frameSz -= Short.BYTES;
-            byte [] src = new byte[srcSiteIdLen];
-            frame.readBytes(src);
-            this.srcSiteId = new String(src);
-            frameSz -= this.srcSiteIdLen;
+            switch (opId) {
+            case QNLConstants.REQ_GET_PEER_SITE_ID:
+                this.peerSiteIDLen = frame.readShort();
+                frameSz -= Short.BYTES;
+                byte [] siteID = new byte[this.peerSiteIDLen];
+                frame.readBytes(siteID);
+                this.peerSiteID = new String(siteID);
+                frameSz -= this.peerSiteIDLen;
+            	break;
+            default:
+                this.srcSiteIdLen = frame.readShort();
+                frameSz -= Short.BYTES;
+                byte [] src = new byte[srcSiteIdLen];
+                frame.readBytes(src);
+                this.srcSiteId = new String(src);
+                frameSz -= this.srcSiteIdLen;
 
-            this.dstSiteIdLen = frame.readShort();
-            frameSz -= Short.BYTES;
-            byte [] dst = new byte[dstSiteIdLen];
-            frame.readBytes(dst);
-            this.dstSiteId = new String(dst);
-            frameSz -= this.dstSiteIdLen;
-
+                this.dstSiteIdLen = frame.readShort();
+                frameSz -= Short.BYTES;
+                byte [] dst = new byte[dstSiteIdLen];
+                frame.readBytes(dst);
+                this.dstSiteId = new String(dst);
+                frameSz -= this.dstSiteIdLen;
+            	break;
+            }
+         
             switch (opId) {
             case QNLConstants.RESP_POST_ALLOC_KP_BLOCK:
                 uuidLen = frame.readShort();
@@ -212,6 +247,8 @@ public class QNLResponse {
             return "RESP_POST_OTP_BLOCK_INDEX";
         case QNLConstants.RESP_POST_KP_BLOCK_INDEX:
             return "RESP_POST_KP_BLOCK_INDEX";
+        case QNLConstants.RESP_GET_PEER_SITE_ID:
+            return "RESP_GET_PEER_SITE_ID";
         default:
             return "";
         }
@@ -220,8 +257,16 @@ public class QNLResponse {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         Formatter fmt = new Formatter(sb);
-        fmt.format("QNLRequest:%n  opId: %s%n  srcSiteId: %s%n  dstSiteId: %s%n",
-                   opIdToString(opId), srcSiteId, dstSiteId);
+        switch (opId) {
+        case QNLConstants.RESP_GET_PEER_SITE_ID:
+        	fmt.format("QNLResponse:%n  opId: %s%n  peerSiteID: %s%n",
+        			opIdToString(opId), peerSiteID);
+        	break;
+        default:
+        	fmt.format("QNLResponse:%n  opId: %s%n  srcSiteId: %s%n  dstSiteId: %s%n",
+        			opIdToString(opId), srcSiteId, dstSiteId);
+        	break;
+        }
         switch (opId) {
         case QNLConstants.RESP_GET_ALLOC_KP_BLOCK:
             fmt.format("  UUID: %s%n", uuid);

@@ -85,6 +85,22 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
         String uniqueID;
 
         switch (opId) {
+        case QNLConstants.REQ_GET_PEER_SITE_ID:
+        	String peerIP = qReq.getPeerIP();
+        	QNLResponse qResp = new QNLResponse(0);
+        	qResp.setOpId(QNLConstants.RESP_GET_PEER_SITE_ID);
+            qResp.setPeerSiteID(rConfig.getSiteId(peerIP));
+            inboundChannel.writeAndFlush(qResp).addListener(
+            new ChannelFutureListener() {
+                public void operationComplete(ChannelFuture future) {
+                    if (future.isSuccess()) {
+                        future.channel().close();
+                    } else {
+                        future.channel().close();
+                    }
+                }
+            });
+            break;
         case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
             adjSiteId = rConfig.getAdjacentId(destSiteId);
             req = new QNLRequest(blockByteSz);

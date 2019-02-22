@@ -18,7 +18,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import com.uwaterloo.iqc.kms.controller.KMSController;
 
 @Configuration
-@PropertySource("classpath:site.properties")
+@PropertySource(value = "file:${SITE_PROPERTIES}", ignoreResourceNotFound = true)
 public class KeyPoolManager {
 
     class PoolLock {
@@ -36,6 +36,7 @@ public class KeyPoolManager {
     @Value("${qnl.ip}") private String qnlIP;
     @Value("${qnl.port}") private int qnlPort;
     @Autowired	private QNLKeyReader keyReader;
+    @Autowired	private QNLPropertyReader propReader;
 
     @Bean
     public KeyPoolManager keyPoolMgr() {
@@ -68,6 +69,20 @@ public class KeyPoolManager {
         }
         return key;
     }
+    
+    public String getSiteId() {
+    	return localSiteId;
+    }
+    
+    public String getPeerSiteId(String ip) {
+    	String id = null;
+    	try {
+    		id = propReader.read(qnlIP, qnlPort, ip, ip.length());
+    	} catch(Exception e) {
+    		logger.error("Error getting peer site id", e);
+    	}
+    	return id;
+    }    
 
     private Key fetchKey(String siteId, String inBlockId, long ind) throws Exception {
         String blockId = inBlockId;

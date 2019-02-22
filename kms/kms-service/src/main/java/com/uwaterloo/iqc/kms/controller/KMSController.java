@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.uwaterloo.iqc.kms.component.Key;
 import com.uwaterloo.iqc.kms.component.KeyPoolManager;
+import com.uwaterloo.iqc.kms.component.LocalSiteID;
+import com.uwaterloo.iqc.kms.component.PeerSiteID;
 import com.uwaterloo.iqc.kms.component.PolicyEngine;
 
 /**
@@ -71,6 +73,20 @@ public class KMSController {
             k = new Key();
         }
         return k;
+    }
+    
+    @RequestMapping("/peer_siteid")
+    public PeerSiteID getPeerSiteId(@RequestParam(value="ip") String ip) {
+    	PeerSiteID id = new PeerSiteID();
+    	id.siteID = keyPoolMgr.getPeerSiteId(ip);
+    	return id;
+    }
+    
+    @RequestMapping("/siteid")
+    public  LocalSiteID siteId() {
+    	LocalSiteID id = new LocalSiteID();
+    	id.siteID = keyPoolMgr.getSiteId();
+    	return id;
     }
 
     void printKey(Key k, boolean isNew) {

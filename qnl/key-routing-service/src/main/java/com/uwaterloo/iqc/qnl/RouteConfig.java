@@ -20,6 +20,18 @@ public class RouteConfig {
         else
             return nonAdjacent.get(key);
     }
+    
+    public String getSiteId(String ip) {
+        for (String k : adjacent.keySet()) {
+            if (adjacent.get(k).equals(ip))
+                return k;
+        }
+        for (String k : nonAdjacent.keySet()) {
+            if (nonAdjacent.get(k).equals(ip))
+                return k;
+        }
+        return null;    	
+    }
 
     public String getOtherAdjacentId(String key) {
         for (String k : adjacent.keySet()) {
