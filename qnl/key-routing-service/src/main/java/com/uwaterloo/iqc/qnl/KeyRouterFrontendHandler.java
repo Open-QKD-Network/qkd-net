@@ -89,7 +89,13 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
         	String peerIP = qReq.getPeerIP();
         	QNLResponse qResp = new QNLResponse(0);
         	qResp.setOpId(QNLConstants.RESP_GET_PEER_SITE_ID);
+        	//Please see the comments under getSiteId(..) about 
+        	//why this is not going to work for fetching siteids
+        	//for ip address. Otherwie the framework for retrieving
+        	//property from QNL by KMS works fine.
             qResp.setPeerSiteID(rConfig.getSiteId(peerIP));
+            retainConnectHandler(ctx, "");
+            ctx.fireChannelActive();
             inboundChannel.writeAndFlush(qResp).addListener(
             new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future) {

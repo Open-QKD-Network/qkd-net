@@ -21,6 +21,9 @@ public class RouteConfig {
             return nonAdjacent.get(key);
     }
     
+    //This is only going to work for adjacent nodes
+    //it won't work if nodes are not adjacent as routes.json
+    //doesn't contain ip address in non-adjacent section 
     public String getSiteId(String ip) {
         for (String k : adjacent.keySet()) {
             if (adjacent.get(k).equals(ip))

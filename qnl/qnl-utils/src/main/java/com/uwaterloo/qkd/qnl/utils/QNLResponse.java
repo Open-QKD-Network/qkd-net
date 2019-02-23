@@ -103,7 +103,7 @@ public class QNLResponse {
         }
         
         switch (opId) {
-        case QNLConstants.REQ_GET_PEER_SITE_ID:
+        case QNLConstants.RESP_GET_PEER_SITE_ID:
             out.writeInt(frameSz);
             out.writeShort(opId);
             out.writeShort(peerSiteIDLen);
@@ -159,7 +159,7 @@ public class QNLResponse {
             frameSz -= Short.BYTES;
 
             switch (opId) {
-            case QNLConstants.REQ_GET_PEER_SITE_ID:
+            case QNLConstants.RESP_GET_PEER_SITE_ID:
                 this.peerSiteIDLen = frame.readShort();
                 frameSz -= Short.BYTES;
                 byte [] siteID = new byte[this.peerSiteIDLen];
