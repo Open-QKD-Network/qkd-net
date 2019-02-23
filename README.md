@@ -1,6 +1,9 @@
 qkd-net
 =======
 
+Note: this project runs in a Linux (e.g. Ubuntu) or Mac environment with bash.  Minor tweaks of the scripts are needed for it to work in a Windows environment.  General knowledge and skills of working with Linux/Mac including using terminal command line tools are required. 
+
+The top level directory of this project is referred to as *qkd-net* in the rest of this document.
 Overview
 --------
 
@@ -55,7 +58,7 @@ Ideally, QLL consists of working QKD devices. A QLL simulator is provided in thi
 
 #### Prerequisites (Required)
 
-Install following before proceeding.
+Install the following before proceeding.
 Make sure the executables are in system path.
 
 1. Java SDK 8 or later - http://www.oracle.com/technetwork/java/javase/downloads/index.html
@@ -65,7 +68,7 @@ Make sure the executables are in system path.
 
 #### Prerequisites for testing (Optional)
 
-On a Linux(Ubuntu) system apt-get can be used to install the programs.
+On a Linux(e.g. Ubuntu) system apt-get can be used to install the programs below.
 
 1. Curl
 2. jq
@@ -74,7 +77,7 @@ On a Linux(Ubuntu) system apt-get can be used to install the programs.
 
 ##### kms.conf
 
-Applications like qTox and tls-demo require kms.conf to be present under
+Applications like qTox and tls-kms-demo require kms.conf to be present under
 $HOME/.kms.
 
 This file can be manually created by puting following entries:
@@ -85,24 +88,25 @@ http://localhost:8095/api/getkey<br/>
 C<br/>
 
 
-Depending on where the KMS node is, localhost is replaced by the IP address of
-the host. Last line represents the KMS site id. It should be updated with the
+Depending on where the KMS node is, *localhost* is replaced by *the IP address* of
+the KMS node. Last line represents the KMS site id. It **should be updated** with the
 correct site id. Above is just an example.
 
 ##### config-repo
 
-config-repo directory under $HOME/ contains all the configuration property
-files required by all the microservices.
+The directory *$HOME/config-repo* contains all the configuration property
+files required by all the microservices in KMS and QNL.
 
-All the files reside under <top level directory>/qkd-net/kms/config-repo from where
-they are copied to $HOME/config-repo and checked in local git repository.
+All the files reside under *qkd-net/kms/config-repo* are copied to *$HOME/config-repo* and checked in local git repository.
 
 ##### site.properties
 
-This file is located under <top level directory>/qkd-net/kms/kms-service/src/main/resources/.
+This file is located under *qkd-net/kms/kms-service/src/main/resources/*.
 
 Explanation of site specific configuration properties used by KMS service
 
+// kms site ID
+kms.site.id=B
 //Number of keys per block<br/>
 kms.keys.blocksize=1024<br/>
 //Size of a key in bytes<br/>
@@ -138,8 +142,7 @@ poolLoc: kms/pools<br/>
 
 ###### routes.json:
 
-This file is copied from <top level directory>/qkd-net/qnl/conf/ to
-$HOME/.qkd/qnl.
+This file is copied from *qkd-net/qnl/conf/* to *$HOME/.qkd/qnl*.
 
 Topology information is contained in route.json.
 Currently this information is populated manually.
@@ -147,13 +150,12 @@ There are two sections here, one mentioning nodes which are adjacent
 and the other, non-adjacent. Adjacent nodes section contains the name
 of the node as key and it's IP address as the value.
 Non-adjacent nodes section contians name of the node as key and the name of
-the node it's reachable from as value. Key's value here will always be one
+the node it's reachable from as value. The node for value here will always be one
 of the nodes mentioned in the adjacent nodes section.   
 
 ###### config.yaml:
 
-This file is copied from <top level directory>/qkd-net/qnl/conf/ to
-$HOME/.qkd/qnl.
+This file is copied from *qkd-net/qnl/conf/* to *$HOME/.qkd/qnl*.
 
 Contains various configuration parameters for the key routing service
 running as a network layer.
@@ -238,22 +240,24 @@ There are two endpoints:
 Application at site B makes a newkey call.
 
 Request
-
+```
   Method :      POST
   URL path :    /api/newkey
   URL params:   siteid=[alhpanumeric] e.g. siteid=A
+```
 
 Response
   Format JSON
-
+```
 {
   index: Index of he key
   hexKey: Key in hexadecimal format
   blockId: Id of the block containing the key
 }
-
+```
 e.g. request-response:
 
+```
 curl 'http://localhost:8095/api/newkey?siteid=A' -H"Authorization: Bearer 291a94d5-d624-4269-a2bb-07db62130bb3" | jq
 
 {
@@ -261,7 +265,7 @@ curl 'http://localhost:8095/api/newkey?siteid=A' -H"Authorization: Bearer 291a94
   "hexKey": "a2e1ff3429ff841f5d469893b9c28cbcb586d55c8ecf98c83c704824e889fc43"
   "blockId": ""
 }
-
+```
 2. Get Key
 
 Application on site A makes the getkey call by using the response from the
@@ -272,23 +276,24 @@ Since the sites are different hence OAuth tokens will be different. Which
 means a new OAuth token like above is fetched first.
 
 Request
-
+```
   Method :      POST
   URL path :    /api/getkey
   URL params:   siteid=[alhpanumeric] e.g. siteid=B
                 blockid=
                 index=[Integer]
+```
 Response
   Format JSON
-
+```
   {
     index: Index of he key
     hexKey: Key in hexadecimal format
     blockId: Id of the block containing the key
   }
-
+```
 e.g. request-response:
-
+```
 curl 'http://localhost:8095/api/getkey?siteid=B&index=1&blockid=' -H"Authorization: Bearer abcdef12-d624-4269-a2bb-07db62130bb3" | jq
 
 {
@@ -296,15 +301,15 @@ curl 'http://localhost:8095/api/getkey?siteid=B&index=1&blockid=' -H"Authorizati
   "hexKey": "4544a432fb045f4940e1e2fe005470e1a35d85ede55f78927ca80f46a0a4b045"
   "blocId": ""
 }
-
+```
 TEAM
 ----
 
-The Open QKD Network project is led by Professors [Michele Mosca](http://faculty.iqc.uwaterloo.ca/mmosca/) and [Norbert Lutkenhaus[(http://services.iqc.uwaterloo.ca/people/profile/nlutkenh) at Institute for Quantum Computing (IQC) of the University of Waterloo.
+The Open QKD Network project is led by Professors [Michele Mosca](http://faculty.iqc.uwaterloo.ca/mmosca/) and [Norbert Lutkenhaus](http://services.iqc.uwaterloo.ca/people/profile/nlutkenh) at Institute for Quantum Computing (IQC) of the University of Waterloo.
 
 ### Contributors
 
 Contributors to this master branch of qkd-net include:
 
 - Shravan Mishra (University of Waterloo)
-- Xinhua Ling (University of Waterloo)
+- Xinhua Ling (University of Waterloo, XLNTEC Inc.)

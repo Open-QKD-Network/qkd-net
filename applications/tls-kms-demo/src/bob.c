@@ -125,9 +125,9 @@ err:
 
 static char* site_id(char* ip) {
 
-	if (strcmp(ip, "192.168.9.168") == 0)
+	if (strcmp(ip, "192.168.1.29") == 0)
 		return "B";
-	else if (strcmp(ip, "192.168.9.121") == 0)
+	else if (strcmp(ip, "192.168.1.35") == 0)
 		return "A";
 	else
 		return "C";
