@@ -78,7 +78,7 @@ On a Linux(e.g. Ubuntu) system apt-get can be used to install the programs below
 ##### kms.conf
 
 Applications like qTox and tls-kms-demo require kms.conf to be present under
-$HOME/.kms.
+$HOME/.qkd/kms/.
 
 This file can be manually created by puting following entries:
 
