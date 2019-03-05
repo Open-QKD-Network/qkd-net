@@ -123,22 +123,11 @@ err:
     return (ret);
 }
 
-static char* site_id(char* ip) {
-
-	if (strcmp(ip, "192.168.9.168") == 0)
-		return "B";
-	else if (strcmp(ip, "192.168.9.121") == 0)
-		return "A";
-	else
-		return "C";
-} 
-
 static int do_accept(int acc_sock, int *sock, char *siteid)
 {
     int ret;
     static struct sockaddr_in from;
     int len;
-    char siteip[16]; 
 
     memset((char *)&from, 0, sizeof(from));
     len = sizeof(from);
@@ -154,18 +143,13 @@ static int do_accept(int acc_sock, int *sock, char *siteid)
     }
     
     char *addr = inet_ntoa(from.sin_addr); 
-    strcpy(siteip, addr);
-    siteip[strlen(addr)] = '\0';
-    char * id = site_id(siteip);
-    strcpy(siteid, id);
-    siteid[1] = '\0';
+    strcpy(siteid, addr);
+    siteid[strlen(addr)] = '\0';
     *sock = ret;
     return (1);
 }
 
-
-
-int server_body(int s, char *site_id)
+int server_body(int s, char *siteip)
 {
     fd_set readfds;
     int ret = 1, width;
@@ -185,8 +169,8 @@ int server_body(int s, char *site_id)
     fp = fopen(filename, "wb");
 	++file_counter;
 #if defined(REST_KMS)
-    strcpy(gNC.peer_site_id, site_id);
-    gNC.peer_site_id[1] = '\0';
+    strcpy(gNC.peer_site_ip, siteip);
+    gNC.peer_site_ip[strlen(siteip)] = '\0';
     fetch_new_qkd_key(&gNC);
     snprintf(hint, 128, "%s %s %d", gNC.site_id, gNC.block_id, gNC.index);
     SSL_CTX_use_psk_identity_hint(ctx, hint);
@@ -298,7 +282,7 @@ static int serve() {
     const SSL_METHOD *meth = NULL;
     int i, sock;
     int accept_socket = 0;
-    char siteid[2];
+    char siteip[16];
 
     apps_startup();
 
@@ -322,11 +306,11 @@ static int serve() {
     }
 
     while(1) {
-        if (do_accept(accept_socket, &sock, siteid) == 0) {
+        if (do_accept(accept_socket, &sock, siteip) == 0) {
             close(accept_socket);
             return (0);
         }
-        i = server_body(sock, siteid);
+        i = server_body(sock, siteip);
         if (i < 0) {
             close(accept_socket);
             return i;

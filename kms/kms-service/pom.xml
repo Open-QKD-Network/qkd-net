@@ -83,6 +83,17 @@
 				<artifactId>logstash-logback-encoder</artifactId>
 				<version>5.1</version>
 			</dependency>
+			<dependency>
+				<groupId>org.kie.modules</groupId>
+				<artifactId>org-apache-commons-net</artifactId>
+				<version>6.5.0.Final</version>
+				<type>pom</type>
+			</dependency>
+			<dependency>
+				<groupId>javax</groupId>
+				<artifactId>javaee-web-api</artifactId>
+				<version>8.0.1-b5</version>
+			</dependency>
 	</dependencies>
 
 	<dependencyManagement>

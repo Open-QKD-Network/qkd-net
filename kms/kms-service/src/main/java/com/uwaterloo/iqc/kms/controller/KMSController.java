@@ -1,5 +1,10 @@
 package com.uwaterloo.iqc.kms.controller;
 
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +26,9 @@ public class KMSController {
     @Autowired private KeyPoolManager keyPoolMgr;
     @Autowired private PolicyEngine policy;
     private static final Logger logger = LoggerFactory.getLogger(KMSController.class);
+    
+    public final String SITEID = "siteid";
+    public final String USERIP = "ip";
 
     
     /**
@@ -34,13 +42,26 @@ public class KMSController {
      * @return Key  New key
      */    
     @RequestMapping("/newkey")
-    public Key newKey(@RequestParam(value="siteid") String name) {
-        Key k;
-        if (policy.check()) {
-            k = keyPoolMgr.newKey(name);
-            printKey(k, true);
-        } else {
-            k = new Key();
+    public Key newKey(@Context HttpServletRequest request) {    	
+    	Map<String, String[]> paramMap = request.getParameterMap();
+        Key k = null;
+        
+        if (!paramMap.isEmpty()) {
+        	String queryParamValue = null;
+        	
+        	if (paramMap.get(SITEID) != null && paramMap.get(SITEID)[0] != null) {
+        		queryParamValue = paramMap.get(SITEID)[0];
+        	} else if (paramMap.get(USERIP) != null && paramMap.get(USERIP)[0] != null) {
+        		queryParamValue = paramMap.get(USERIP)[0];
+        		queryParamValue = keyPoolMgr.getPeerSiteID(queryParamValue);
+        		
+        	}
+	        if (queryParamValue != null && !queryParamValue.isEmpty() && policy.check()) {
+	            k = keyPoolMgr.newKey(queryParamValue);
+	            printKey(k, true);
+	        } else {
+	            k = new Key();
+	        }
         }
         return k;
     }
