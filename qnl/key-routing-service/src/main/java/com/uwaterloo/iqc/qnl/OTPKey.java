@@ -1,5 +1,8 @@
 package com.uwaterloo.iqc.qnl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -9,6 +12,7 @@ import com.uwaterloo.iqc.qnl.qll.QLLReader;
 import com.uwaterloo.qkd.qnl.utils.QNLUtils;
 
 public class OTPKey {
+    private static Logger LOGGER = LoggerFactory.getLogger(OTPKey.class);
 
     private QNLConfiguration qnlConfig;
     private String id;
@@ -19,6 +23,7 @@ public class OTPKey {
     public OTPKey(QNLConfiguration qnlConfig, String id) {
         this.qnlConfig = qnlConfig;
         this.id = id;
+        LOGGER.info("OTPKey.new:id=" + id);
         createKey();
     }
 

@@ -220,7 +220,7 @@ public class QNLResponse {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         Formatter fmt = new Formatter(sb);
-        fmt.format("QNLRequest:%n  opId: %s%n  srcSiteId: %s%n  dstSiteId: %s%n",
+        fmt.format("QNLResponse:%n  opId: %s%n  srcSiteId: %s%n  dstSiteId: %s%n",
                    opIdToString(opId), srcSiteId, dstSiteId);
         switch (opId) {
         case QNLConstants.RESP_GET_ALLOC_KP_BLOCK:

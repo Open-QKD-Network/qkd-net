@@ -1,5 +1,8 @@
 package com.uwaterloo.iqc.qnl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.uwaterloo.qkd.qnl.utils.QNLRequest;
 
 import io.netty.bootstrap.Bootstrap;
@@ -14,6 +17,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 
 public class KeyRouterConnectHandler extends ChannelInboundHandlerAdapter {
+    private static Logger LOGGER = LoggerFactory.getLogger(KeyRouterConnectHandler.class);
+
     private final String remoteHost;
     private final int remotePort;
 
@@ -25,11 +30,13 @@ public class KeyRouterConnectHandler extends ChannelInboundHandlerAdapter {
         this.remoteHost = remoteHost;
         this.remotePort = remotePort;
         this.qConfig = qConfig;
+        LOGGER.info("KeyRouterConnectHandler.new:" + this + "," + remoteHost + ":" + remotePort);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         inboundChannel = ctx.channel();
+        LOGGER.info("KeyRouterConnectHandler.channelActive:" + this + ",inboundChannel:" + inboundChannel);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         Bootstrap b = new Bootstrap();
@@ -41,10 +48,13 @@ public class KeyRouterConnectHandler extends ChannelInboundHandlerAdapter {
         ChannelFuture f = b.connect(remoteHost, remotePort);
         f.awaitUninterruptibly();
         outboundChannel = f.channel();
+        final KeyRouterConnectHandler that = this;
         f.addListener(new ChannelFutureListener() {
             public void operationComplete(ChannelFuture future) {
                 if (future.isSuccess()) {
+                    LOGGER.info(that + ",connect succeeds,inbound channel:" + inboundChannel + ",outbound channel:" +  outboundChannel);
                 } else {
+                    LOGGER.info(that + ",connect fails,inbound channel:" + inboundChannel);
                     inboundChannel.close();
                 }
             }
@@ -56,6 +66,7 @@ public class KeyRouterConnectHandler extends ChannelInboundHandlerAdapter {
         QNLRequest req = (QNLRequest)msg;
         short opid = req.getOpId();
 
+        LOGGER.info("KeyRouteConnectHandler/readQLNRequest:" + this + ",req" + req);
         outboundChannel.writeAndFlush(req).addListener(new ChannelFutureListener() {
             public void operationComplete(ChannelFuture future) {
                 if (future.isSuccess()) {

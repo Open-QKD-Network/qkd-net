@@ -1,5 +1,8 @@
 package com.uwaterloo.iqc.qnl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.uwaterloo.qkd.qnl.utils.RequestDecoder;
 import com.uwaterloo.qkd.qnl.utils.ResponseEncoder;
 
@@ -9,6 +12,8 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 public class KeyServerRouterInitializer extends ChannelInitializer<SocketChannel> {
+
+    private static Logger LOGGER = LoggerFactory.getLogger(KeyServerRouterInitializer.class);
 
     private QNLConfiguration qConfig;
 
@@ -30,6 +35,7 @@ public class KeyServerRouterInitializer extends ChannelInitializer<SocketChannel
             int port = qConfig.getConfig().getPort();
             if (ipPort.length == 2)
                 port = Integer.valueOf(ipPort[1]);
+            LOGGER.info("add " + k + ", KeyRouterConnectHandler to " + ipPort[0] + ":" + port);
             ch.pipeline().addLast(k, new KeyRouterConnectHandler(ipPort[0], port, qConfig));
         }
         ch.pipeline().addLast("kms", new KeyRouterConnectHandler( cfg.getKmsIP(),

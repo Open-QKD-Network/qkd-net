@@ -1,3 +1,5 @@
+#!/bin/sh
+
 sudo apt-get update
 sudo apt-get install -y build-essential
 sudo apt-get install -y autotools-dev
@@ -16,4 +18,12 @@ sudo apt-get install -y libxss-dev
 sudo apt-get install -y libgdk-pixbuf2.0-dev
 sudo apt-get install -y libgtk2.0-dev
 sudo apt-get install -y libopus-dev
+sudo apt-get install qtdeclarative5-dev qml-module-qtquick-controls
 
+sudo apt-get install qttools5-dev-tools
+
+sudo apt-get install libqt5svg5-dev
+
+sudo apt-get install libqt5opengl5-dev
+
+sudo apt-get install libavdevice-dev

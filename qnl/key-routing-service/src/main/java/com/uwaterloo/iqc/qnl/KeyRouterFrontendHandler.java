@@ -2,6 +2,9 @@ package com.uwaterloo.iqc.qnl;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import org.apache.commons.codec.binary.Hex;
 
@@ -21,6 +24,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 
 public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
 
+    static private Logger LOGGER = LoggerFactory.getLogger(KeyRouterFrontendHandler.class);
+
     private QNLConfiguration qConfig;
     private Channel inboundChannel;
     QNLRequest qReq;
@@ -33,6 +38,7 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         inboundChannel = ctx.channel();
+        LOGGER.info(this + ".channelActive, inboud channel:" + inboundChannel);
         inboundChannel.read();
     }
 
@@ -84,9 +90,11 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
         OTPKey otpKey;
         String uniqueID;
 
+        LOGGER.info("KeyRouterFrontend/processQNLRequest,localSiteId:" + localSiteId + ", QNLRequest:" + qReq);
         switch (opId) {
         case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
             adjSiteId = rConfig.getAdjacentId(destSiteId);
+            LOGGER.info("adjSiteId:" + adjSiteId);
             req = new QNLRequest(blockByteSz);
             if (localSiteId.compareToIgnoreCase(adjSiteId) < 0) {
                 uniqueID = UUID.randomUUID().toString();
@@ -101,6 +109,7 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
             }
             req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
             otherSiteId = rConfig.getOtherAdjacentId(adjSiteId);
+            LOGGER.info("REQ_GET_ALLOC_KP_BLOCK/generate new QNLRequest:" + req);
             retainConnectHandler(ctx, adjSiteId);
 
             ctx.fireChannelActive();
@@ -125,6 +134,7 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                 req.setRespOpId(QNLConstants.RESP_POST_KP_BLOCK_INDEX);
                 req.setPayLoad(binDest);
 
+                LOGGER.info("REQ_POST_KP_BLOCK_INDEX/generate new QNLRequest:" + req);
                 retainConnectHandler(ctx, QNLConfig.KMS);
                 ctx.fireChannelActive();
                 ctx.fireChannelRead(req);
@@ -146,6 +156,7 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                     e.printStackTrace(System.out);
                 }
 
+                LOGGER.info("REQ_POST_KP_BLOCK_INDEX/generate new QNLRequest:" + req);
                 ctx.fireChannelActive();
                 ctx.fireChannelRead(req);
             }
@@ -169,12 +180,14 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                 } catch(Exception e) {}
                 req.setPayLoad(binDest);
 
+                LOGGER.info("REQ_GET_KP_BLOCK_INDEX/generate new QNLRequest:" + req);
                 retainConnectHandler(ctx, QNLConfig.KMS);
                 ctx.fireChannelActive();
                 ctx.fireChannelRead(req);
             } else {
                 adjSiteId = rConfig.getAdjacentId(destSiteId);
                 otherSiteId = rConfig.getOtherAdjacentId(adjSiteId);
+                LOGGER.info("adjSiteId(destSiteId=" + destSiteId + ")=" + adjSiteId);
 
                 req = new QNLRequest(blockByteSz);
                 req.setOpId(QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK);
@@ -189,6 +202,7 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                 } catch(Exception e) {
                     e.printStackTrace(System.out);
                 }
+                LOGGER.info("REQ_GET_KP_BLOCK_INDEX/generate new QNLRequest:" + req);
                 retainConnectHandler(ctx, adjSiteId);
                 ctx.fireChannelActive();
                 ctx.fireChannelRead(req);
@@ -206,12 +220,14 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                 binDest = new byte[blockByteSz];
                 qReq.getPayLoad().readBytes(binDest);
                 adjSiteId = rConfig.getAdjacentId(srcSiteId);
+                LOGGER.info("adjSiteId(srcSiteId=" + srcSiteId + ")=" + adjSiteId);
                 try {
                     otpKey = qConfig.getOTPKey(adjSiteId);
                     otpKey.otp(binDest);
                     req.setPayLoad(binDest);
                 } catch(Exception e) {}
 
+                LOGGER.info("REQ_POST_PEER_ALLOC_KP_BLOCK/generate new QNLRequest:" + req);
                 retainConnectHandler(ctx, QNLConfig.KMS);
                 ctx.fireChannelActive();
                 ctx.fireChannelRead(req);
@@ -219,6 +235,7 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                 // Non adjacent allocation request
                 //Create REQ_POST_PEER_ALLOC_KP_BLOCK to propagate key blocks
                 otherSiteId = rConfig.getOtherAdjacentId(rConfig.getAdjacentId(destSiteId));
+                LOGGER.info("REQ_POST_PEER_ALLOC_KP_BLOCK/otherSiteId:" + otherSiteId);
                 if (otherSiteId != null)
                     ctx.pipeline().remove(otherSiteId);
                 //NEEDS FIXING
@@ -233,6 +250,7 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
     }
 
     private void retainConnectHandler(ChannelHandlerContext ctx, String retained) {
+        LOGGER.info("retainConnectHandler:" + retained);
         RouteConfig rCfg = qConfig.getRouteConfig();
         for (String k : rCfg.adjacent.keySet()) {
             if (!k.equals(retained))
@@ -242,4 +260,3 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
             ctx.pipeline().remove(QNLConfig.KMS);
     }
 }
-

@@ -19,8 +19,8 @@ public class KeyRouter {
     		qConfig = new QNLConfiguration(null);
     	else
     		qConfig = new QNLConfiguration(args[0]);
-    	
-    	LOGGER.info("Key router started");
+
+        LOGGER.info("Key router started, args.length:" + args.length);
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -35,6 +35,6 @@ public class KeyRouter {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
-       
+
     }
 }
