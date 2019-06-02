@@ -67,6 +67,8 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
         switch (opId) {
         case QNLConstants.RESP_POST_ALLOC_KP_BLOCK:
             QNLResponse adjResp = new QNLResponse(blockByteSz);
+            // opId: RESP_POST_PEER_ALLOC_KP_BLOCK
+            // C ---> B ---> A, A is localSiteId, send to B
             adjResp.setOpId(qResp.getRespOpId());
             adjResp.setSiteIds(qResp.getSrcSiteId(), qResp.getDstSiteId());
             adjResp.setKeyBlockIndex(qResp.getKeyBlockIndex());
@@ -87,6 +89,10 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
 
         case QNLConstants.RESP_POST_KP_BLOCK_INDEX:
         case QNLConstants.RESP_GET_KP_BLOCK_INDEX:
+            // RESP_GET_KP_BLOCK_INDEX, send RESP_GET_ALLOC_KP_BLOCK back to KMS service
+            // Request C ---> B ---> A
+            // Response C <---B <--- A, localSiteId is C
+            // so adjSiteId is B
             adjSiteId = rConfig.getAdjacentId(destSiteId);
             LOGGER.info("adjSiteId:" + adjSiteId);
             index = qResp.getKeyBlockIndex();
@@ -125,6 +131,9 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
             break;
 
         case QNLConstants.RESP_POST_PEER_ALLOC_KP_BLOCK:
+            // Request: C ---> B ---> A
+            // Response: C <--- B <--- A
+            // localSite is B, adjSiteId should be next hop to C
             adjSiteId = rConfig.getAdjacentId(srcSiteId);
 
             LOGGER.info("RESP_POST_PEER_ALLOC_KP_BLOCK/adjSiteId:" + adjSiteId + ",localSiteId:" + localSiteId + ",srcSiteId:" + srcSiteId);

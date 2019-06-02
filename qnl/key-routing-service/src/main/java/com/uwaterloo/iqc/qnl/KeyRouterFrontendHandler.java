@@ -93,6 +93,9 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
         LOGGER.info("KeyRouterFrontend/processQNLRequest,localSiteId:" + localSiteId + ", QNLRequest:" + qReq);
         switch (opId) {
         case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
+            // Step 1: it should be rConfig.getRoutes(srcSiteId, destSiteId)
+            // and puts routes into QNLRequest()
+            // adjSiteId should be next hop on the path
             adjSiteId = rConfig.getAdjacentId(destSiteId);
             LOGGER.info("adjSiteId:" + adjSiteId);
             req = new QNLRequest(blockByteSz);
@@ -108,7 +111,6 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                 req.setOpId(QNLConstants.REQ_GET_KP_BLOCK_INDEX);
             }
             req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
-            otherSiteId = rConfig.getOtherAdjacentId(adjSiteId);
             LOGGER.info("REQ_GET_ALLOC_KP_BLOCK/generate new QNLRequest:" + req);
             retainConnectHandler(ctx, adjSiteId);
 
@@ -162,6 +164,7 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
             }
             break;
         case QNLConstants.REQ_GET_KP_BLOCK_INDEX:
+            // Step 2:
             uniqueID = UUID.randomUUID().toString();
             qllRdr = qConfig.getQLLReader(srcSiteId);
             ref = new AtomicLong(0);
@@ -185,8 +188,10 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                 ctx.fireChannelActive();
                 ctx.fireChannelRead(req);
             } else {
+                // For example C ---> B ---> A
+                // localSiteId is intermediate site B
+                // adjSiteId should be next hop on the path
                 adjSiteId = rConfig.getAdjacentId(destSiteId);
-                otherSiteId = rConfig.getOtherAdjacentId(adjSiteId);
                 LOGGER.info("adjSiteId(destSiteId=" + destSiteId + ")=" + adjSiteId);
 
                 req = new QNLRequest(blockByteSz);
@@ -195,6 +200,9 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                 req.setKeyBlockIndex(ref.get());
                 req.setUUID(uniqueID);
                 try {
+                    // OTPKey should be key between B and next hop
+                    // In this case next hop is A
+                    // qll(C->B) xor otp(B->A)
                     otpKey = qConfig.getOTPKey(adjSiteId);
                     binDest = new Hex().decode(hex);
                     otpKey.otp(binDest);
@@ -211,6 +219,8 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
 
         case QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK:
             if (localSiteId.equals(destSiteId)) {
+                // C ---> B ---> A, Here is A
+                // adjSiteId should be previous hop B
                 req = new QNLRequest(blockByteSz);
                 req.setOpId(QNLConstants.REQ_POST_ALLOC_KP_BLOCK);
                 req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
@@ -222,6 +232,7 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                 adjSiteId = rConfig.getAdjacentId(srcSiteId);
                 LOGGER.info("adjSiteId(srcSiteId=" + srcSiteId + ")=" + adjSiteId);
                 try {
+                    // qll(C->B) xor otp(B->A) xor otp(A->B) = qll(C->B)
                     otpKey = qConfig.getOTPKey(adjSiteId);
                     otpKey.otp(binDest);
                     req.setPayLoad(binDest);
@@ -232,6 +243,8 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                 ctx.fireChannelActive();
                 ctx.fireChannelRead(req);
             } else {
+                // It should be next hop if there is one for example
+                // C ---> B ---> A ---> D, localSiteId is A
                 // Non adjacent allocation request
                 //Create REQ_POST_PEER_ALLOC_KP_BLOCK to propagate key blocks
                 otherSiteId = rConfig.getOtherAdjacentId(rConfig.getAdjacentId(destSiteId));
