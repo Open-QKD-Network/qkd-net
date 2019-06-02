@@ -1,13 +1,15 @@
 package com.uwaterloo.iqc.qnl.lsrp;
 
 import java.util.List;
+import java.util.LinkedList;
 
 public class LSRPMessage {
+
   private boolean request;
   private String type;
   private String originator;
-  private int timeStamp;
-  private List<Node> neighgours = new LinkedList<Node>();
+  private long timeStamp;
+  private List<Node> neighbours = new LinkedList<Node>();
 
   public LSRPMessage() {
   }

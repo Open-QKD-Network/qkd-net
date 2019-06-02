@@ -1,6 +1,8 @@
-package com.uwaterloo.qkd.lsrp;
+package com.uwaterloo.iqc.qnl.lsrp;
 
-import io.netty.buffer.ByteBuffer;
+import java.nio.charset.Charset;
+
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 

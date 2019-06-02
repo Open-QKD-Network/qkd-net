@@ -9,7 +9,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 // Handle LSRPResponse
 public class LSRPOutgoingClientHandler extends ChannelInboundHandlerAdapter {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(LSRPOutgoingClientHandlerHandler.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(LSRPOutgoingClientHandler.class);
 
   public LSRPOutgoingClientHandler() {
   }
