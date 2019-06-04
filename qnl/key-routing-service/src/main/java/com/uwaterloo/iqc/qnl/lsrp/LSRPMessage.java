@@ -25,6 +25,10 @@ public class LSRPMessage {
     this.neighbours.add(neighbour);
   }
 
+  public long getTimeStamp() {
+    return this.timeStamp;
+  }
+
   public void setPayload(String payload) {
     // parse JSON
   }
