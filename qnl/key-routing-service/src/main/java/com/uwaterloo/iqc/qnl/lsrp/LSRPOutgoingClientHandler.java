@@ -16,11 +16,11 @@ public class LSRPOutgoingClientHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelActive(ChannelHandlerContext ctx) {
-
+    LOGGER.info("LSRPOutgoingClientHandler.channelActive, channel:" + ctx.channel());
   }
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    // handle the response
+    LOGGER.info("LSRPOutgoingClientHandler.channelRead,channel:" + ctx.channel() + ",msg:" + (LSRPMessage) msg);
   }
 }

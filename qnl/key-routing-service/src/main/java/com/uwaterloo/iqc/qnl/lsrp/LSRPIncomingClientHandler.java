@@ -1,5 +1,8 @@
 package com.uwaterloo.iqc.qnl.lsrp;
 
+import java.net.InetSocketAddress;
+import java.net.InetAddress;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +26,10 @@ public class LSRPIncomingClientHandler extends  ChannelInboundHandlerAdapter {
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-
-    //
+    String remoteAddr = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
+    int remotePort = ((InetSocketAddress) ctx.channel().remoteAddress()).getPort();
+    LOGGER.info("LSRPIncomingClientHandler.channelRead,channel:" +
+      ctx.channel() + ",msg:" + (LSRPMessage) msg + ",from:" + remoteAddr + ":" + remotePort);
+    this.router.onLSRP((LSRPMessage)msg, remoteAddr, remotePort);
   }
 }

@@ -32,6 +32,8 @@ public class LSRPRouter {
 
     private List<Node> adjacentNeighbours = new LinkedList<Node>();
 
+    private List<Node> allNodes = new LinkedList<Node>();
+
     private Timer connectTimer = new Timer("LSRPRouterConnectTimer");
 
     private long floodingTimeStamp;
@@ -75,8 +77,47 @@ public class LSRPRouter {
     }
 
     public void connectNeighbourInTimer(Node neighbour) {
-        ConnectTimerTask task = new ConnectTimerTask(neighbour);
-        this.connectTimer.schedule(task, 30 * 1000l);
+      ConnectTimerTask task = new ConnectTimerTask(neighbour);
+      this.connectTimer.schedule(task, 30 * 1000l);
+    }
+
+    public void onLSRP(LSRPMessage msg, String remoteAddr, int remotePort) {
+      Node o = null;
+      for (int index = 0; index < this.adjacentNeighbours.size(); index++) {
+        Node n = this.adjacentNeighbours.get(index);
+        if (msg.getOriginator().equalsIgnoreCase(n.getName())) {
+          if (msg.getTimeStamp() > n.getFloodingTimeStamp()) {
+            n.setFloodingTimeStamp(msg.getTimeStamp());
+          }
+          o = n;
+          break;
+        }
+      }
+      for (int index = 0; index < this.allNodes.size(); index++) {
+        Node an = this.allNodes.get(index);
+        if (msg.getOriginator().equalsIgnoreCase(an.getName())) {
+          o = an;
+          if (msg.getTimeStamp() > an.getFloodingTimeStamp()) {
+            // new LSRP of existing node
+            an.setFloodingTimeStamp(msg.getTimeStamp());
+          }
+        }
+      }
+      if (o == null) {
+        //insert an new node into allNodes
+        o = new Node(msg.getOriginator(), null, 0);
+        o.setFloodingTimeStamp(msg.getTimeStamp());
+        LOGGER.info("Add new node to graph:" + o);
+        this.allNodes.add(o);
+      }
+      // forward the msg to all neighbours except the one recevied from
+      for (int index = 0; index < this.adjacentNeighbours.size(); index++) {
+        Node n = this.adjacentNeighbours.get(index);
+        if (remoteAddr.equalsIgnoreCase(n.getAddress()))
+          continue;
+        else
+          n.sendLSRP(msg);
+      }
     }
 
     private void startListening()  throws Exception {
@@ -90,7 +131,7 @@ public class LSRPRouter {
           .channel(NioServerSocketChannel.class)
           .handler(new LoggingHandler(LogLevel.INFO))
           .childHandler(new LSRPServerRouterInitializer(this))
-          .childOption(ChannelOption.AUTO_READ, false)
+          //.childOption(ChannelOption.AUTO_READ, false)
           .bind(9395).sync().channel().closeFuture().sync();
       } finally {
           bossGroup.shutdownGracefully();

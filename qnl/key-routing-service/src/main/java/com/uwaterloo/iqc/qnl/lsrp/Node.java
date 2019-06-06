@@ -34,7 +34,11 @@ public class Node {
     return this.port;
   }
 
-  public void setFloodingStamp(long stamp) {
+  public long getFloodingTimeStamp() {
+    return this.floodingTimeStamp;
+  }
+
+  public void setFloodingTimeStamp(long stamp) {
     this.floodingTimeStamp = stamp;
     LOGGER.info("Received floodingtimestamp:" + this);
   }

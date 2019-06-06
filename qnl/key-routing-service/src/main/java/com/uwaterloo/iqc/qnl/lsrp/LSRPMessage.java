@@ -34,6 +34,10 @@ public class LSRPMessage {
     this.neighbours.add(neighbour);
   }
 
+  public String getOriginator() {
+    return this.originator;
+  }
+
   public long getTimeStamp() {
     return this.timeStamp;
   }
@@ -53,9 +57,9 @@ public class LSRPMessage {
       JSONArray neighbours = (JSONArray) json.get("neighbours");
       for (int index = 0; index < neighbours.size(); index++) {
         JSONObject jn = (JSONObject) neighbours.get(index);
-        Node n = new Node((String) jn.get("name"),
-          (String) jn.get("address"),
-          (Integer) jn.get("port"));
+        String addr = (String) jn.get("address");
+        long port = (Long) jn.get("port");
+        Node n = new Node((String) jn.get("name"), addr, (int) port);
         this.neighbours.add(n);
       }
     } catch (Exception e) {

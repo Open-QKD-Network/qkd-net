@@ -7,7 +7,11 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ReplayingDecoder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class LSRPMessageDecoder extends ReplayingDecoder<LSRPMessage> {
+  private static Logger LOGGER = LoggerFactory.getLogger(LSRPMessageDecoder.class);
 
   private final Charset charset = Charset.forName("UTF-8");
 
