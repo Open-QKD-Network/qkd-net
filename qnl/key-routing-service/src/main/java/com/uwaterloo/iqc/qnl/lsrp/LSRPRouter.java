@@ -46,6 +46,10 @@ public class LSRPRouter {
       QNLConfig qnlConfig = qConfig.getConfig();
       this.mySiteId = qnlConfig.getSiteId();
 
+      // Add myself to allNodes
+      Node self = new Node(this.mySiteId, "127.0.0.1", 9395);
+      this.allNodes.add(self);
+
       for (String k : routeCfg.adjacent.keySet()) {
           String [] ipPort = routeCfg.adjacent.get(k).split(":");
           int port = 9395;
@@ -55,6 +59,7 @@ public class LSRPRouter {
           Node node = new Node(k, ipPort[0], port);
           node.setAdjacent(true);
           this.adjacentNeighbours.add(node);
+          this.allNodes.add(node);
       }
     }
 
@@ -83,11 +88,13 @@ public class LSRPRouter {
 
     public void onLSRP(LSRPMessage msg, String remoteAddr, int remotePort) {
       Node o = null;
+      boolean update = false;
       for (int index = 0; index < this.adjacentNeighbours.size(); index++) {
         Node n = this.adjacentNeighbours.get(index);
         if (msg.getOriginator().equalsIgnoreCase(n.getName())) {
           if (msg.getTimeStamp() > n.getFloodingTimeStamp()) {
             n.setFloodingTimeStamp(msg.getTimeStamp());
+            update = true;
           }
           o = n;
           break;
@@ -100,7 +107,9 @@ public class LSRPRouter {
           if (msg.getTimeStamp() > an.getFloodingTimeStamp()) {
             // new LSRP of existing node
             an.setFloodingTimeStamp(msg.getTimeStamp());
+            update = true;
           }
+          break;
         }
       }
       if (o == null) {
@@ -109,6 +118,11 @@ public class LSRPRouter {
         o.setFloodingTimeStamp(msg.getTimeStamp());
         LOGGER.info("Add new node to graph:" + o);
         this.allNodes.add(o);
+        update = true;
+      }
+
+      if (update) {
+        // update the o's neighbour based on message, ffs
       }
       // forward the msg to all neighbours except the one recevied from
       for (int index = 0; index < this.adjacentNeighbours.size(); index++) {
@@ -118,6 +132,10 @@ public class LSRPRouter {
         else
           n.sendLSRP(msg);
       }
+    }
+
+    public void onAdjacentNeighbourDisconnected(String remoteAddr, int remotePort) {
+      // remove the neighbour and flooding again
     }
 
     private void startListening()  throws Exception {
@@ -131,7 +149,6 @@ public class LSRPRouter {
           .channel(NioServerSocketChannel.class)
           .handler(new LoggingHandler(LogLevel.INFO))
           .childHandler(new LSRPServerRouterInitializer(this))
-          //.childOption(ChannelOption.AUTO_READ, false)
           .bind(9395).sync().channel().closeFuture().sync();
       } finally {
           bossGroup.shutdownGracefully();
@@ -147,13 +164,12 @@ public class LSRPRouter {
         b.channel(NioSocketChannel.class);
         b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000);
         b.option(ChannelOption.SO_KEEPALIVE, true);
-        b.handler(new LSRPOutgoingClientInitializer());
+        b.handler(new LSRPOutgoingClientInitializer(this));
 
         LOGGER.info("LSRPRouter tries to connect to neighbour:" +
             neighbour.getName() + ", address:" + neighbour.getAddress() +
             ", port:" + neighbour.getPort());
         ChannelFuture f = b.connect(neighbour.getAddress(), neighbour.getPort()).sync();
-        //f.awaitUninterruptibly();
         f.addListener(new ChannelFutureListener() {
             public void operationComplete(ChannelFuture future) {
                 if (future.isSuccess()) {

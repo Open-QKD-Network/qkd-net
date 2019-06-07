@@ -14,7 +14,7 @@ public class Node {
   long floodingTimeStamp; // the timestamp of last received LSR message.
   private boolean adjacent;
   private boolean connected; // only applies for adjacent
-  private Channel channel;
+  private Channel channel; // channel from myself to this node
 
   public Node(String name, String address, int port) {
     this.name = name;

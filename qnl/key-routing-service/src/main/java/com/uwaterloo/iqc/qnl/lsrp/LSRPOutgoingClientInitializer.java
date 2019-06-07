@@ -13,15 +13,18 @@ public class LSRPOutgoingClientInitializer extends ChannelInitializer<SocketChan
 
     private static Logger LOGGER = LoggerFactory.getLogger(LSRPOutgoingClientInitializer.class);
 
-    public LSRPOutgoingClientInitializer() {
+    private LSRPRouter router;
+
+    public LSRPOutgoingClientInitializer(LSRPRouter router) {
         LOGGER.info("LSRPOutgoingClientInitializer.new: " + this);
+        this.router = router;
     }
 
     @Override
     public void initChannel(SocketChannel ch) {
         ch.pipeline().addLast("lsrp-outgong-response-decoder", new LSRPMessageDecoder());
         ch.pipeline().addLast("loghandler", new LoggingHandler(LogLevel.INFO));
-        ch.pipeline().addLast("lsrp-outgoing-response", new LSRPOutgoingClientHandler());
+        ch.pipeline().addLast("lsrp-outgoing-response", new LSRPOutgoingClientHandler(this.router));
         ch.pipeline().addLast("lsrp-outgoing-request-encoder", new LSRPMessageEncoder());
         LOGGER.info("LSRPOutgoingClientInitializer.initChannel:" + this + ",channel:" + ch);
     }
