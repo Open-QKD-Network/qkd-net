@@ -30,7 +30,6 @@ public class LSRPIncomingClientHandler extends  ChannelInboundHandlerAdapter {
 
   @Override
   public void channelActive(ChannelHandlerContext ctx) throws Exception {
-    LOGGER.info("LSRPIncomingClientHandler.channelActive,channel:" + ctx.channel());
     this.remoteAddr = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
     this.remotePort = ((InetSocketAddress) ctx.channel().remoteAddress()).getPort();
   }
@@ -48,14 +47,7 @@ public class LSRPIncomingClientHandler extends  ChannelInboundHandlerAdapter {
   }
 
   @Override
-  public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-    LOGGER.info("LSRPIncomingClientHandler.channelUnregistered,channel:" + ctx.channel());
-  }
-
-  @Override
   public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-    LOGGER.info("LSRPIncomingClientHandler.channelInactive,channel:" + ctx.channel());
-    // when other site closes the connection
-    //this.router.onAdjacentNeighbourDisconnected(this.remoteAddr, this.remotePort);
+    this.router.onAdjacentNeighbourDisconnected(this.remoteAddr, this.remotePort);
   }
 }

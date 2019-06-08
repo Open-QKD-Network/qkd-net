@@ -26,7 +26,6 @@ public class KeyRouter {
         LOGGER.info("Key router started, args.length:" + args.length);
         LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
         lsrpRouter.start();
-        lsrpRouter.connectAdjacentNeighbours();
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();

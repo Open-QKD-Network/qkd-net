@@ -2,8 +2,7 @@ package com.uwaterloo.iqc.qnl.lsrp;
 
 import java.util.List;
 import java.util.LinkedList;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +11,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -34,11 +34,11 @@ public class LSRPRouter {
 
     private List<Node> allNodes = new LinkedList<Node>();
 
-    private Timer connectTimer = new Timer("LSRPRouterConnectTimer");
-
     private long floodingTimeStamp;
 
     private String mySiteId;
+
+    private EventLoopGroup sharedEventLoopGroup;
 
     public LSRPRouter(QNLConfiguration qnlConfiguration) {
       this.qConfig = qnlConfiguration;
@@ -77,13 +77,13 @@ public class LSRPRouter {
 
     public void connectAdjacentNeighbours() {
       for (int index = 0; index < this.adjacentNeighbours.size(); index++) {
-        connectNeighbourInTimer(this.adjacentNeighbours.get(index));
+        connectNeighbourInEventLoop(this.adjacentNeighbours.get(index));
       }
     }
 
-    public void connectNeighbourInTimer(Node neighbour) {
-      ConnectTimerTask task = new ConnectTimerTask(neighbour);
-      this.connectTimer.schedule(task, 30 * 1000l);
+    public void connectNeighbourInEventLoop(Node neighbour) {
+      ConnectRunnable task = new ConnectRunnable(neighbour);
+      this.sharedEventLoopGroup.schedule(task, 30, TimeUnit.SECONDS);
     }
 
     public void onLSRP(LSRPMessage msg, String remoteAddr, int remotePort) {
@@ -134,6 +134,20 @@ public class LSRPRouter {
       }
     }
 
+    // outgoing connection to neighbour
+    public void onAdjacentNeighbourConnected(String remoteAddr, int remotePort, Channel ch) {
+      LOGGER.info("LSRPRouter succeeds to connect to neighbour:" + remoteAddr + "/" + remotePort);
+      for (int index = 0; index < this.adjacentNeighbours.size(); index++) {
+        Node n = this.adjacentNeighbours.get(index);
+        if (remoteAddr.equalsIgnoreCase(n.getAddress())) {
+          n.setConnected(true);
+          n.setChannel(ch);
+          startFlooding();
+          break;
+        }
+      }
+    }
+
     public void onAdjacentNeighbourDisconnected(String remoteAddr, int remotePort) {
       // remove the neighbour and flooding again
     }
@@ -141,26 +155,36 @@ public class LSRPRouter {
     private void startListening()  throws Exception {
       LOGGER.info("LSRPRouter starts listening...");
       EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-      EventLoopGroup workerGroup = new NioEventLoopGroup();
+      this.sharedEventLoopGroup = new NioEventLoopGroup(1);
       try {
           // harcoded port 9395 for now
           ServerBootstrap b = new ServerBootstrap();
-          b.group(bossGroup, workerGroup)
+          b.group(bossGroup, sharedEventLoopGroup)
           .channel(NioServerSocketChannel.class)
           .handler(new LoggingHandler(LogLevel.INFO))
-          .childHandler(new LSRPServerRouterInitializer(this))
-          .bind(9395).sync().channel().closeFuture().sync();
+          .childHandler(new LSRPServerRouterInitializer(this));
+          ChannelFuture f = b.bind(9395);
+          f.addListener(new ChannelFutureListener() {
+              public void operationComplete(ChannelFuture future) {
+                  if (future.isSuccess()) {
+                      LOGGER.info("LSRPRouter succeeds to bind to 9395");
+                      connectAdjacentNeighbours();
+                  } else {
+                      LOGGER.info("LSRPRouter fails to bind 9395:" + future.cause());
+                  }
+              }
+          });
+          f.channel().closeFuture().sync();
       } finally {
           bossGroup.shutdownGracefully();
-          workerGroup.shutdownGracefully();
+          this.sharedEventLoopGroup.shutdownGracefully();
       }
     }
 
     private void connectNeighbour(final Node neighbour) {
       try {
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
         Bootstrap b = new Bootstrap();
-        b.group(workerGroup);
+        b.group(this.sharedEventLoopGroup);
         b.channel(NioSocketChannel.class);
         b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000);
         b.option(ChannelOption.SO_KEEPALIVE, true);
@@ -169,22 +193,20 @@ public class LSRPRouter {
         LOGGER.info("LSRPRouter tries to connect to neighbour:" +
             neighbour.getName() + ", address:" + neighbour.getAddress() +
             ", port:" + neighbour.getPort());
-        ChannelFuture f = b.connect(neighbour.getAddress(), neighbour.getPort()).sync();
+        ChannelFuture f = b.connect(neighbour.getAddress(), neighbour.getPort());
         f.addListener(new ChannelFutureListener() {
             public void operationComplete(ChannelFuture future) {
                 if (future.isSuccess()) {
-                    LOGGER.info("LSRPRouter succeeds to connect to neighbour:" + neighbour.getName() + "/" + neighbour.getAddress());
-                    neighbour.setConnected(true);
-                    neighbour.setChannel(future.channel());
-                    startFlooding();
+                    LOGGER.info("LSRPRouter succeeds to connect to " + neighbour.getAddress());
                 } else {
-                    LOGGER.info("LSRPRouter fails to connect to neighbour:" + neighbour.getName() + "/" + neighbour.getAddress());
+                    LOGGER.info("LSRPRouter fails to connect to " + neighbour.getAddress() + ", cause:" + future.cause());
+                    connectNeighbourInEventLoop(neighbour);
                 }
             }
         });
       } catch (Exception e) {
         LOGGER.info("LSRPRouter.connectNeighbour exception:" + e);
-        connectNeighbourInTimer(neighbour);
+        connectNeighbourInEventLoop(neighbour);
       }
     }
 
@@ -205,19 +227,16 @@ public class LSRPRouter {
         }
     }
 
-    class ConnectTimerTask extends TimerTask {
+    class ConnectRunnable implements Runnable {
       private Node neighbour;
 
-      public ConnectTimerTask(Node neighbour) {
+      public ConnectRunnable(Node neighbour) {
         this.neighbour = neighbour;
       }
 
+      @Override
       public void run() {
-        new Thread() {
-            public void run() {
-              connectNeighbour(neighbour);
-            }
-        }.start();
+        connectNeighbour(neighbour);
       }
     }
 }
