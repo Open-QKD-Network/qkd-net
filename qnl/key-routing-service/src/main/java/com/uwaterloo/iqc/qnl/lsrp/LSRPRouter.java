@@ -93,6 +93,7 @@ public class LSRPRouter {
         Node n = this.adjacentNeighbours.get(index);
         if (msg.getOriginator().equalsIgnoreCase(n.getName())) {
           if (msg.getTimeStamp() > n.getFloodingTimeStamp()) {
+            // new LSRP of existing node
             n.setFloodingTimeStamp(msg.getTimeStamp());
             update = true;
           }
@@ -116,20 +117,37 @@ public class LSRPRouter {
         //insert an new node into allNodes
         o = new Node(msg.getOriginator(), null, 0);
         o.setFloodingTimeStamp(msg.getTimeStamp());
-        LOGGER.info("Add new node to graph:" + o);
+        LOGGER.info("Add new originator/node to graph:" + o);
         this.allNodes.add(o);
         update = true;
       }
 
       if (update) {
-        // update the o's neighbour based on message, ffs
+        LinkedList<Node> oneighbours = msg.getNeighbours();
+        for (int oindex = 0; oindex < oneighbours.size(); oindex++) {
+          Node oneighbour = oneighbours.get(oindex);
+          boolean newNode = true;
+          for (int aindex = 0; aindex < this.allNodes.size(); aindex++) {
+            Node anode = this.allNodes.get(aindex);
+            if (anode.getName().equalsIgnoreCase(oneighbour.getName())) {
+              newNode = false;
+              break;
+             }
+          } // for aindex
+          if (newNode) {
+            Node node = new Node(oneighbour.getName(), null, 9395);
+            LOGGER.info("Add new node to graph:" + oneighbour.getName());
+            this.allNodes.add(node);
+          }
+        } // for oindex
       }
+
       // forward the msg to all neighbours except the one recevied from
       for (int index = 0; index < this.adjacentNeighbours.size(); index++) {
         Node n = this.adjacentNeighbours.get(index);
         if (remoteAddr.equalsIgnoreCase(n.getAddress()))
           continue;
-        else
+        else if (n.isConnected())
           n.sendLSRP(msg);
       }
     }

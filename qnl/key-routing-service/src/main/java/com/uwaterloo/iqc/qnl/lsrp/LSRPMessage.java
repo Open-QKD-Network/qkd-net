@@ -42,6 +42,10 @@ public class LSRPMessage {
     return this.timeStamp;
   }
 
+  public LinkedList<Node> getNeighbours() {
+    return (LinkedList<Node>) this.neighbours;
+  }
+
   public void setPayload(String payload) {
     if (payload == null || payload.length() == 0)
       return;
