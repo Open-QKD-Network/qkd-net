@@ -2,6 +2,9 @@ package com.uwaterloo.iqc.qnl.lsrp;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -39,6 +42,8 @@ public class LSRPRouter {
     private String mySiteId;
 
     private EventLoopGroup sharedEventLoopGroup;
+
+    private Set<Node> nodes = new HashSet<Node>();
 
     public LSRPRouter(QNLConfiguration qnlConfiguration) {
       this.qConfig = qnlConfiguration;
@@ -140,7 +145,9 @@ public class LSRPRouter {
             this.allNodes.add(node);
           }
         } // for oindex
-      }
+      } // update
+
+
 
       // forward the msg to all neighbours except the one recevied from
       for (int index = 0; index < this.adjacentNeighbours.size(); index++) {
@@ -256,5 +263,64 @@ public class LSRPRouter {
       public void run() {
         connectNeighbour(neighbour);
       }
+    }
+
+    // Dijkstra Algorithm related
+    public void addNode(Node node) {
+      this.nodes.add(node);
+    }
+
+    // calculate shortest distance
+    static LSRPRouter calculateShortestPathFromSource(LSRPRouter router, Node source) {
+      source.setDistance(0);
+
+      Set<Node> settledNodes = new HashSet<Node>();
+      Set<Node> unsettledNodes = new HashSet<Node>();
+      unsettledNodes.add(source);
+
+      while (unsettledNodes.size() != 0) {
+        Node currentNode = getLowestDistanceNode(unsettledNodes);
+        System.out.println("===Evaluating node:" + currentNode + ", unsettled nodes:" + unsettledNodes);
+        unsettledNodes.remove(currentNode);
+        for (Entry<Node, Integer> adjacencyPair : currentNode.getAdjacentNodes().entrySet()) {
+          Node adjacentNode = adjacencyPair.getKey();
+          Integer edgeWeigh = adjacencyPair.getValue();
+
+          if (!settledNodes.contains(adjacentNode)) {
+            calculateMinimumDistance(adjacentNode, edgeWeigh, currentNode);
+              System.out.println("   Adding unsettledNode:" + adjacentNode);
+              unsettledNodes.add(adjacentNode);
+            }
+          }
+          System.out.println("===Adding settled node:" + currentNode + "\n");
+          settledNodes.add(currentNode);
+      }
+      return router;
+    }
+
+    // From source to sourceNode's adjacentNode via sourceNode
+    // edgeWeight is the weight from sourceNode to sourceNode's adjacentNode
+    private static void calculateMinimumDistance(Node adjacentNode, Integer edgeWeigh, Node sourceNode) {
+        Integer sourceDistance = sourceNode.getDistance();
+        if (sourceDistance + edgeWeigh < adjacentNode.getDistance()) {
+            adjacentNode.setDistance(sourceDistance + edgeWeigh);
+            LinkedList<Node> shortestPath = new LinkedList<Node>(sourceNode.getShortestPath());
+            shortestPath.add(sourceNode);
+            adjacentNode.setShortestPath(shortestPath);
+        }
+    }
+
+    // Get the node with shortest distance from unsettled nodes
+    private static Node getLowestDistanceNode(Set<Node> unsettledNodes) {
+        Node lowestDistanceNode = null;
+        int lowestDistance = Integer.MAX_VALUE;
+        for (Node node : unsettledNodes) {
+            int nodeDistance = node.getDistance();
+            if (nodeDistance < lowestDistance) {
+                lowestDistance = nodeDistance;
+                lowestDistanceNode = node;
+            }
+        }
+        return lowestDistanceNode;
     }
 }

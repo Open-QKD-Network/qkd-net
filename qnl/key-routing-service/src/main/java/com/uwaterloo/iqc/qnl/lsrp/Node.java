@@ -1,5 +1,10 @@
 package com.uwaterloo.iqc.qnl.lsrp;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +20,14 @@ public class Node {
   private boolean adjacent;
   private boolean connected; // only applies for adjacent
   private Channel channel; // channel from myself to this node
+
+  // Dijkstra related
+  private List<Node> shortestPath = new LinkedList<Node>();
+
+  // distance from source to this
+  private Integer distance = Integer.MAX_VALUE;
+
+  Map<Node, Integer> adjacentNodes = new HashMap<Node, Integer>();
 
   public Node(String name, String address, int port) {
     this.name = name;
@@ -71,6 +84,30 @@ public class Node {
     }
     LOGGER.info(this + ",sendLSRP:" + msg);
     this.channel.writeAndFlush(msg);
+  }
+
+  public void addDestination(Node destination, int distance) {
+    this.adjacentNodes.put(destination,  distance);
+  }
+
+  public Map<Node, Integer> getAdjacentNodes() {
+      return this.adjacentNodes;
+  }
+
+  public Integer getDistance() {
+      return this.distance;
+  }
+
+  public void setDistance(Integer distance) {
+      this.distance = distance;
+  }
+
+  public List<Node> getShortestPath() {
+      return this.shortestPath;
+  }
+
+  public void setShortestPath(LinkedList<Node> shortestPath) {
+      this.shortestPath = shortestPath;
   }
 
   public String toString()
