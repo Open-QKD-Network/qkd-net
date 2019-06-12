@@ -86,6 +86,11 @@ public class Node {
     this.channel.writeAndFlush(msg);
   }
 
+  public void resetAdjacentNodes() {
+    this.adjacentNodes.clear();
+  }
+
+  // Dijkstra related
   public void addDestination(Node destination, int distance) {
     this.adjacentNodes.put(destination,  distance);
   }

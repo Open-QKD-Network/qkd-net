@@ -18,7 +18,7 @@ public class LSRPMessage {
   private String type;
   private String originator;
   private long timeStamp;
-  private List<Node> neighbours = new LinkedList<Node>();
+  private List<Neighbour> neighbours = new LinkedList<Neighbour>();
 
   public LSRPMessage() {
   }
@@ -30,7 +30,7 @@ public class LSRPMessage {
     this.timeStamp = System.currentTimeMillis();
   }
 
-  public void addNeighbour(Node neighbour) {
+  public void addNeighbour(Neighbour neighbour) {
     this.neighbours.add(neighbour);
   }
 
@@ -42,8 +42,8 @@ public class LSRPMessage {
     return this.timeStamp;
   }
 
-  public LinkedList<Node> getNeighbours() {
-    return (LinkedList<Node>) this.neighbours;
+  public LinkedList<Neighbour> getNeighbours() {
+    return (LinkedList<Neighbour>) this.neighbours;
   }
 
   public void setPayload(String payload) {
@@ -63,7 +63,7 @@ public class LSRPMessage {
         JSONObject jn = (JSONObject) neighbours.get(index);
         String addr = (String) jn.get("address");
         long port = (Long) jn.get("port");
-        Node n = new Node((String) jn.get("name"), addr, (int) port);
+        Neighbour n = new Neighbour((String) jn.get("name"), addr, (int) port);
         this.neighbours.add(n);
       }
     } catch (Exception e) {
@@ -81,11 +81,11 @@ public class LSRPMessage {
     JSONArray ns = new JSONArray();
 
     for (int index = 0; index < this.neighbours.size(); index++) {
-      Node neighbour = this.neighbours.get(index);
+      Neighbour neighbour = this.neighbours.get(index);
       JSONObject n = new JSONObject();
-      n.put("name", neighbour.getName());
-      n.put("address", neighbour.getAddress());
-      n.put("port", neighbour.getPort());
+      n.put("name", neighbour.name);
+      n.put("address", neighbour.addr);
+      n.put("port", neighbour.port);
       n.put("weight", 1);
       ns.add(n);
     }
