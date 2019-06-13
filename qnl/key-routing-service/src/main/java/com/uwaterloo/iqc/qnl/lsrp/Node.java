@@ -95,8 +95,16 @@ public class Node {
     this.adjacentNodes.put(destination,  distance);
   }
 
+  public void removeDestination(Node destination) {
+    this.adjacentNodes.remove(destination);
+  }
+
   public Map<Node, Integer> getAdjacentNodes() {
       return this.adjacentNodes;
+  }
+
+  public int neighbours() {
+    return this.adjacentNodes.size();
   }
 
   public Integer getDistance() {

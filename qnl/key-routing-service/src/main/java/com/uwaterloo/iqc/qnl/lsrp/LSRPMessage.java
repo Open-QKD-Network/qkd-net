@@ -17,6 +17,7 @@ public class LSRPMessage {
   private boolean request;
   private String type;
   private String originator;
+  private String address;
   private long timeStamp;
   private List<Neighbour> neighbours = new LinkedList<Neighbour>();
 
@@ -27,6 +28,7 @@ public class LSRPMessage {
     this.request = request;
     this.type = type;
     this.originator = originator;
+    this.address = LSRPRouter.getLocalIPv4Address();
     this.timeStamp = System.currentTimeMillis();
   }
 
@@ -42,6 +44,10 @@ public class LSRPMessage {
     return this.timeStamp;
   }
 
+  public String getAddress() {
+    return this.address;
+  }
+
   public LinkedList<Neighbour> getNeighbours() {
     return (LinkedList<Neighbour>) this.neighbours;
   }
@@ -54,6 +60,7 @@ public class LSRPMessage {
     try {
       JSONObject json = (JSONObject) jsonParser.parse(payload);
       this.originator = (String) json.get("originator");
+      this.address = (String) json.get("address");
       this.type = (String) json.get("type");
       this.request = (Boolean) json.get("request");
       this.timeStamp = (Long) json.get("timestamp");
@@ -76,6 +83,7 @@ public class LSRPMessage {
     lsp.put("request", this.request);
     lsp.put("type", this.type);
     lsp.put("originator", this.originator);
+    lsp.put("address", this.address);
     lsp.put("timestamp", this.timeStamp);
 
     JSONArray ns = new JSONArray();

@@ -8,6 +8,10 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import java.net.InetAddress;
+import java.net.Inet4Address;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +47,8 @@ public class LSRPRouter {
 
     private String mySiteId;
 
+    private String myIPv4Address;
+
     private EventLoopGroup sharedEventLoopGroup;
 
     public LSRPRouter(QNLConfiguration qnlConfiguration) {
@@ -50,9 +56,10 @@ public class LSRPRouter {
       RouteConfig routeCfg = this.qConfig.getRouteConfig();
       QNLConfig qnlConfig = qConfig.getConfig();
       this.mySiteId = qnlConfig.getSiteId();
+      this.myIPv4Address = LSRPRouter.getLocalIPv4Address();
 
       // Add myself to allNodes
-      Node self = new Node(this.mySiteId, "127.0.0.1", 9395);
+      Node self = new Node(this.mySiteId, this.myIPv4Address, 9395);
       this.allNodes.put(this.mySiteId, self);
 
       for (String k : routeCfg.adjacent.keySet()) {
@@ -117,7 +124,7 @@ public class LSRPRouter {
         //insert an new node into allNodes
         o = new Node(msg.getOriginator(), null, 9395);
         o.setFloodingTimeStamp(msg.getTimeStamp());
-        LOGGER.info("Add new originator/node to graph:" + o.getName());
+        LOGGER.info("Add node/originator:" + o.getName());
         this.allNodes.put(msg.getOriginator(), o);
         update = true;
       }
@@ -130,14 +137,20 @@ public class LSRPRouter {
         for (int oindex = 0; oindex < oneighbours.size(); oindex++) {
           Neighbour oneighbour = oneighbours.get(oindex);
           if (this.allNodes.get(oneighbour.name) == null) {
-            Node node = new Node(oneighbour.name, null, 9395);
-            LOGGER.info("Add new node to graph:" + oneighbour.name);
+            Node node = new Node(oneighbour.name, oneighbour.addr, 9395);
+            LOGGER.info("Add node:" + oneighbour.name);
             this.allNodes.put(node.getName(), node);
           }
-          if (oneighbour.name == this.mySiteId &&
-              (this.adjacentNeighbours.get(oneighbour.name) == null)) {
-            LOGGER.info("Recover adjacent node:" + oneighbour.name);
-            this.adjacentNeighbours.put(oneighbour.name, o);
+          if (remoteAddr.equalsIgnoreCase(msg.getAddress()) &&
+              // The above says that IP source of LSRP message is same as address if LSRP message
+              this.mySiteId.equalsIgnoreCase(oneighbour.name) &&
+              (this.adjacentNeighbours.get(o.getName()) == null)) {
+            LOGGER.info("Readd neighbour:" + o.getName());
+            this.adjacentNeighbours.put(o.getName(), o);
+            if (!o.isConnected()) {
+              // Make outgoing connection to neighbour, after connection is made, reflooding
+              connectNeighbourInEventLoop(o);
+            }
           }
         }
 
@@ -153,9 +166,14 @@ public class LSRPRouter {
             }
           }
           if (!found) {
-            // remove the exisitingNode
-            LOGGER.info("Remove old node:" + existingNode.getName());
-            this.allNodes.remove(existingNode.getName());
+            LOGGER.info("Node " + o.getName() + " lose neighbour:" + existingNode.getName());
+            o.removeDestination(existingNode);
+            existingNode.removeDestination(o);
+            if (existingNode.neighbours() == 0) {
+              // remove the exisitingNode
+              LOGGER.info("Delete node:" + existingNode.getName());
+              this.allNodes.remove(existingNode.getName());
+            }
           }
         }
 
@@ -209,7 +227,7 @@ public class LSRPRouter {
         }
       }
       if (siteId != null) {
-        LOGGER.info("Delete adjacent node:" + siteId);
+        LOGGER.info("Delete neighbour:" + siteId);
         this.adjacentNeighbours.remove(siteId);
         this.allNodes.remove(siteId);
       }
@@ -359,5 +377,25 @@ public class LSRPRouter {
             }
         }
         return lowestDistanceNode;
+    }
+
+    public static String getLocalIPv4Address() {
+      String address = null;
+      try {
+        Enumeration en = NetworkInterface.getNetworkInterfaces();
+        while(en.hasMoreElements()) {
+          NetworkInterface ni=(NetworkInterface) en.nextElement();
+          if (ni.isLoopback())
+            continue;
+          Enumeration ee = ni.getInetAddresses();
+          while (ee.hasMoreElements()) {
+            InetAddress ia= (InetAddress) ee.nextElement();
+            if (ia instanceof Inet4Address)
+              address = ia.getHostAddress();
+          }
+        }
+      } catch (Exception e) {
+      }
+      return address;
     }
 }
