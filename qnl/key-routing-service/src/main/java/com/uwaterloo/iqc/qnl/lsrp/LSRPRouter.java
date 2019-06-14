@@ -60,6 +60,7 @@ public class LSRPRouter {
 
       // Add myself to allNodes
       Node self = new Node(this.mySiteId, this.myIPv4Address, 9395);
+      LOGGER.info("Add node:" + this.mySiteId);
       this.allNodes.put(this.mySiteId, self);
 
       for (String k : routeCfg.adjacent.keySet()) {
@@ -67,10 +68,11 @@ public class LSRPRouter {
           int port = 9395;
           if (ipPort.length == 2)
               port = Integer.valueOf(ipPort[1]);
-          LOGGER.info("add adjacent neighbour: " + k + ",address:" + ipPort[0] + ",port:" + port);
+          LOGGER.info("Add neighbour:" + k + ",address:" + ipPort[0] + ",port:" + port);
           Node node = new Node(k, ipPort[0], port);
           node.setAdjacent(true);
           this.adjacentNeighbours.put(k, node);
+          LOGGER.info("Add node:" + k);
           this.allNodes.put(k, node);
       }
     }
@@ -122,7 +124,7 @@ public class LSRPRouter {
 
       if (o == null) {
         //insert an new node into allNodes
-        o = new Node(msg.getOriginator(), null, 9395);
+        o = new Node(msg.getOriginator(), msg.getAddress(), 9395);
         o.setFloodingTimeStamp(msg.getTimeStamp());
         LOGGER.info("Add node/originator:" + o.getName());
         this.allNodes.put(msg.getOriginator(), o);
@@ -145,7 +147,7 @@ public class LSRPRouter {
               // The above says that IP source of LSRP message is same as address if LSRP message
               this.mySiteId.equalsIgnoreCase(oneighbour.name) &&
               (this.adjacentNeighbours.get(o.getName()) == null)) {
-            LOGGER.info("Readd neighbour:" + o.getName());
+            LOGGER.info("ReAdd neighbour:" + o.getName());
             this.adjacentNeighbours.put(o.getName(), o);
             if (!o.isConnected()) {
               // Make outgoing connection to neighbour, after connection is made, reflooding
@@ -167,6 +169,7 @@ public class LSRPRouter {
           }
           if (!found) {
             LOGGER.info("Node " + o.getName() + " lose neighbour:" + existingNode.getName());
+            LOGGER.info("Delete link " + o.getName() + "-" + existingNode.getName());
             o.removeDestination(existingNode);
             existingNode.removeDestination(o);
             if (existingNode.neighbours() == 0) {
@@ -183,6 +186,7 @@ public class LSRPRouter {
           Neighbour oneighbour = oneighbours.get(oindex);
           Node node = this.allNodes.get(oneighbour.name);
           if (node != null) {
+            LOGGER.info("Add link " + o.getName() + "-" + node.getName() + ",weight:" + oneighbour.weight);
             o.addDestination(node, oneighbour.weight);
             node.addDestination(o, oneighbour.weight);
           }
@@ -229,7 +233,17 @@ public class LSRPRouter {
       if (siteId != null) {
         LOGGER.info("Delete neighbour:" + siteId);
         this.adjacentNeighbours.remove(siteId);
+        LOGGER.info("Delete node:" + siteId);
         this.allNodes.remove(siteId);
+        LOGGER.info("Delete link:" + this.mySiteId + "-" + siteId);
+        Node myself = this.allNodes.get(this.mySiteId);
+        Node neighbour = this.allNodes.get(siteId);
+        if (myself != null) {
+          myself.removeDestination(neighbour);
+        }
+        if (neighbour != null) {
+          neighbour.resetAdjacentNodes();
+        }
       }
       if (flooding) {
         startFlooding();
