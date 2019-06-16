@@ -51,6 +51,8 @@ public class LSRPRouter {
 
     private EventLoopGroup sharedEventLoopGroup;
 
+    private DijkstraRunnable testRunnable;
+
     public LSRPRouter(QNLConfiguration qnlConfiguration) {
       this.qConfig = qnlConfiguration;
       RouteConfig routeCfg = this.qConfig.getRouteConfig();
@@ -87,6 +89,50 @@ public class LSRPRouter {
           }
         }
       }.start();
+    }
+
+    public String getNextHop(String destination) {
+      Node destNode = this.allNodes.get(destination);
+      if (destNode == null) {
+        LOGGER.info("Can not get destination node:" + destination);
+        return null;
+      }
+      this.resetShortestPath();
+      LSRPRouter router = LSRPRouter.calculateShortestPathFromSource(
+        this, this.allNodes.get(this.mySiteId));
+      // The first one is always myself
+      if (destNode.getShortestPath().size() == 1) {
+        // myself and destination are adjacent
+        return destination;
+      } else if (destNode.getShortestPath().size() > 1) {
+        return destNode.getShortestPath().get(1).getName();
+      }
+      LOGGER.info("Fails to get shortest path from " + this.mySiteId + " to " + destination);
+      return null;
+    }
+
+    public void testShortestPath() {
+      this.testRunnable = new DijkstraRunnable(this, this.allNodes.get(this.mySiteId));
+      this.sharedEventLoopGroup.schedule(this.testRunnable, 180, TimeUnit.SECONDS);
+      //this.sharedEventLoopGroup.scheduleWithFixedDelay(this.testRunnable,
+      //    120, 60, TimeUnit.SECONDS);
+    }
+
+    public void printShortestPath() {
+      for (Map.Entry<String, Node> entry : this.allNodes.entrySet()) {
+        Node destination = entry.getValue();
+        if (this.mySiteId.equalsIgnoreCase(destination.getName()))
+          continue;
+        if (destination.getShortestPath().size() == 1) {
+          LOGGER.info("Shortest path from " + this.mySiteId + " to " +
+            destination.getName() + " is " + destination.getName() +
+            " distance " + destination.getDistance());
+        } else if (destination.getShortestPath().size() > 1) {
+          LOGGER.info("Shortest path from " + this.mySiteId + " to " +
+            destination.getName() + " is " + destination.getShortestPath().get(1).getName() +
+            " distance " + destination.getDistance());
+        }
+      }
     }
 
     public void connectAdjacentNeighbours() {
@@ -186,9 +232,9 @@ public class LSRPRouter {
           Neighbour oneighbour = oneighbours.get(oindex);
           Node node = this.allNodes.get(oneighbour.name);
           if (node != null) {
-            LOGGER.info("Add link " + o.getName() + "-" + node.getName() + ",weight:" + oneighbour.weight);
             o.addDestination(node, oneighbour.weight);
             node.addDestination(o, oneighbour.weight);
+            LOGGER.info("Add link " + o + "-" + node + ",weight:" + oneighbour.weight);
           }
         }
       } // update
@@ -309,6 +355,9 @@ public class LSRPRouter {
     }
 
     private void startFlooding() {
+      if (this.testRunnable == null) {
+        testShortestPath();
+      }
       LSRPMessage msg = new LSRPMessage(true, "LINKSTATE", this.mySiteId);
       this.floodingTimeStamp = msg.getTimeStamp();
       for (Map.Entry<String, Node> entry : this.adjacentNeighbours.entrySet()) {
@@ -338,9 +387,38 @@ public class LSRPRouter {
       }
     }
 
+    class DijkstraRunnable implements Runnable {
+      private LSRPRouter router;
+      private Node source;
+
+      public DijkstraRunnable(LSRPRouter router, Node source) {
+        this.router = router;
+        this.source = source;
+      }
+
+      @Override
+      public void run() {
+        this.router.resetShortestPath();
+        LSRPRouter.calculateShortestPathFromSource(this.router, this.source);
+      }
+    }
+
+    private void resetShortestPath() {
+      for (Map.Entry<String, Node> entry : this.allNodes.entrySet()) {
+        resetShortestPath(entry.getValue());
+      }
+    }
+
+    private void resetShortestPath(Node n) {
+      if (n == null)
+        return;
+      n.resetShortestPath();
+    }
+
     // Dijkstra Algorithm related
     // calculate shortest distance
     static LSRPRouter calculateShortestPathFromSource(LSRPRouter router, Node source) {
+      LOGGER.info("++++CalculateShortestPath from " + source);
       source.setDistance(0);
 
       Set<Node> settledNodes = new HashSet<Node>();
@@ -349,7 +427,7 @@ public class LSRPRouter {
 
       while (unsettledNodes.size() != 0) {
         Node currentNode = getLowestDistanceNode(unsettledNodes);
-        System.out.println("===Evaluating node:" + currentNode + ", unsettled nodes:" + unsettledNodes);
+        LOGGER.info("===Evaluating node:" + currentNode + ", unsettled nodes:" + unsettledNodes);
         unsettledNodes.remove(currentNode);
         for (Entry<Node, Integer> adjacencyPair : currentNode.getAdjacentNodes().entrySet()) {
           Node adjacentNode = adjacencyPair.getKey();
@@ -357,17 +435,19 @@ public class LSRPRouter {
 
           if (!settledNodes.contains(adjacentNode)) {
             calculateMinimumDistance(adjacentNode, edgeWeigh, currentNode);
-              System.out.println("   Adding unsettledNode:" + adjacentNode);
-              unsettledNodes.add(adjacentNode);
-            }
+            LOGGER.info("   Adding unsettledNode:" + adjacentNode);
+            unsettledNodes.add(adjacentNode);
           }
-          System.out.println("===Adding settled node:" + currentNode + "\n");
-          settledNodes.add(currentNode);
+        }
+        LOGGER.info("===Adding settled node:" + currentNode);
+        settledNodes.add(currentNode);
       }
+      LOGGER.info("----CalculateShortestPath from " + source);
+      router.printShortestPath();
       return router;
     }
 
-    // From source to sourceNode's adjacentNode via sourceNode
+    // From mySiteId to sourceNode's adjacentNode via sourceNode
     // edgeWeight is the weight from sourceNode to sourceNode's adjacentNode
     private static void calculateMinimumDistance(Node adjacentNode, Integer edgeWeigh, Node sourceNode) {
         Integer sourceDistance = sourceNode.getDistance();
@@ -376,6 +456,9 @@ public class LSRPRouter {
             LinkedList<Node> shortestPath = new LinkedList<Node>(sourceNode.getShortestPath());
             shortestPath.add(sourceNode);
             adjacentNode.setShortestPath(shortestPath);
+            LOGGER.info("    SetShortestPath to " + adjacentNode.getName() +
+              " via " + sourceNode + " weight " + edgeWeigh + " is: " +
+              shortestPath);
         }
     }
 

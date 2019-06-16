@@ -123,6 +123,13 @@ public class Node {
       this.shortestPath = shortestPath;
   }
 
+  // Reset for re-run Dijistrak with neighbours
+  public void resetShortestPath()
+  {
+      this.distance = Integer.MAX_VALUE;
+      this.shortestPath.clear();
+  }
+
   public String toString()
   {
     StringBuilder sb = new StringBuilder();
@@ -133,6 +140,7 @@ public class Node {
     sb.append(",connected=").append(this.connected);
     sb.append(",channel=").append(this.channel);
     sb.append(",floodingtimestamp=").append(this.floodingTimeStamp);
+    sb.append(",neighbours=").append(this.neighbours());
     return sb.toString();
   }
 }
