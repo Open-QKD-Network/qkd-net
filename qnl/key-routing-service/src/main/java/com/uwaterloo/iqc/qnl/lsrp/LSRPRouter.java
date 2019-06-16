@@ -56,6 +56,7 @@ public class LSRPRouter {
     public LSRPRouter(QNLConfiguration qnlConfiguration) {
       this.qConfig = qnlConfiguration;
       RouteConfig routeCfg = this.qConfig.getRouteConfig();
+      routeCfg.setLSRPRouter(this);
       QNLConfig qnlConfig = qConfig.getConfig();
       this.mySiteId = qnlConfig.getSiteId();
       this.myIPv4Address = LSRPRouter.getLocalIPv4Address();
