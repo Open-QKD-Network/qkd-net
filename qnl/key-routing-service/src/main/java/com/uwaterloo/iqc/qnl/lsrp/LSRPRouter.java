@@ -12,6 +12,7 @@ import java.net.InetAddress;
 import java.net.Inet4Address;
 import java.net.NetworkInterface;
 import java.util.Enumeration;
+import java.io.File;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,9 +149,14 @@ public class LSRPRouter {
     }
 
     public void onLSRP(LSRPMessage msg, String remoteAddr, int remotePort) {
+      LOGGER.info("onLSRP-" + msg.getOriginator() + "-" + msg.getTimeStamp() + " from:" + remoteAddr);
       Node o = null;
       boolean update = false;
       Node nn = this.adjacentNeighbours.get(msg.getOriginator());
+      if (msg.getOriginator().equalsIgnoreCase(this.mySiteId)) {
+        // get my own LSRP if there is a loop
+        return;
+      }
       if (nn != null) {
         if (msg.getTimeStamp() > nn.getFloodingTimeStamp()) {
           // new LSRP of existing node
@@ -245,6 +251,9 @@ public class LSRPRouter {
         Node n = entry.getValue();
         if (remoteAddr.equalsIgnoreCase(n.getAddress()))
           continue;
+        else if (n.getName().equalsIgnoreCase(msg.getOriginator()))
+          // donot forward to the originator
+          continue;
         else if (n.isConnected())
           n.sendLSRP(msg);
       }
@@ -259,6 +268,9 @@ public class LSRPRouter {
           n.setConnected(true);
           n.setChannel(ch);
           startFlooding();
+          // start monitoring the link between myself and node
+          //LinkDetectionRunnable detection = new LinkDetectionRunnable(this, n.getName());
+          //this.sharedEventLoopGroup.schedule(detection, 60, TimeUnit.SECONDS);
           break;
         }
       }
@@ -295,6 +307,41 @@ public class LSRPRouter {
       if (flooding) {
         startFlooding();
       }
+    }
+
+    public void checkLink(String neighbour) {
+      // Check the link between myself and neighbour
+      Node n = this.allNodes.get(neighbour);
+      Node myself = this.allNodes.get(this.mySiteId);
+      if (n == null) {
+        return;
+      }
+      String keyLoc = this.qConfig.getConfig().getQNLSiteKeyLoc(neighbour);
+      String fileStr = keyLoc + "/" + neighbour;
+      File f = new File(fileStr);
+      if (f.exists()) {
+        if (!n.isConnected()) {
+          LOGGER.info("Link-restored between " + this.mySiteId + "-" + neighbour);
+          // link is restored
+          n.setDistance(1);
+          n.setConnected(true);
+          n.addDestination(myself, 1);
+          myself.addDestination(n, 1);
+          startFlooding();
+        }
+      } else {
+        if (n.isConnected()) {
+          LOGGER.info("Link-broken between " + this.mySiteId + "-" + neighbour);
+          n.setDistance(Integer.MAX_VALUE);
+          n.setConnected(false);
+          n.removeDestination(myself);
+          myself.removeDestination(n);
+          startFlooding();
+        }
+      }
+      // start monitoring the link between myself and neighbour
+      LinkDetectionRunnable detection = new LinkDetectionRunnable(this, neighbour);
+      this.sharedEventLoopGroup.schedule(detection, 60, TimeUnit.SECONDS);
     }
 
     private void startListening()  throws Exception {
@@ -373,6 +420,7 @@ public class LSRPRouter {
           neighbour.sendLSRP(msg);
         }
       }
+      LOGGER.info("sendLSRP-" + this.floodingTimeStamp);
     }
 
     class ConnectRunnable implements Runnable {
@@ -401,6 +449,21 @@ public class LSRPRouter {
       public void run() {
         this.router.resetShortestPath();
         LSRPRouter.calculateShortestPathFromSource(this.router, this.source);
+      }
+    }
+
+    class LinkDetectionRunnable implements Runnable {
+      private String neighbour;
+      private LSRPRouter router;
+
+      public LinkDetectionRunnable(LSRPRouter router, String neighbour) {
+        this.router = router;
+        this.neighbour = neighbour;
+      }
+
+      @Override
+      public void run() {
+        this.router.checkLink(neighbour);
       }
     }
 
