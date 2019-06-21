@@ -38,6 +38,8 @@ public class LSRPRouter {
 
     private static Logger LOGGER = LoggerFactory.getLogger(LSRPRouter.class);
 
+    private static int LINK_DETECTION_TIMER_VALUE = 60;
+
     private QNLConfiguration qConfig;
 
     private Map<String, Node> adjacentNeighbours = new HashMap<String, Node>();
@@ -115,7 +117,7 @@ public class LSRPRouter {
 
     public void testShortestPath() {
       this.testRunnable = new DijkstraRunnable(this, this.allNodes.get(this.mySiteId));
-      this.sharedEventLoopGroup.schedule(this.testRunnable, 180, TimeUnit.SECONDS);
+      this.sharedEventLoopGroup.schedule(this.testRunnable, 90, TimeUnit.SECONDS);
       //this.sharedEventLoopGroup.scheduleWithFixedDelay(this.testRunnable,
       //    120, 60, TimeUnit.SECONDS);
     }
@@ -269,8 +271,8 @@ public class LSRPRouter {
           n.setChannel(ch);
           startFlooding();
           // start monitoring the link between myself and node
-          //LinkDetectionRunnable detection = new LinkDetectionRunnable(this, n.getName());
-          //this.sharedEventLoopGroup.schedule(detection, 60, TimeUnit.SECONDS);
+          LinkDetectionRunnable detection = new LinkDetectionRunnable(this, n.getName());
+          this.sharedEventLoopGroup.schedule(detection, LINK_DETECTION_TIMER_VALUE, TimeUnit.SECONDS);
           break;
         }
       }
@@ -317,8 +319,8 @@ public class LSRPRouter {
         return;
       }
       String keyLoc = this.qConfig.getConfig().getQNLSiteKeyLoc(neighbour);
-      String fileStr = keyLoc + "/" + neighbour;
-      File f = new File(fileStr);
+      File f = new File(keyLoc);
+      LOGGER.info("Link-check to " + neighbour + ", file " + keyLoc);
       if (f.exists()) {
         if (!n.isConnected()) {
           LOGGER.info("Link-restored between " + this.mySiteId + "-" + neighbour);
@@ -341,7 +343,7 @@ public class LSRPRouter {
       }
       // start monitoring the link between myself and neighbour
       LinkDetectionRunnable detection = new LinkDetectionRunnable(this, neighbour);
-      this.sharedEventLoopGroup.schedule(detection, 60, TimeUnit.SECONDS);
+      this.sharedEventLoopGroup.schedule(detection, LINK_DETECTION_TIMER_VALUE, TimeUnit.SECONDS);
     }
 
     private void startListening()  throws Exception {
