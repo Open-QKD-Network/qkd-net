@@ -2,6 +2,7 @@ package com.uwaterloo.iqc.qnl.lsrp;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
@@ -212,9 +213,11 @@ public class LSRPRouter {
         }
 
         // remove as necessary
+        List<Node> toBeRemoved = new ArrayList<Node>();
         for (Map.Entry<Node, Integer> entry : existingAdjacentNodes.entrySet()) {
           Node existingNode = entry.getKey();
           boolean found = false;
+
           for (int oindex = 0; oindex < oneighbours.size(); oindex++) {
             Neighbour oneighbour = oneighbours.get(oindex);
             if (existingNode.getName().equalsIgnoreCase(oneighbour.name)) {
@@ -225,12 +228,18 @@ public class LSRPRouter {
           if (!found) {
             LOGGER.info("Node " + o.getName() + " lose neighbour:" + existingNode.getName());
             LOGGER.info("Delete link " + o.getName() + "-" + existingNode.getName());
-            o.removeDestination(existingNode);
-            existingNode.removeDestination(o);
-            if (existingNode.neighbours() == 0) {
+            toBeRemoved.add(existingNode);
+          }
+        } // for (map)
+
+        if (toBeRemoved.size() > 0) {
+          for (Node node : toBeRemoved) {
+            o.removeDestination(node);
+            node.removeDestination(o);
+            if (node.neighbours() == 0) {
               // remove the exisitingNode
-              LOGGER.info("Delete node:" + existingNode.getName());
-              this.allNodes.remove(existingNode.getName());
+              LOGGER.info("Delete node:" + node.getName());
+              this.allNodes.remove(node.getName());
             }
           }
         }

@@ -140,6 +140,7 @@ public class Node {
     sb.append(",connected=").append(this.connected);
     sb.append(",channel=").append(this.channel);
     sb.append(",floodingtimestamp=").append(this.floodingTimeStamp);
+    sb.append(",distance=").append(this.distance);
     sb.append(",neighbours=").append(this.neighbours());
     return sb.toString();
   }
