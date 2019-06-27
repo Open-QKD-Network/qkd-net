@@ -173,7 +173,11 @@ int main(int argc, char *argv[])
         }
     }
 
-
+    FILE* fp = fopen(filename, "rb+" );
+    if (!fp) {
+      printf("Please specify the file to be sent by -f filename\n");
+      return -1;
+    }
 
     apps_startup();
 
@@ -190,7 +194,6 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    FILE* fp = fopen(filename, "rb+" );
     SSL_CTX_set_psk_client_callback(ctx, psk_client_cb);
     SSL_CTX_set_cipher_list(ctx, cipher);
     con = SSL_new(ctx);
