@@ -279,6 +279,8 @@ static CURLcode fetch(struct Net_Crypto *nc, struct MemoryStruct *chunk, const c
     CURLcode res;
     struct curl_slist *list = NULL;
     CURL *handle;
+
+    printf("HTTP-FETCH-REQUEST, url:%s,header:%s,post:%s\n\n", url, header, post);
     handle = nc->curl_handle;
     curl_easy_setopt(handle, CURLOPT_POST, 1L);
     curl_easy_setopt(handle, CURLOPT_URL, url);
@@ -342,7 +344,7 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
                 curl_easy_strerror(res));
     } else {
         json_object *keyobj = json_tokener_parse(chunk.memory);
-        printf("%*.*s\n", 0, chunk.size, (unsigned char *)chunk.memory);
+        printf("HTTP-FETCH-RESPONSE:%*.*s\n\n", 0, chunk.size, (unsigned char *)chunk.memory);
 
         json_object_object_foreach(keyobj, key1, val1) {
 
@@ -387,6 +389,7 @@ int get_token(struct Net_Crypto *nc, char** token) {
         err = 1;
     } else {
         json_object *jobj = json_tokener_parse(chunk.memory);
+        printf("HTTP-FETCH-RESPONSE:%*.*s\n\n", 0, chunk.size, (unsigned char *)chunk.memory);
         json_object_object_foreach(jobj, key, val) {
             if (strcmp("error", key) == 0 ) {
                 err =1;
