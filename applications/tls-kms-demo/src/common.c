@@ -24,6 +24,10 @@ void prepare_kms_access(struct Net_Crypto *m) {
   filestr[strlen(homedir) + strlen(str)] = '\0';
 
   fp = fopen(filestr, "r");
+  if (!fp) {
+    printf("**** Please check the file %s\n", filestr);
+    exit (0);
+  }
 
   fgets(buffer, sizeof buffer, fp);
   buffer[strlen(buffer) - 1] = '\0';
