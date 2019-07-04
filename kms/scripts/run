@@ -5,7 +5,7 @@ sleep 20s
 screen -Sdm auth-svc java -jar auth-service/target/auth-service-0.0.1-SNAPSHOT.jar
 sleep 20s
 export SITE_PROPERTIES=$HOME/.qkd/kms/site.properties
-screen -Sdm kms-svc java -jar kms-service/target/kms-service-0.0.1-SNAPSHOT.jar
+screen -Sdm kms-svc scripts/run-kms-service.sh
 sleep 20s
 screen -Sdm kms-gw java -jar kms-api-gateway/target/kms-api-gateway-0.0.1-SNAPSHOT.jar
 sleep 20s
@@ -15,4 +15,3 @@ cd ../../qnl/key-routing-service
 screen -Sdm kms-routing-svc ./mvnw exec:java
 cd ../../qll_sim
 screen -Sdm qll-sim MAVEN_OPTS="-Dconfig.file=$HOME/.qkd/qll-sim/qll-sim.conf" ./mvnw exec:java
- 
