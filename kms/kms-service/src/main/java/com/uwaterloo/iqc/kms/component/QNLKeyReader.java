@@ -24,6 +24,7 @@ public class QNLKeyReader {
 
         String blockId = null;
 
+        System.out.println("QNLKeyReader.read:" + src + "->" + dest + "," + ip + ":" + port + "," + poolBaseDir + "," + blockSz + "," + byteSz);
         try {
             blockId = connect(src, dest, keys, ip, port, poolBaseDir, blockSz, byteSz);
             StringBuilder sb = new StringBuilder();
@@ -33,8 +34,13 @@ public class QNLKeyReader {
                 f.mkdirs();
             }
             sb.append("/").append(blockId);
+            System.out.println("QNLKeyReader.writeKeys:" + sb + ", blockSz:" + blockSz);
             QNLUtils.writeKeys(keys, sb.toString(), (int)blockSz);
         } catch(Exception e) {
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            e.printStackTrace(pw);
+            System.out.println("QNLKeyReader.read exception: " + e + ", stacktrace:" + sw.toString());
         	throw e;
         }
 
