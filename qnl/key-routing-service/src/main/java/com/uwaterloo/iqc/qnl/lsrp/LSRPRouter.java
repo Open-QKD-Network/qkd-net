@@ -118,7 +118,7 @@ public class LSRPRouter {
 
     public void testShortestPath() {
       this.testRunnable = new DijkstraRunnable(this, this.allNodes.get(this.mySiteId));
-      this.sharedEventLoopGroup.schedule(this.testRunnable, 90, TimeUnit.SECONDS);
+      this.sharedEventLoopGroup.schedule(this.testRunnable, 45, TimeUnit.SECONDS);
       //this.sharedEventLoopGroup.scheduleWithFixedDelay(this.testRunnable,
       //    120, 60, TimeUnit.SECONDS);
     }
@@ -252,7 +252,7 @@ public class LSRPRouter {
           if (node != null) {
             o.addDestination(node, oneighbour.weight);
             node.addDestination(o, oneighbour.weight);
-            LOGGER.info("Add link " + o + "-" + node + ",weight:" + oneighbour.weight);
+            LOGGER.info("Add link " + o + "---->" + node + ",weight:" + oneighbour.weight);
           }
         }
       } // update
