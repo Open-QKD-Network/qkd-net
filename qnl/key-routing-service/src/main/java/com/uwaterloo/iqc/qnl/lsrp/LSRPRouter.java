@@ -592,7 +592,7 @@ public class LSRPRouter {
       }
       sb.append("========Nodes/Links========\n");
       try {
-        String lsrp = System.getProperty("user.home") + "/.qkd/lsrp.log";
+        String lsrp = System.getProperty("user.home") + "/qkd_logs/lsrp.log";
         java.io.FileWriter fw = new java.io.FileWriter(lsrp);
         fw.write(sb.toString());
         fw.close();
