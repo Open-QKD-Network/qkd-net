@@ -257,6 +257,8 @@ public class LSRPRouter {
         }
       } // update
 
+      // write toplogy to file
+      writeNetworkToFile();
       // forward the msg to all neighbours except the one recevied from
       for (Map.Entry<String, Node> entry : this.adjacentNeighbours.entrySet()) {
         Node n = entry.getValue();
@@ -353,6 +355,8 @@ public class LSRPRouter {
       // start monitoring the link between myself and neighbour
       LinkDetectionRunnable detection = new LinkDetectionRunnable(this, neighbour);
       this.sharedEventLoopGroup.schedule(detection, LINK_DETECTION_TIMER_VALUE, TimeUnit.SECONDS);
+      // write toplogy to file
+      writeNetworkToFile();
     }
 
     private void startListening()  throws Exception {
@@ -569,5 +573,31 @@ public class LSRPRouter {
       } catch (Exception e) {
       }
       return address;
+    }
+
+    private void writeNetworkToFile() {
+      StringBuilder sb = new StringBuilder();
+      sb.append("========Nodes/Links========\n");
+      for (Map.Entry<String, Node> entry : this.allNodes.entrySet()) {
+        Node node = entry.getValue();
+        sb.append(node.getName()).append("\n");
+        Map<Node, Integer> adjacentNodes = node.getAdjacentNodes();
+        for (Map.Entry<Node, Integer> entry2 : adjacentNodes.entrySet()) {
+          Node neighbour = entry2.getKey();
+          int distance = entry2.getValue();
+          if (distance < Integer.MAX_VALUE) {
+            sb.append("    ").append(node.getName()).append(" <----> ").append(neighbour.getName()).append(" = ").append(distance).append("\n");
+          }
+        }
+      }
+      sb.append("========Nodes/Links========\n");
+      try {
+        String lsrp = System.getProperty("user.home") + "/.qkd/lsrp.log";
+        java.io.FileWriter fw = new java.io.FileWriter(lsrp);
+        fw.write(sb.toString());
+        fw.close();
+      } catch (Exception e) {
+        LOGGER.info("Write routes to file exception:" + e);
+      }
     }
 }
