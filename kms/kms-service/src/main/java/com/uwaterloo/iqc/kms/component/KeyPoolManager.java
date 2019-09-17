@@ -88,10 +88,12 @@ public class KeyPoolManager {
 
         poolName = srcSiteId + dstSiteId;
 
+        logger.info("KeyPoolManager.fetchKey:" + srcSiteId + "->" + dstSiteId + ",index=" + ind);
         if (containsPool(poolName)) {
             cipherKey = key(poolName, index);
         } else if (containsPoolLock(poolName) &&
                    keyPoolLock(poolName).inProgress) {
+            logger.info("KeyPoolManager.fetchKey is progressing, please wait ...");
             poolLock = keyPoolLock(poolName);
             synchronized(poolLock.lock) {
                 try {
@@ -104,6 +106,7 @@ public class KeyPoolManager {
             }
             cipherKey = key(poolName, index);
         } else {
+            logger.info("KeyPoolManager.fetchKey starts ...");
             initPoolLock.lock();  // block until condition holds
             try {
                 if (containsPool(poolName)) {
@@ -152,6 +155,7 @@ public class KeyPoolManager {
 
                     keyPools.remove(poolName);
                     KeyPool kp = new KeyPool(blockId, blockSz, keyBlockDst);
+                    logger.info("KeyPoolManager.fetchKey, add keypool: " + poolName + ",blockId:" + blockId + ",blockSz:" + blockSz + ",keyBlockDest:" + keyBlockDst);
                     keyPools.put(poolName, kp);
 
                     synchronized(poolLock.lock) {

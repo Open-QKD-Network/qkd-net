@@ -37,6 +37,8 @@ public class KeyPool {
         key.index = index;
         key.hexKey = keys.get(index);
         key.blockId = blockId;
+        // The caller is client.
+        this.index.getAndIncrement();
         return key;
     }
 

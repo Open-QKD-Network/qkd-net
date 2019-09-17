@@ -1,5 +1,8 @@
 package com.uwaterloo.iqc.qnl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.commons.codec.binary.Hex;
 
 import com.uwaterloo.iqc.qnl.qll.QLLReader;
@@ -16,6 +19,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 
 public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
 
+    private static Logger LOGGER = LoggerFactory.getLogger(KeyRouterBackendHandler.class);
+
     private final Channel inboundChannel;
     private QNLConfiguration qConfig;
     private QNLResponse respQNL;
@@ -27,6 +32,7 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
         cfg = qConfig.getConfig();
         blockByteSz = cfg.getKeyBlockSz()*cfg.getKeyBytesSz();
         respQNL = new QNLResponse(blockByteSz);
+        LOGGER.info("KeyRouterBackendHandler.new:" + this + ",inboundChannel:" + inboundChannel);
     }
 
     @Override
@@ -57,14 +63,18 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
         byte [] bin =  null;
         byte [] hex = null;
 
+        LOGGER.info("KeyRouterBackend/processResp:" + this + ",res:" + qResp);
         switch (opId) {
         case QNLConstants.RESP_POST_ALLOC_KP_BLOCK:
             QNLResponse adjResp = new QNLResponse(blockByteSz);
+            // opId: RESP_POST_PEER_ALLOC_KP_BLOCK
+            // C ---> B ---> A, A is localSiteId, send to B
             adjResp.setOpId(qResp.getRespOpId());
             adjResp.setSiteIds(qResp.getSrcSiteId(), qResp.getDstSiteId());
             adjResp.setKeyBlockIndex(qResp.getKeyBlockIndex());
             adjResp.setUUID(qResp.getUUID());
 
+            LOGGER.info("RESP_POST_ALLOC_KP_BLOCK/writeResp:" + adjResp);
             inboundChannel.writeAndFlush(adjResp).addListener(
             new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future) {
@@ -79,7 +89,12 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
 
         case QNLConstants.RESP_POST_KP_BLOCK_INDEX:
         case QNLConstants.RESP_GET_KP_BLOCK_INDEX:
+            // RESP_GET_KP_BLOCK_INDEX, send RESP_GET_ALLOC_KP_BLOCK back to KMS service
+            // Request C ---> B ---> A
+            // Response C <---B <--- A, localSiteId is C
+            // so adjSiteId is B
             adjSiteId = rConfig.getAdjacentId(destSiteId);
+            LOGGER.info("adjSiteId:" + adjSiteId);
             index = qResp.getKeyBlockIndex();
             try {
                 qllRdr = qConfig.getQLLReader(adjSiteId);
@@ -97,6 +112,11 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
                 e.printStackTrace();
             }
 
+            if (opId == QNLConstants.REQ_POST_KP_BLOCK_INDEX) {
+                LOGGER.info("RESP_POST_KP_BLOCK_INDEX/writeResp to inboundChannel:" + inboundChannel + ", resp:"  + resp);
+            } else {
+                LOGGER.info("RESP_GET_KP_BLOCK_INDEX/writeResp to inbound channel:" + inboundChannel + ", resp:" + resp);
+            }
             inboundChannel.writeAndFlush(resp).addListener(
             new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future) {
@@ -111,8 +131,12 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
             break;
 
         case QNLConstants.RESP_POST_PEER_ALLOC_KP_BLOCK:
+            // Request: C ---> B ---> A
+            // Response: C <--- B <--- A
+            // localSite is B, adjSiteId should be next hop to C
             adjSiteId = rConfig.getAdjacentId(srcSiteId);
 
+            LOGGER.info("RESP_POST_PEER_ALLOC_KP_BLOCK/adjSiteId:" + adjSiteId + ",localSiteId:" + localSiteId + ",srcSiteId:" + srcSiteId);
             if (adjSiteId.equalsIgnoreCase(srcSiteId)) {
                 resp = new QNLResponse(blockByteSz);
                 if (localSiteId.compareToIgnoreCase(srcSiteId) < 0) {
@@ -129,6 +153,7 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
                 resp = qResp;
             }
 
+            LOGGER.info("RESP_POST_PEER_ALLOC_KP_BLOCK/writeResp:" + resp);
             inboundChannel.writeAndFlush(resp).addListener(
             new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future) {

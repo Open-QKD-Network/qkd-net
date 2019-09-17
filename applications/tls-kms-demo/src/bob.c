@@ -189,6 +189,7 @@ int server_body(int s, char *site_id)
     gNC.peer_site_id[1] = '\0';
     fetch_new_qkd_key(&gNC);
     snprintf(hint, 128, "%s %s %d", gNC.site_id, gNC.block_id, gNC.index);
+    printf("SSL-Server-PSK-Hint:%s\n", hint);
     SSL_CTX_use_psk_identity_hint(ctx, hint);
     memcpy(keybuf, gNC.key, 32);
 #else

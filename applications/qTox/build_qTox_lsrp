@@ -1,0 +1,25 @@
+
+# ./build_qTox {install_dir}
+#
+cd ..
+
+export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:$1/lib/pkgconfig
+
+cd c-toxcore
+./autogen.sh
+./configure CFLAGS=-g3 --enable-qkd-keys LIBS="-lssl -lcrypto" --no-recursion
+make clean;make -j8;make install
+cd ..
+#END
+
+#:<<'END'
+cd qTox
+./bootstrap.sh --without-tox 
+rm -rf build
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-DQKD" -DCMAKE_PREFIX_PATH="$1" ..
+#-DCMAKE_PREFIX_PATH="$1;$HOME/Qt/5.11.1/gcc_64/lib/cmake" 
+make -j8
+cd ..
+#END

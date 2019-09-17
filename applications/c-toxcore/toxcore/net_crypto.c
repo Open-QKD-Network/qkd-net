@@ -176,7 +176,7 @@ struct Net_Crypto {
 #ifdef QKD_KEYS
 
 void prepare_kms_access(Net_Crypto *m) {
-  char *str = "/.kms/kms.conf";
+  char *str = "/.qkd/kms/kms.conf";
   FILE *fp;
   char buffer[128];
   
@@ -188,6 +188,10 @@ void prepare_kms_access(Net_Crypto *m) {
   filestr[strlen(homedir) + strlen(str)] = '\0';
 
   fp = fopen(filestr, "r");
+  if (!fp) {
+    printf("**** Please check the file %s\n", filestr);
+    exit (0);
+  }
 
   fgets(buffer, sizeof buffer, fp);
   buffer[strlen(buffer) - 1] = '\0';
@@ -312,7 +316,7 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
         post[len_post] = '\0';
         printf("key_post : %s\n", post);
         res = fetch(nc, &chunk, nc->newkey_url, buf, post);
-
+        free(post);
     } else {
         char dex [sizeof(long)*8+1];
         snprintf (dex, sizeof(dex), "%ld", nc->index);

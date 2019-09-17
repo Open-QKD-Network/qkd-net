@@ -71,6 +71,7 @@ public class ClientHandler
         if (cause instanceof ReadTimeoutException) {
             cause.printStackTrace();
             ctx.close();
+            System.out.println("ClientHandler readtimeouts");
             throw new Exception("No QLL buffers available");
         } else {
             try {
@@ -78,6 +79,7 @@ public class ClientHandler
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
+                System.out.println("ClientHandler exception:" + cause);
                 cause.printStackTrace();
                 ctx.close();
             }

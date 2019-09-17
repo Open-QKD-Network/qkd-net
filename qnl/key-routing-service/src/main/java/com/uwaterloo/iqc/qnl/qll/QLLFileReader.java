@@ -1,5 +1,8 @@
 package com.uwaterloo.iqc.qnl.qll;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -9,6 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.uwaterloo.iqc.qnl.QNLConfig;
 
 public class QLLFileReader implements QLLReader {
+    private static Logger LOGGER = LoggerFactory.getLogger(QLLFileReader.class);
 
     private String siteId;
     private AtomicLong qllBlockIndex = new AtomicLong(0);
@@ -21,6 +25,7 @@ public class QLLFileReader implements QLLReader {
         this.qllBlockSz = qCfg.getQllBlockSz();
         this.keyLoc = qCfg.getQNLSiteKeyLoc(siteId);
         this.keyByteSz = qCfg.getKeyBytesSz();
+        LOGGER.info("QLLFileReader.new:" + this);
     }
 
     private int readKeyBlock(byte[] dst, int len, long offset) {
@@ -35,6 +40,8 @@ public class QLLFileReader implements QLLReader {
         String line;
         BufferedReader reader;
         int destPos = 0;
+
+        LOGGER.info(this + "-readKeyBlock:len:" + len + ",offset:" + offset);
         try {
             index = offset;
             startIndex = index - len;
@@ -72,6 +79,7 @@ public class QLLFileReader implements QLLReader {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        LOGGER.info(this + "-readKeyBlock:linesRead:" + linesRead);
         return linesRead;
     }
 
@@ -94,6 +102,7 @@ public class QLLFileReader implements QLLReader {
     }
 
     public void getNextBlockIndex(int len, AtomicLong indexRef) {
+        LOGGER.info(this + ".getNextBlockIndex,len:" + len + ",indexRef:" + indexRef.get());
         long index = qllBlockIndex.addAndGet(len);
         int blockIndex = (int)index / qllBlockSz;
         String fileStr = keyLoc + "/" + siteId + "_" + blockIndex;
@@ -106,5 +115,14 @@ public class QLLFileReader implements QLLReader {
         }
     }
 
+    public String toString() {
+      StringBuilder sb = new StringBuilder("QLLFileReader(");
+      sb.append(this.siteId);
+      sb.append(")");
+      sb.append(",qllBlockSz=").append(this.qllBlockSz);
+      sb.append(",keyLoc=").append(this.keyLoc);
+      sb.append(",keyByteSz=").append(this.keyByteSz);
+      sb.append(",qllBLockIndex=").append(this.qllBlockIndex.get());
+      return sb.toString();
+    }
 }
-

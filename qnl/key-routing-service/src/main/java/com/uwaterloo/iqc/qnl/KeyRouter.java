@@ -10,17 +10,23 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
+import com.uwaterloo.iqc.qnl.lsrp.LSRPRouter;
+
 public class KeyRouter {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
+
     public static void main(String[] args) throws Exception {
-    	QNLConfiguration qConfig;
-    	if (args.length == 0)
-    		qConfig = new QNLConfiguration(null);
-    	else
-    		qConfig = new QNLConfiguration(args[0]);
-    	
-    	LOGGER.info("Key router started");
+        QNLConfiguration qConfig;
+        if (args.length == 0)
+          qConfig = new QNLConfiguration(null);
+        else
+          qConfig = new QNLConfiguration(args[0]);
+
+        LOGGER.info("Key router started, args.length:" + args.length);
+        LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
+        lsrpRouter.start();
+
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -35,6 +41,5 @@ public class KeyRouter {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
-       
     }
 }
