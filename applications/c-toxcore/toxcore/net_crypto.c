@@ -175,16 +175,8 @@ struct Net_Crypto {
 
 #ifdef QKD_KEYS
 
-static const char *token_header = "authorization:Basic aHRtbDU6cGFzc3dvcmQ=";
-static const char *token_post = "password=bot&client_secret=password&client=html5&username=pwebb&grant_type=password&scope=openid";
-static const char *key_header = "Authorization: Bearer ";
-static const char *query_str = "siteid=";
-static const char *new_key_api = "newkey";
-static const char *get_key_api = "getkey";
-
-
-void prepare_kms_access(struct Net_Crypto *m) {
-  char *str = "/.qkd/kms/kms.conf";
+void prepare_kms_access(Net_Crypto *m) {
+  char *str = "/.kms/kms.conf";
   FILE *fp;
   char buffer[128];
   
@@ -205,14 +197,13 @@ void prepare_kms_access(struct Net_Crypto *m) {
   fgets(buffer, sizeof buffer, fp);
   buffer[strlen(buffer) - 1] = '\0';
   strcpy(m->newkey_url, buffer);
-  strcpy(m->getkey_url, buffer);
-
-  strcpy(m->newkey_url + strlen(buffer), new_key_api);
-  strcpy(m->getkey_url + strlen(buffer), get_key_api);
-
-  m->newkey_url[strlen(buffer) + strlen(new_key_api)] = '\0';  
-  m->getkey_url[strlen(buffer) + strlen(get_key_api)] = '\0';  
+  m->newkey_url[strlen(buffer)] = '\0';  
   
+  fgets(buffer, sizeof buffer, fp);
+  buffer[strlen(buffer) - 1] = '\0';
+  strcpy(m->getkey_url, buffer);
+  m->getkey_url[strlen(buffer)] = '\0';  
+
   fgets(buffer, sizeof buffer, fp);
   buffer[strlen(buffer) - 1] = '\0';
   strcpy(m->site_id, buffer);
@@ -221,6 +212,7 @@ void prepare_kms_access(struct Net_Crypto *m) {
 
   curl_global_init(CURL_GLOBAL_ALL);
   m->curl_handle = curl_easy_init();
+
 }
 
 void  cleanup_kms_handles(Net_Crypto *c) {
@@ -229,6 +221,10 @@ void  cleanup_kms_handles(Net_Crypto *c) {
 }
 
 
+static const char *token_header = "authorization:Basic aHRtbDU6cGFzc3dvcmQ=";
+static const char *token_post = "password=bot&client_secret=password&client=html5&username=pwebb&grant_type=password&scope=openid";
+static const char *key_header = "Authorization: Bearer ";
+static const char *query_str = "siteid=";
 
 struct MemoryStruct {
     char *memory;

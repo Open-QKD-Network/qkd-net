@@ -1,17 +1,11 @@
 package com.uwaterloo.iqc.kms.component;
 
-import java.io.FileReader;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.net.util.SubnetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
-import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
+import com.uwaterloo.iqc.kms.controller.KMSController;
 
 @Configuration
 @PropertySource(value = "file:${SITE_PROPERTIES}", ignoreResourceNotFound = true)
@@ -36,53 +29,18 @@ public class KeyPoolManager {
     private ConcurrentMap<String, KeyPool> keyPools = new ConcurrentHashMap<>();
     private ConcurrentMap<String, PoolLock> poolLocks = new ConcurrentHashMap<>();
     private ReentrantLock initPoolLock=  new ReentrantLock();
-    private SubnetSiteIDConfig ssidCfg;
-    Map <String, SubnetUtils> subnetMap = new HashMap<String, SubnetUtils>();
     @Value("${kms.keys.bytesize}") private int byteSz;
     @Value("${kms.keys.blocksize}") private long blockSz;
     @Value("${kms.site.id}") private String localSiteId;
     @Value("${kms.keys.dir}") private String poolsDir;
-    @Value("${kms.remote.subnet.siteid.prop.location}") private String subnet_site;
     @Value("${qnl.ip}") private String qnlIP;
     @Value("${qnl.port}") private int qnlPort;
-    
-    @Autowired	private QNLKeyReader keyReader; 
+    @Autowired	private QNLKeyReader keyReader;
 
-    @PostConstruct
-    public void init() {
-      try {
-        Gson gson = new Gson();
-        JsonReader reader = new JsonReader(new FileReader(subnet_site));
-        ssidCfg = gson.fromJson(reader, SubnetSiteIDConfig.class);
-        reader.close();
-        for (String k : ssidCfg.remote_subnet_siteid.keySet()) {
-        	subnetMap.put(k, new SubnetUtils(k));
-        }
-      } catch(Exception e) {
-        e.printStackTrace();
-      }
-    }    
-    
     @Bean
     public KeyPoolManager keyPoolMgr() {
         KeyPoolManager kp = new  KeyPoolManager();
         return  kp;
-    }
-    
-    public String getSiteId() {
-    	return localSiteId;
-    }
-    
-    public String getPeerSiteID(String ip) {
-    	for (Map.Entry<String, SubnetUtils> e: subnetMap.entrySet()) {
-    		SubnetUtils s = e.getValue();
-    		String mask = e.getKey();
-    		boolean isOk = s.getInfo().isInRange(ip);
-    		if (isOk) {
-    			return ssidCfg.remote_subnet_siteid.get(mask);
-    		}
-    	}
-    	return null;
     }
 
     public Key newKey(String siteId) {

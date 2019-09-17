@@ -8,10 +8,7 @@ char *psk_key = "1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A";
 static const char *token_header = "authorization:Basic aHRtbDU6cGFzc3dvcmQ=";
 static const char *token_post = "password=bot&client_secret=password&client=html5&username=pwebb&grant_type=password&scope=openid";
 static const char *key_header = "Authorization: Bearer ";
-static const char *query_str_id = "siteid=";
-static const char *query_str_ip = "ip=";
-static const char *new_key_api = "newkey";
-static const char *get_key_api = "getkey";
+static const char *query_str = "siteid=";
 
 
 void prepare_kms_access(struct Net_Crypto *m) {
@@ -36,14 +33,13 @@ void prepare_kms_access(struct Net_Crypto *m) {
   fgets(buffer, sizeof buffer, fp);
   buffer[strlen(buffer) - 1] = '\0';
   strcpy(m->newkey_url, buffer);
-  strcpy(m->getkey_url, buffer);
-
-  strcpy(m->newkey_url + strlen(buffer), new_key_api);
-  strcpy(m->getkey_url + strlen(buffer), get_key_api);
-
-  m->newkey_url[strlen(buffer) + strlen(new_key_api)] = '\0';  
-  m->getkey_url[strlen(buffer) + strlen(get_key_api)] = '\0';  
+  m->newkey_url[strlen(buffer)] = '\0';  
   
+  fgets(buffer, sizeof buffer, fp);
+  buffer[strlen(buffer) - 1] = '\0';
+  strcpy(m->getkey_url, buffer);
+  m->getkey_url[strlen(buffer)] = '\0';  
+
   fgets(buffer, sizeof buffer, fp);
   buffer[strlen(buffer) - 1] = '\0';
   strcpy(m->site_id, buffer);
@@ -309,11 +305,11 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
     strcpy(buf+strlen(key_header), token);
     buf[len] = '\0';
     if (is_new) {
-         int len_post = strlen(nc->peer_site_ip) + strlen(query_str_ip);
+         int len_post = strlen(nc->peer_site_id) + strlen(query_str);
          char *post = (char*)malloc(len_post+1);
 
-        strcpy(post, query_str_ip);
-        strcpy(post + strlen(query_str_ip), nc->peer_site_ip);
+        strcpy(post, query_str);
+        strcpy(post + strlen(query_str), nc->peer_site_id);
         post[len_post] = '\0';
         printf("key_post : %s\n", post);
         res = fetch(nc, &chunk, nc->newkey_url, buf, post);
@@ -321,14 +317,14 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
     } else {
         char dex [sizeof(int)*8+1];
         sprintf (dex, "%d", nc->index);
-        int len_post =  strlen(query_str_id) + strlen(nc->peer_site_id) + strlen("&index=") + strlen(dex) + strlen("&blockid=") + strlen(nc->block_id);
+        int len_post =  strlen(query_str) + strlen(nc->peer_site_id) + strlen("&index=") + strlen(dex) + strlen("&blockid=") + strlen(nc->block_id);
         char *post = (char*)malloc(len_post+1);
-        strcpy(post, query_str_id);
-        strcpy(post + strlen(query_str_id), nc->peer_site_id);
-        strcpy(post + strlen(query_str_id) + strlen(nc->peer_site_id), "&index=");
-        strcpy(post + strlen(query_str_id) + strlen(nc->peer_site_id) + strlen("&index="), dex);
-        strcpy(post + strlen(query_str_id) + strlen(nc->peer_site_id) + strlen("&index=") + strlen(dex), "&blockid=");
-        strcpy(post + strlen(query_str_id) + strlen(nc->peer_site_id) + strlen("&index=") + strlen(dex) + strlen("&blockid="), nc->block_id);
+        strcpy(post, query_str);
+        strcpy(post + strlen(query_str), nc->peer_site_id);
+        strcpy(post + strlen(query_str) + strlen(nc->peer_site_id), "&index=");
+        strcpy(post + strlen(query_str) + strlen(nc->peer_site_id) + strlen("&index="), dex);
+        strcpy(post + strlen(query_str) + strlen(nc->peer_site_id) + strlen("&index=") + strlen(dex), "&blockid=");
+        strcpy(post + strlen(query_str) + strlen(nc->peer_site_id) + strlen("&index=") + strlen(dex) + strlen("&blockid="), nc->block_id);
         post[len_post] = '\0';
 
         printf("post String %s\n", post);
@@ -411,6 +407,7 @@ void fetch_new_qkd_key(struct Net_Crypto *nc) {
   get_token(nc, &token);
   get_key(nc, token, 1);
   free(token); 
+
 }
 
 void fetch_qkd_key(struct Net_Crypto *nc) {

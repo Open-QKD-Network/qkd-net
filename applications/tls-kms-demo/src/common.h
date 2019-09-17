@@ -43,7 +43,6 @@ struct Net_Crypto {
     char block_id[37];
     unsigned char key[32]; //shared key from KMS
     char peer_site_id[4];
-    char peer_site_ip[16];
     int index;
     CURL *curl_handle;
 };

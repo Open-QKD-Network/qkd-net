@@ -34,10 +34,8 @@ cd ${QKD_HOME}/kms/kms-service
 mkdir -p $HOME/.qkd/kms/
 if [ ! -f $HOME/.qkd/kms/site.properties ];then
   cp src/main/resources/site.properties $HOME/.qkd/kms/
-  cp src/main/resources/subnet_siteid.json $HOME/.qkd/kms/
 fi
 export SITE_PROPERTIES=$HOME/.qkd/kms/site.properties
-export REMOTE_SUBNET_SITE_PROPERTIES=$HOME/.qkd/kms/subnet_siteid.json
 
 mvn -N io.takari:maven:wrapper
 ./mvnw clean install
