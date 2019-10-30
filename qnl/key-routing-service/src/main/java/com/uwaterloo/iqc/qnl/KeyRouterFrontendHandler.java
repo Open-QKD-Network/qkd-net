@@ -199,6 +199,7 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                 req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
                 req.setKeyBlockIndex(ref.get());
                 req.setUUID(uniqueID);
+                //req.setRespOpId(QNLConstants.RESP_GET_KP_BLOCK_INDEX); // added by XL
                 try {
                     // OTPKey should be key between B and next hop
                     // In this case next hop is A
@@ -236,7 +237,9 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                     otpKey = qConfig.getOTPKey(adjSiteId);
                     otpKey.otp(binDest);
                     req.setPayLoad(binDest);
-                } catch(Exception e) {}
+                } catch(Exception e) {                    
+                	e.printStackTrace(System.out);
+                }
 
                 LOGGER.info("REQ_POST_PEER_ALLOC_KP_BLOCK/generate new QNLRequest:" + req);
                 retainConnectHandler(ctx, QNLConfig.KMS);
@@ -247,16 +250,37 @@ public class KeyRouterFrontendHandler extends  ChannelInboundHandlerAdapter {
                 // C ---> B ---> A ---> D, localSiteId is A
                 // Non adjacent allocation request
                 //Create REQ_POST_PEER_ALLOC_KP_BLOCK to propagate key blocks
-                otherSiteId = rConfig.getOtherAdjacentId(rConfig.getAdjacentId(destSiteId));
-                LOGGER.info("REQ_POST_PEER_ALLOC_KP_BLOCK/otherSiteId:" + otherSiteId);
-                if (otherSiteId != null)
-                    ctx.pipeline().remove(otherSiteId);
+//                otherSiteId = rConfig.getOtherAdjacentId(rConfig.getAdjacentId(destSiteId));
+//                LOGGER.info("REQ_POST_PEER_ALLOC_KP_BLOCK/otherSiteId:" + otherSiteId);
+//                if (otherSiteId != null)
+//                    ctx.pipeline().remove(otherSiteId);
                 //NEEDS FIXING
 //        		req = new QNLRequest((short)132, 0);
 //        		req.setOpId(QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK);
 //                req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
+                adjSiteId = rConfig.getAdjacentId(destSiteId);
+                LOGGER.info("REQ_POST_PEER_ALLOC_KP_BLOCK/adjSiteId(destSiteId=" + destSiteId + ")=" + adjSiteId);
+
+                req = new QNLRequest(blockByteSz);
+                req.setOpId(QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK);
+                req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
+                req.setKeyBlockIndex(qReq.getKeyBlockIndex());
+                req.setUUID(qReq.getUUID());
+                req.setRespOpId(QNLConstants.RESP_POST_PEER_ALLOC_KP_BLOCK);
+                binDest = new byte[blockByteSz];
+                qReq.getPayLoad().readBytes(binDest);
+                try {
+                    // OTPKey should be key between localSite and next hop
+                    otpKey = qConfig.getOTPKey(adjSiteId);
+                    otpKey.otp(binDest);
+                    req.setPayLoad(binDest);
+                } catch(Exception e) {
+                    e.printStackTrace(System.out);
+                }
+                LOGGER.info("REQ_POST_PEER_ALLOC_KP_BLOCK/generate new QNLRequest:" + req);
+                retainConnectHandler(ctx, adjSiteId);
                 ctx.fireChannelActive();
-                ctx.fireChannelRead(qReq);       //just propagate
+                ctx.fireChannelRead(req);
             }
             break;
         }
