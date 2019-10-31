@@ -186,7 +186,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         } else {
           // For example C ---> B ---> A
           // localSiteId is intermediate site B
-          // adjSiteId should be next hop on the path
+          // adjSiteId should be next hop on the path towards the destSiteId
           adjSiteId = rConfig.getAdjacentId(destSiteId);
           LOGGER.info("adjSiteId(destSiteId=" + destSiteId + ")=" + adjSiteId);
 
@@ -242,23 +242,36 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           ctx.fireChannelActive();
           ctx.fireChannelRead(req);
         } else {
+          // D ---> C ---> B ---> A, Here is B
+          // still needs to pass along the Request, but payload needs to be re-OTPed
+          // OTP decode the payload first
+          binDest = new byte[blockByteSz];
+          qReq.getPayLoad().readBytes(binDest);
+          try {
+            // OTPKey should be key between localSite and previous hop
+            otpKey = qConfig.getOTPKey(rConfig.getAdjacentId(srcSiteId));
+            otpKey.otp(binDest);
+          } catch (Exception e) {
+            LOGGER.error("cannot get OTP key to decode the REQ_POST_PEER_ALLOC_KP_BLOCK payload");
+            e.printStackTrace(System.out);
+          }
+
+          // OTP encode the payload for next hop
           adjSiteId = rConfig.getAdjacentId(destSiteId);
           LOGGER.info(
               "REQ_POST_PEER_ALLOC_KP_BLOCK/adjSiteId(destSiteId=" + destSiteId + ")=" + adjSiteId);
-
           req = new QNLRequest(blockByteSz);
           req.setOpId(QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK);
           req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
           req.setKeyBlockIndex(qReq.getKeyBlockIndex());
           req.setUUID(qReq.getUUID());
-          binDest = new byte[blockByteSz];
-          qReq.getPayLoad().readBytes(binDest);
           try {
-            // OTPKey should be key between localSite and next hop
             otpKey = qConfig.getOTPKey(adjSiteId);
             otpKey.otp(binDest);
             req.setPayLoad(binDest);
           } catch (Exception e) {
+            LOGGER.error(
+                "cannot get OTP key to encode the outbound REQ_POST_PEER_ALLOC_KP_BLOCK payload");
             e.printStackTrace(System.out);
           }
           LOGGER.info(
