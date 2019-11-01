@@ -149,7 +149,6 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
                 resp.setUUID(qResp.getUUID());
             } else {
                 //propagate the peer alloc block response
-                //needs to be xored
                 resp = qResp;
             }
 
