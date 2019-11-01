@@ -107,16 +107,16 @@ This file is located under <top level directory>/qkd-net/kms/kms-service/src/mai
 
 Explanation of site specific configuration properties used by KMS service:
 ```C
-//Number of keys per block<br/>
-kms.keys.blocksize=1024<br/>
-//Size of a key in bytes<br/>
-kms.keys.bytesize=32<br/>
-//Top level location for locating key blocks<br/>
-kms.keys.dir=${HOME}/.qkd/kms/pools/<br/>
-//IP address of the host where key routing service is running<br/>
-qnl.ip=localhost<br/>
-//Port on which key routing service is listening for key block requests<br/>
-qnl.port=9292<br/>
+//Number of keys per block 
+kms.keys.blocksize=1024 
+//Size of a key in bytes 
+kms.keys.bytesize=32 
+//Top level location for locating key blocks 
+kms.keys.dir=${HOME}/.qkd/kms/pools/ 
+//IP address of the host where key routing service is running 
+qnl.ip=localhost 
+//Port on which key routing service is listening for key block requests 
+qnl.port=9292 
 ```
 
 ##### config.yaml (KMS QNL Service)
@@ -129,14 +129,14 @@ to $HOME/.qkd/kms/qnl from where it is used by KMS QNL service
 Expalantion of configuration properties used by KMS QNL service:
 
 ```Yaml
-//Port on which KMS QNL service is listening<br/>
-port: 9393<br/>
-//Size of a key in bytes<br/>
-keyByteSz: 32<br/>
-//Number of keys in a block. Key routing service provides KMS keys in blocks of size<br/>   
-keyBlockSz: 1024<br/>
-//Location where KMS QNL service puts the pushed key blocks from key-routing service<br/>
-poolLoc: kms/pools<br/>
+//Port on which KMS QNL service is listening 
+port: 9393 
+//Size of a key in bytes 
+keyByteSz: 32 
+//Number of keys in a block. Key routing service provides KMS keys in blocks of size    
+keyBlockSz: 1024 
+//Location where KMS QNL service puts the pushed key blocks from key-routing service 
+poolLoc: kms/pools 
 ```
 ##### config.yaml and routes.json (Key-Routing Service)
 
@@ -202,14 +202,14 @@ OTPConfig:
 For building the services,
 
 ```shell
-cd <top level director>/qkd-net/kms<br/>
+cd <top level director>/qkd-net/kms 
 ./scripts/build
 ```
 
 For running the services
 
 ```
-cd <top level director>/qkd-net/kms<br/>
+cd <top level director>/qkd-net/kms 
 ./scripts/run
 ```
 
@@ -258,7 +258,7 @@ Application at site B makes a *newkey* call.
 
 **Response**
 Format in JSON
-```json
+```
 {
   index: Index of he key
   hexKey: Key in hexadecimal format
@@ -299,7 +299,7 @@ means a new OAuth token like above is fetched first by the application on site A
 
 ***Response***
   Format in JSON
-```json
+```
   {
     index: Index of he key
     hexKey: Key in hexadecimal format
