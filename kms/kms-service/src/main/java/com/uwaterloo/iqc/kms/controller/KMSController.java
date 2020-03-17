@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.uwaterloo.iqc.kms.component.Key;
 import com.uwaterloo.iqc.kms.component.KeyPoolManager;
@@ -71,6 +72,22 @@ public class KMSController {
             k = new Key();
         }
         return k;
+    }
+
+    //https://stackoverflow.com/questions/44839753/returning-json-object-as-response-in-spring-boot
+    @RequestMapping("/v1/keys/{slaveSAEID}/enc_keys")
+    public String getKey(@PathVariable String slaveSAEID) {
+        Key k;
+        if (policy.check()) {
+	    k = keyPoolMgr.newKey(slaveSAEID);
+	    printKey(k, false);
+        } else {
+	    k = new Key();
+        }
+        StringBuilder sb = new StringBuilder("{\"keys\":[");
+        sb.append(k.toJsonString());
+        sb.append("]}");
+        return sb.toString();
     }
 
     void printKey(Key k, boolean isNew) {

@@ -1,5 +1,7 @@
 package com.uwaterloo.iqc.kms.component;
 
+import com.google.gson.Gson;
+
 public class Key {
     public long index = -2;
     public String hexKey = null;
@@ -13,4 +15,8 @@ public class Key {
         return sbf.toString();
     }
 
+    public String toJsonString() {
+        Gson gson = new Gson();
+        return gson.toJson(this);
+    }
 }
