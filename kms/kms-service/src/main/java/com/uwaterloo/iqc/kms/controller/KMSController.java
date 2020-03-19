@@ -76,10 +76,34 @@ public class KMSController {
 
     //https://stackoverflow.com/questions/44839753/returning-json-object-as-response-in-spring-boot
     @RequestMapping("/v1/keys/{slaveSAEID}/enc_keys")
-    public String getKey(@PathVariable String slaveSAEID) {
+    public String getEncKey(@PathVariable String slaveSAEID) {
         Key k;
         if (policy.check()) {
 	    k = keyPoolMgr.newKey(slaveSAEID);
+	    printKey(k, true);
+        } else {
+	    k = new Key();
+        }
+        StringBuilder sb = new StringBuilder("{\"keys\":[");
+        sb.append(k.toJsonString());
+        sb.append("]}");
+        return sb.toString();
+    }
+
+    @RequestMapping("/v1/keys/{slaveSAEID}/dec_keys")
+    public String getDecKey(@PathVariable String slaveSAEID,
+                            @RequestParam(value="key_ID") String keyID) {
+        Key k;
+        if (policy.check()) {
+            // KeyID: index-blockId
+            int i = keyID.indexOf('-');
+            String index = keyID.substring(0, i);
+            String blockId = keyID.substring(i + 1);
+            logger.info("slaveSAEID:" + slaveSAEID);
+            logger.info("keyID:" + keyID);
+            logger.info("index:" + index);
+            logger.info("blockId:" + blockId);
+	    k = keyPoolMgr.getKey(slaveSAEID, blockId, Long.parseLong(index));
 	    printKey(k, false);
         } else {
 	    k = new Key();
