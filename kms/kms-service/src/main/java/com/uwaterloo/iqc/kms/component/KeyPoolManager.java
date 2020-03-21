@@ -43,6 +43,18 @@ public class KeyPoolManager {
         return  kp;
     }
 
+    public int getKeyByteSize() {
+        return byteSz;
+    }
+
+    public long getKeyBlockSize() {
+        return blockSz;
+    }
+
+    public String getLocalSiteId() {
+        return localSiteId;
+    }
+
     public Key newKey(String siteId) {
         Key key = null;
         if (siteId == null)

@@ -114,6 +114,49 @@ public class KMSController {
         return sb.toString();
     }
 
+    @RequestMapping("/v1/keys/{slaveSAEID}/status")
+    public String getStatus(@PathVariable String slaveSAEID) {
+        // key blocksize
+        // key bytesize
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+
+        sb.append("\"source_KME_ID\": ");
+        sb.append("\"");
+        sb.append(keyPoolMgr.getLocalSiteId());
+        sb.append("\"");
+        sb.append(",");
+
+        sb.append("\"target_KME_ID\": ");
+        sb.append("\"");
+        sb.append(slaveSAEID);
+        sb.append("\"");
+        sb.append(",");
+
+        sb.append("\"master_KME_ID\": ");
+        sb.append("\"");
+        sb.append(keyPoolMgr.getLocalSiteId());
+        sb.append("\"");
+        sb.append(",");
+
+        sb.append("\"slave_KME_ID\": ");
+        sb.append("\"");
+        sb.append(slaveSAEID);
+        sb.append("\"");
+        sb.append(",");
+
+        sb.append("\"key_size\": ");
+        sb.append(keyPoolMgr.getKeyByteSize());
+        sb.append(",");
+
+        sb.append("\"key_block_size\": ");
+        sb.append(keyPoolMgr.getKeyBlockSize());
+
+        sb.append("}");
+
+        return sb.toString();
+    }
+
     void printKey(Key k, boolean isNew) {
         String str = isNew ? "New Key:" : "Peer Key:";
         logger.info(str);
