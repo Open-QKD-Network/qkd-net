@@ -7,6 +7,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 
+import com.uwaterloo.qkd.qnl.utils.QNLRequest;
+
 @EnableDiscoveryClient
 @SpringBootApplication(scanBasePackages= {"com.uwaterloo.iqc.kms"})
 @EnableResourceServer
@@ -28,6 +30,8 @@ public class KmsServiceApplication {
         //			);
         //		Gson gson = new Gson();
         //		String userJson = gson.toJson(userObject);
+        System.out.println("Running KMS-Service");
+        QNLRequest.test();
         SpringApplication.run(KmsServiceApplication.class, args);
     }
     /*
