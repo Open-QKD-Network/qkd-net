@@ -54,6 +54,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
         switch (opId) {
         case QNLConstants.REQ_POST_ALLOC_KP_BLOCK:
+            System.out.println("RECV REQ_POST_ALLOC_KP_BLOCK:" + qReq);
             resp = new QNLResponse(blockByteSz);
             resp.setOpId(QNLConstants.RESP_POST_ALLOC_KP_BLOCK);
             resp.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
@@ -70,8 +71,11 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 File f = new File(kqCfg.getLoc() + "/" + srcId + "/" + dstId);
                 if (!f.exists())
                     FileUtils.forceMkdir(f);
+                System.out.println("Key file:" + f.getAbsolutePath());
                 QNLUtils.writeKeys(hexKeys, f.getAbsolutePath() + "/" + uuid, blockSz);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                System.out.println("Exception while processing REQ_POST_ALLOC_KP_BLOCK:" + e);
+            }
             ctx.channel().writeAndFlush(resp).addListener(
             new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future) {

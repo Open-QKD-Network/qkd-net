@@ -10,8 +10,8 @@ sleep 20s
 screen -Sdm kms-gw java -jar kms-api-gateway/target/kms-api-gateway-0.0.1-SNAPSHOT.jar
 sleep 20s
 cd kms-qnl-service
-screen -Sdm kms-qnl-svc ./mvnw exec:java
+screen -Sdm kms-qnl-svc ./run-kms-qnl-service.sh
 cd ../../qnl/key-routing-service
-screen -Sdm kms-routing-svc ./mvnw exec:java
+screen -Sdm kms-routing-svc ./run-key-routing-service.sh
 cd ../../qll_sim
 screen -Sdm qll-sim MAVEN_OPTS="-Dconfig.file=$HOME/.qkd/qll-sim/qll-sim.conf" ./mvnw exec:java

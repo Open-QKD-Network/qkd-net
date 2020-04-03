@@ -1,0 +1,7 @@
+QKD_HOME=`pwd`/..
+
+cd ${QKD_HOME}/qnl/qnl-utils
+mvn -N io.takari:maven:wrapper
+./mvnw clean install
+git update-index --assume-unchanged mvnw
+git update-index --assume-unchanged mvnw.cmd

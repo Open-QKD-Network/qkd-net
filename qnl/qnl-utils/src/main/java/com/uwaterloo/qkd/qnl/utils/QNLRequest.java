@@ -104,6 +104,7 @@ public class QNLRequest {
         }
         frameSz += Integer.BYTES; // for frameSz itself
         frameSz += Integer.BYTES; // for hmac
+        frameSz += Integer.BYTES; // payloadSz out.writeInt(this.payLoadSz);
         out.writeInt(frameSz); // frameSz does not include calculated MAC
         out.writeInt(hmacSz); // need to reset it after calculate HMAC
         out.writeShort(opId);
@@ -273,6 +274,7 @@ public class QNLRequest {
                 frameSz -= this.payLoadSz;
                 payLoadMode = !(this.payLoadSz == 0);
 
+                System.out.println("QNLRequest-decode:" + this + ",payLoadSz:" + this.payLoadSz + ", payloadMode:" + payLoadMode);
                 if (this.hmacSz > 0) {
                     // read hmac
                     this.hmac = new byte[this.hmacSz];
@@ -288,7 +290,8 @@ public class QNLRequest {
             payLoadMode = !(frameSz == 0);
         }
         verifyHMAC(frame, savedFrameSz);
-        return !payLoadMode;
+        return true;
+        //return !payLoadMode;
     }
 
     public String opIdToString(short id) {
