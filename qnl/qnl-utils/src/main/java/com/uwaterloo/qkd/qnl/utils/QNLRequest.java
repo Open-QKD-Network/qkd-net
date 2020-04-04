@@ -429,7 +429,7 @@ public class QNLRequest {
       getKPBlockIndex.encode(bb2);
 
       QNLRequest getKPBlockIndex2 = new QNLRequest(1024);
-      r = getKPBlockIndex.decode(bb2);
+      r = getKPBlockIndex2.decode(bb2);
       assert(r);
 
       System.out.println("DECODE:\n" + getKPBlockIndex2);
