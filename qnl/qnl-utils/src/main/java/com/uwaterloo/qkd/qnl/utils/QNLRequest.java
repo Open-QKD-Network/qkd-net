@@ -2,6 +2,12 @@ package com.uwaterloo.qkd.qnl.utils;
 
 import java.util.UUID;
 import java.util.Formatter;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.SecretKeySpec;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -23,6 +29,7 @@ public class QNLRequest {
     private boolean payLoadMode = false;
     private byte[] hmac;
     private String uuid;
+    private String hmacKey;
 
     //private static Logger LOGGER = LoggerFactory.getLogger(QNLRequest.class);
 
@@ -32,6 +39,7 @@ public class QNLRequest {
         frameSz = 0;
         hmacSz = 0;
         payLoadSz = 0;
+        setHMACKey("b6a57ad9-d41e-4443-adf0-61042710c521");
     }
 
     public void setOpId(short op) {
@@ -88,6 +96,12 @@ public class QNLRequest {
         return dstSiteId;
     }
 
+    public void setHMACKey(String key) {
+        if (key == null || "".equals(key))
+            return;
+        this.hmacKey = key;
+    }
+
     public void encode(ByteBuf out) {
         switch (opId) {
         case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
@@ -103,7 +117,7 @@ public class QNLRequest {
             break;
         }
         frameSz += Integer.BYTES; // for frameSz itself
-        frameSz += Integer.BYTES; // for hmac
+        frameSz += Integer.BYTES; // for hmacSz
         frameSz += Integer.BYTES; // payloadSz out.writeInt(this.payLoadSz);
         out.writeInt(frameSz); // frameSz does not include calculated MAC
         out.writeInt(hmacSz); // need to reset it after calculate HMAC
@@ -142,7 +156,7 @@ public class QNLRequest {
         }
         calculateHMAC(out, this.frameSz);
         if (hmacSz > 0) {
-            out.writeBytes(hmac);
+            out.writeBytes(this.hmac);
             out.setInt(Integer.BYTES, hmacSz); // reset hmacSz
         }
         System.out.println("QNLRequest-encode:" + this + ",frameSz:" + this.frameSz + ",hmacSz:" + this.hmacSz);
@@ -179,6 +193,7 @@ public class QNLRequest {
 
             this.srcSiteIdLen = frame.readShort();
             frameSz -= Short.BYTES;
+
             byte [] src = new byte[srcSiteIdLen];
             frame.readBytes(src);
             this.srcSiteId = new String(src);
@@ -289,9 +304,7 @@ public class QNLRequest {
             frame.readBytes(payBuf, k);
             payLoadMode = !(frameSz == 0);
         }
-        verifyHMAC(frame, savedFrameSz);
-        return true;
-        //return !payLoadMode;
+        return verifyHMAC(frame, savedFrameSz);
     }
 
     public String opIdToString(short id) {
@@ -334,19 +347,59 @@ public class QNLRequest {
     }
 
     public void calculateHMAC(ByteBuf frame, int frameSize) {
-        //if (frameSize == 0)
-        //    return;
-        //byte[] f = new byte[frameSize];
-        //frame.getBytes(0, f, 0, frameSize);
-        // calculate HMAC
+        if (frameSize == 0)
+            return;
+        byte[] f = new byte[frameSize];
+        // reset the hMacSz to 0
+        frame.getBytes(0, f, 0, frameSize);
+
+        try {
+            Mac sha256Mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec sks = new SecretKeySpec(this.hmacKey.getBytes(), "HmacSHA256");
+            sha256Mac.init(sks);
+            this.hmac = sha256Mac.doFinal(f);
+            this.hmacSz = this.hmac.length;
+            System.out.println("calculateHMAC maclength:" + this.hmacSz);
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println("NoSuchAlgorithmException in calculateHMAC:" + e);
+        } catch (InvalidKeyException e) {
+            System.out.println("InvalidKeyException in calculateHMAC:" + e);
+        }
     }
 
-    public void verifyHMAC(ByteBuf frame, int frameSize) {
-        //if (this.hmacSz == 0)
-        //    return;
-        //byte[] f = new byte[frameSz];
-        //frame.getBytes(0, f, 0, frameSz);
+    public boolean verifyHMAC(ByteBuf frame, int frameSize) {
+        //System.out.println("verifyHMAC frameSize:" + frameSize + ",hmacSz:" + this.hmacSz);
+        if (this.hmacSz == 0)
+            return false;
+        frame.setInt(Integer.BYTES, 0); // reset hmacSz to 0 before calculateMac
+        byte[] f = new byte[frameSize];
+        frame.getBytes(0, f, 0, frameSize);
         // calculate HMAC
+
+        try {
+            Mac sha256Mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec sks = new SecretKeySpec(this.hmacKey.getBytes(), "HmacSHA256");
+            sha256Mac.init(sks);
+            byte[] calculatedMac = sha256Mac.doFinal(f);
+            // compare the calculatedMac and Mac in msg itsef
+            if (this.hmac.length != calculatedMac.length) {
+                System.out.println("Mac length does not match, length in msg: "
+                    + this.hmac.length + ", calculated length:" + calculatedMac.length);
+                return false;
+            }
+            System.out.println("verifyHMAC maclength:" + this.hmac.length);
+            for (int i = 0; i < this.hmac.length; i++) {
+                if (this.hmac[i] != calculatedMac[i])
+                    return false;
+            }
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println("NoSuchAlgorithmException in verifyHMAC:" + e);
+            return false;
+        } catch (InvalidKeyException e) {
+            System.out.println("InvalidKeyException in verifyHMAC:" + e);
+            return false;
+        }
+        return true;
     }
 
     static public void test() {
@@ -354,11 +407,12 @@ public class QNLRequest {
       getAllocKPBlock.setSiteIds("A", "B");
       getAllocKPBlock.setOpId(QNLConstants.REQ_GET_ALLOC_KP_BLOCK);
       ByteBuf bb1 = Unpooled.buffer(1024 + 128);
-      getAllocKPBlock.encode(bb1);
       System.out.println("ENCODE:\n" + getAllocKPBlock);
+      getAllocKPBlock.encode(bb1);
 
       QNLRequest getAllocKPBlock2 = new QNLRequest(1024);
-      getAllocKPBlock2.decode(bb1);
+      boolean r = getAllocKPBlock2.decode(bb1);
+      assert(r);
 
       System.out.println("DECODE:\n" + getAllocKPBlock2);
       System.out.println("\n");
@@ -371,11 +425,12 @@ public class QNLRequest {
       getKPBlockIndex.setSiteIds("A", "B");
       getKPBlockIndex.setOpId(QNLConstants.REQ_GET_KP_BLOCK_INDEX);
       ByteBuf bb2 = Unpooled.buffer(1024 + 128);
-      getKPBlockIndex.encode(bb2);
       System.out.println("ENCODE:\n" + getKPBlockIndex);
+      getKPBlockIndex.encode(bb2);
 
       QNLRequest getKPBlockIndex2 = new QNLRequest(1024);
-      getKPBlockIndex.decode(bb2);
+      r = getKPBlockIndex.decode(bb2);
+      assert(r);
 
       System.out.println("DECODE:\n" + getKPBlockIndex2);
       System.out.println("\n");
@@ -395,11 +450,12 @@ public class QNLRequest {
       binDest = new byte[64];
       postAllocKPBlock.setPayLoad(binDest);
       ByteBuf bb3 = Unpooled.buffer(1024 + 128);
-      postAllocKPBlock.encode(bb3);
       System.out.println("ENCODE:\n" + postAllocKPBlock);
+      postAllocKPBlock.encode(bb3);
 
       QNLRequest postAllocKPBlock2 = new QNLRequest(1024);
-      postAllocKPBlock2.decode(bb3);
+      r = postAllocKPBlock2.decode(bb3);
+      assert(r);
 
       System.out.println("DECODE:\n" + postAllocKPBlock2);
       System.out.println("\n");
@@ -420,11 +476,12 @@ public class QNLRequest {
       binDest = new byte[64];
       postPeerAllocKPBlock.setPayLoad(binDest);
       ByteBuf bb4 = Unpooled.buffer(1024 + 128);
-      postPeerAllocKPBlock.encode(bb4);
       System.out.println("ENCODE:\n" + postPeerAllocKPBlock);
+      postPeerAllocKPBlock.encode(bb4);
 
       QNLRequest postPeerAllocKPBlock2 = new QNLRequest(1024);
-      postPeerAllocKPBlock2.decode(bb4);
+      r= postPeerAllocKPBlock2.decode(bb4);
+      assert(r);
 
       System.out.println("DECODE:\n" + postPeerAllocKPBlock2);
       System.out.println("\n");
