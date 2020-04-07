@@ -56,6 +56,7 @@ public class OTPKey {
 
         try {
             otpKey = new Hex().decode(hex);
+            LOGGER.info("otpKey.length:" + otpKey.length);
         } catch(Exception e) {}
     }
 }

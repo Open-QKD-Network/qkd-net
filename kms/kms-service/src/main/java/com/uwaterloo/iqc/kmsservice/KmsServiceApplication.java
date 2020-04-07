@@ -32,6 +32,7 @@ public class KmsServiceApplication {
         //		String userJson = gson.toJson(userObject);
         System.out.println("Running KMS-Service");
         QNLRequest.test();
+        QNLRequest.test2();
         SpringApplication.run(KmsServiceApplication.class, args);
     }
     /*

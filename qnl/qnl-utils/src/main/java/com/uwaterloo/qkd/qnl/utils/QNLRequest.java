@@ -171,6 +171,132 @@ public class QNLRequest {
         return payBuf;
     }
 
+    // For the case where hamcKey is known before decoding,
+    // decode() function can be used directly.
+
+    // For case where hmacKey is not known before decoding,
+    // we introduce the following two methods to decode meta data first
+    // then get the hmacKey based on the OpId and src/dest siteId.
+    // The usage should be as below
+
+    // 1. QNLRequest request = new QNLRequest(1024);
+    // 2. int frameSz = request.decodeNonMeta(frame);
+    // 3. byte[] hmacKey = getHMACKey(request);
+    // 4. request.setHMACKey(hnacKey);
+    // 5. request.decodeNoMetaData(frame, frameSz);
+
+    // Decode metadata
+    // frameSz, macSz, opId, srtSiteId, dstSiteId
+    public int decodeMetaData(ByteBuf frame) {
+        int savedFrameSz = 0;
+        frameSz = frame.readInt();
+        savedFrameSz = frameSz;
+        frameSz -= Integer.BYTES;
+        System.out.println("QNLRequest-decode:" + this + ",frameSz:" + savedFrameSz);
+
+        // Read hmacSz
+        this.hmacSz = frame.readInt();
+        frameSz -= Integer.BYTES;
+        System.out.println("QNLRequest-decode:" + this + ",hmacSz:" + this.hmacSz);
+
+        this.opId = frame.readShort();
+        frameSz -= Short.BYTES;
+
+        this.srcSiteIdLen = frame.readShort();
+        frameSz -= Short.BYTES;
+
+        byte [] src = new byte[srcSiteIdLen];
+        frame.readBytes(src);
+        this.srcSiteId = new String(src);
+        frameSz -= this.srcSiteIdLen;
+
+        this.dstSiteIdLen = frame.readShort();
+        frameSz -= Short.BYTES;
+        byte [] dst = new byte[dstSiteIdLen];
+        frame.readBytes(dst);
+        this.dstSiteId = new String(dst);
+        frameSz -= this.dstSiteIdLen;
+
+        return savedFrameSz;
+    }
+
+    public boolean decodeNonMetaData(ByteBuf frame, int savedFrameSz) {
+        short uuidLen;
+        byte [] id;
+
+        switch (this.opId) {
+        case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
+        case QNLConstants.REQ_GET_KP_BLOCK_INDEX:
+            // Read payLoadSz
+            this.payLoadSz = frame.readInt(); // it must be 0
+            frameSz -= Integer.BYTES; // payLoadSz
+            System.out.println("QNLRequest-decode:" + this + ",payLoadSz:" + this.payLoadSz);
+            break;
+      case QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK:
+            uuidLen = frame.readShort();
+            frameSz -= Short.BYTES;
+            id = new byte[uuidLen];
+            frame.readBytes(id);
+            this.uuid = new String(id);
+            frameSz -= uuidLen;
+
+            this.keyBlockIndex = frame.readLong();
+            frameSz -= Long.BYTES;
+
+            this.payLoadSz = frame.readInt();
+            frameSz -= Integer.BYTES; // payloadSZ
+            System.out.println("QNLRequest-decode:" + this + ",payLoadSz:" + this.payLoadSz);
+            frame.readBytes(payBuf, this.payLoadSz);
+            frameSz -= this.payLoadSz;
+            payLoadMode = !(this.payLoadSz == 0);
+            break;
+      case QNLConstants.REQ_POST_KP_BLOCK_INDEX:
+            uuidLen = frame.readShort();
+            frameSz -= Short.BYTES;
+            id = new byte[uuidLen];
+            frame.readBytes(id);
+            this.uuid = new String(id);
+            frameSz -= uuidLen;
+
+            frameSz -= Long.BYTES;
+            this.keyBlockIndex = frame.readLong();
+
+            // Read payLoadSz
+            this.payLoadSz = frame.readInt(); // it must be 0
+            frameSz -= Integer.BYTES; // payLoadSz
+            System.out.println("QNLRequest-decode:" + this + ",payLoadSz:" + this.payLoadSz);
+            break;
+      case QNLConstants.REQ_POST_ALLOC_KP_BLOCK:
+            uuidLen = frame.readShort();
+            frameSz -= Short.BYTES;
+            id = new byte[uuidLen];
+            frame.readBytes(id);
+            this.uuid = new String(id);
+            frameSz -= uuidLen;
+
+            this.keyBlockIndex = frame.readLong();
+            frameSz -= Long.BYTES;
+
+            this.respOpId = frame.readShort();
+            frameSz -= Short.BYTES;
+
+            this.payLoadSz = frame.readInt();
+            frameSz -= Integer.BYTES; // payloadSZ
+            frame.readBytes(payBuf, this.payLoadSz);
+            frameSz -= this.payLoadSz;
+            payLoadMode = !(this.payLoadSz == 0);
+            System.out.println("QNLRequest-decode:" + this + ",payLoadSz:" + this.payLoadSz + ", payloadMode:" + payLoadMode);
+            break;
+      }
+      if (this.hmacSz > 0) {
+          // read hmac
+          this.hmac = new byte[this.hmacSz];
+          frame.readBytes(this.hmac);
+          frameSz -= this.hmacSz;
+      }
+      return verifyHMAC(frame, savedFrameSz);
+    }
+
     public boolean decode(ByteBuf frame) {
         int m =  frame.readableBytes();
         short uuidLen;
@@ -481,6 +607,110 @@ public class QNLRequest {
 
       QNLRequest postPeerAllocKPBlock2 = new QNLRequest(1024);
       r= postPeerAllocKPBlock2.decode(bb4);
+      assert(r);
+
+      System.out.println("DECODE:\n" + postPeerAllocKPBlock2);
+      System.out.println("\n");
+      assert(postPeerAllocKPBlock2.getSrcSiteId().equalsIgnoreCase(postPeerAllocKPBlock.getSrcSiteId()));
+      assert(postPeerAllocKPBlock2.getDstSiteId().equalsIgnoreCase(postPeerAllocKPBlock.getDstSiteId()));
+      assert(postPeerAllocKPBlock2.getOpId() == postPeerAllocKPBlock.getOpId());
+      assert(postPeerAllocKPBlock2.getKeyBlockIndex() == 1);
+      assert(postPeerAllocKPBlock2.getUUID().equalsIgnoreCase(postPeerAllocKPBlock.getUUID()));
+
+      System.out.println("Test passed\n");
+    }
+
+    static public void test2() {
+      QNLRequest getAllocKPBlock = new QNLRequest(1024);
+      getAllocKPBlock.setHMACKey("qawsedrftgyhujikolp");
+      getAllocKPBlock.setSiteIds("A", "B");
+      getAllocKPBlock.setOpId(QNLConstants.REQ_GET_ALLOC_KP_BLOCK);
+      ByteBuf bb1 = Unpooled.buffer(1024 + 128);
+      System.out.println("ENCODE:\n" + getAllocKPBlock);
+      getAllocKPBlock.encode(bb1);
+
+      QNLRequest getAllocKPBlock2 = new QNLRequest(1024);
+      int fz = getAllocKPBlock2.decodeMetaData(bb1);
+      getAllocKPBlock2.setHMACKey("qawsedrftgyhujikolp");
+      boolean r = getAllocKPBlock2.decodeNonMetaData(bb1, fz);
+      assert(r);
+
+      System.out.println("DECODE:\n" + getAllocKPBlock2);
+      System.out.println("\n");
+      assert(getAllocKPBlock.getSrcSiteId().equalsIgnoreCase(getAllocKPBlock2.getSrcSiteId()));
+      assert(getAllocKPBlock.getDstSiteId().equalsIgnoreCase(getAllocKPBlock2.getDstSiteId()));
+      assert(getAllocKPBlock.getOpId() == getAllocKPBlock2.getOpId());
+
+      // getKPBlockIndex
+      QNLRequest getKPBlockIndex = new QNLRequest(1024);
+      getKPBlockIndex.setHMACKey("qawsedrftgyhujikolp");
+      getKPBlockIndex.setSiteIds("A", "B");
+      getKPBlockIndex.setOpId(QNLConstants.REQ_GET_KP_BLOCK_INDEX);
+      ByteBuf bb2 = Unpooled.buffer(1024 + 128);
+      System.out.println("ENCODE:\n" + getKPBlockIndex);
+      getKPBlockIndex.encode(bb2);
+
+      QNLRequest getKPBlockIndex2 = new QNLRequest(1024);
+      fz = getKPBlockIndex2.decodeMetaData(bb2);
+      getKPBlockIndex2.setHMACKey("qawsedrftgyhujikolp");
+      r = getKPBlockIndex2.decodeNonMetaData(bb2, fz);
+      assert(r);
+
+      System.out.println("DECODE:\n" + getKPBlockIndex2);
+      System.out.println("\n");
+      assert(getKPBlockIndex.getSrcSiteId().equalsIgnoreCase(getKPBlockIndex2.getSrcSiteId()));
+      assert(getKPBlockIndex.getDstSiteId().equalsIgnoreCase(getKPBlockIndex2.getDstSiteId()));
+      assert(getKPBlockIndex.getOpId() == getKPBlockIndex2.getOpId());
+
+      // postAllocKPBlock
+      QNLRequest postAllocKPBlock = new QNLRequest(1024);
+      postAllocKPBlock.setHMACKey("qawsedrftgyhujikolp");
+      postAllocKPBlock.setSiteIds("A", "B");
+      postAllocKPBlock.setOpId(QNLConstants.REQ_POST_ALLOC_KP_BLOCK);
+      postAllocKPBlock.setKeyBlockIndex(1);
+      postAllocKPBlock.setRespOpId(QNLConstants.RESP_GET_KP_BLOCK_INDEX);
+      String uniqueID = UUID.randomUUID().toString();
+      postAllocKPBlock.setUUID(uniqueID);
+      byte[] binDest = null;
+      binDest = new byte[64];
+      postAllocKPBlock.setPayLoad(binDest);
+      ByteBuf bb3 = Unpooled.buffer(1024 + 128);
+      System.out.println("ENCODE:\n" + postAllocKPBlock);
+      postAllocKPBlock.encode(bb3);
+
+      QNLRequest postAllocKPBlock2 = new QNLRequest(1024);
+      fz = postAllocKPBlock2.decodeMetaData(bb3);
+      postAllocKPBlock2.setHMACKey("qawsedrftgyhujikolp");
+      r = postAllocKPBlock2.decodeNonMetaData(bb3, fz);
+      assert(r);
+
+      System.out.println("DECODE:\n" + postAllocKPBlock2);
+      System.out.println("\n");
+      assert(postAllocKPBlock2.getSrcSiteId().equalsIgnoreCase(postAllocKPBlock.getSrcSiteId()));
+      assert(postAllocKPBlock2.getDstSiteId().equalsIgnoreCase(postAllocKPBlock.getDstSiteId()));
+      assert(postAllocKPBlock2.getOpId() == postAllocKPBlock.getOpId());
+      assert(postAllocKPBlock2.getKeyBlockIndex() == 1);
+      assert(postAllocKPBlock2.getRespOpId() == QNLConstants.RESP_GET_KP_BLOCK_INDEX);
+      assert(postAllocKPBlock2.getUUID().equalsIgnoreCase(postAllocKPBlock.getUUID()));
+
+      // postPeerAllocKPBlock
+      QNLRequest postPeerAllocKPBlock = new QNLRequest(1024);
+      postPeerAllocKPBlock.setHMACKey("qawsedrftgyhujikolp");
+      postPeerAllocKPBlock.setSiteIds("A", "B");
+      postPeerAllocKPBlock.setOpId(QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK);
+      postPeerAllocKPBlock.setKeyBlockIndex(1);
+      uniqueID = UUID.randomUUID().toString();
+      postPeerAllocKPBlock.setUUID(uniqueID);
+      binDest = new byte[64];
+      postPeerAllocKPBlock.setPayLoad(binDest);
+      ByteBuf bb4 = Unpooled.buffer(1024 + 128);
+      System.out.println("ENCODE:\n" + postPeerAllocKPBlock);
+      postPeerAllocKPBlock.encode(bb4);
+
+      QNLRequest postPeerAllocKPBlock2 = new QNLRequest(1024);
+      fz = postPeerAllocKPBlock2.decodeMetaData(bb4);
+      postPeerAllocKPBlock2.setHMACKey("qawsedrftgyhujikolp");
+      r= postPeerAllocKPBlock2.decodeNonMetaData(bb4, fz);
       assert(r);
 
       System.out.println("DECODE:\n" + postPeerAllocKPBlock2);
