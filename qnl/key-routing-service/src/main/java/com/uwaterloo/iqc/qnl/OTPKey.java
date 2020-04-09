@@ -33,6 +33,10 @@ public class OTPKey {
             data[i] = (byte)(b ^ data[i++]);
     }
 
+    public byte[] getKey() {
+        return this.otpKey.clone();
+    }
+
     private void createKey() {
         QNLConfig config = qnlConfig.getConfig();
         byte[] hex =  new byte[config.getKeyBlockSz()*config.getKeyBytesSz()*2];

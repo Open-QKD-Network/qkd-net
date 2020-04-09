@@ -39,7 +39,21 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void channelRead(final ChannelHandlerContext ctx, Object msg) {
     ByteBuf frame = (ByteBuf) msg;
-    if (qReq.decode(frame)) {
+    boolean r = false;
+    int frameSz = 0;
+    OTPKey otpKey;
+    short opId = qReq.getOpId();
+
+    frameSz = qReq.decodeMetaData(frame);
+    if (opId == QNLConstants.REQ_GET_KP_BLOCK_INDEX) {
+      String destSiteId = qReq.getDstSiteId();
+      String srcSiteId = qReq.getSrcSiteId();
+      otpKey = qConfig.getOTPKey(srcSiteId);
+      qReq.setHMACKey(otpKey.getKey());
+    }
+
+    r = qReq.decodeNonMetaData(frame, frameSz);
+    if (r) {
       processReq(ctx, qReq);
     } else {
       LOGGER.info("cannot decode payload!!!!!!!!" + frame.toString());
@@ -105,6 +119,10 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           req.setOpId(QNLConstants.REQ_GET_KP_BLOCK_INDEX);
         }
         req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
+        if (req.getOpId() == QNLConstants.REQ_GET_KP_BLOCK_INDEX) {
+            otpKey = qConfig.getOTPKey(adjSiteId);
+            req.setHMACKey(otpKey.getKey());
+        }
         LOGGER.info("REQ_GET_ALLOC_KP_BLOCK/generate new QNLRequest:" + req);
         retainConnectHandler(ctx, adjSiteId);
 

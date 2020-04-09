@@ -29,7 +29,7 @@ public class QNLRequest {
     private boolean payLoadMode = false;
     private byte[] hmac;
     private String uuid;
-    private String hmacKey;
+    private byte[] hmacKey;
 
     //private static Logger LOGGER = LoggerFactory.getLogger(QNLRequest.class);
 
@@ -98,6 +98,12 @@ public class QNLRequest {
 
     public void setHMACKey(String key) {
         if (key == null || "".equals(key))
+            return;
+        this.hmacKey = key.getBytes();
+    }
+
+    public void setHMACKey(byte[] key) {
+        if (key == null)
             return;
         this.hmacKey = key;
     }
@@ -481,7 +487,7 @@ public class QNLRequest {
 
         try {
             Mac sha256Mac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec sks = new SecretKeySpec(this.hmacKey.getBytes(), "HmacSHA256");
+            SecretKeySpec sks = new SecretKeySpec(this.hmacKey, "HmacSHA256");
             sha256Mac.init(sks);
             this.hmac = sha256Mac.doFinal(f);
             this.hmacSz = this.hmac.length;
@@ -504,7 +510,7 @@ public class QNLRequest {
 
         try {
             Mac sha256Mac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec sks = new SecretKeySpec(this.hmacKey.getBytes(), "HmacSHA256");
+            SecretKeySpec sks = new SecretKeySpec(this.hmacKey, "HmacSHA256");
             sha256Mac.init(sks);
             byte[] calculatedMac = sha256Mac.doFinal(f);
             // compare the calculatedMac and Mac in msg itsef
