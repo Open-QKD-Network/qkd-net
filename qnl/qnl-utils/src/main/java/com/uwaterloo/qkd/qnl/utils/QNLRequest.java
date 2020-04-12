@@ -299,6 +299,10 @@ public class QNLRequest {
           this.hmac = new byte[this.hmacSz];
           frame.readBytes(this.hmac);
           frameSz -= this.hmacSz;
+          for (int i = 0; i < this.hmacSz; i++) {
+            System.out.print(this.hmac[i] + " ");
+          }
+          System.out.println("\n");
       }
       return verifyHMAC(frame, savedFrameSz);
     }
@@ -500,12 +504,22 @@ public class QNLRequest {
     }
 
     public boolean verifyHMAC(ByteBuf frame, int frameSize) {
-        //System.out.println("verifyHMAC frameSize:" + frameSize + ",hmacSz:" + this.hmacSz);
+        System.out.println("verifyHMAC frameSize:" + frameSize + ",hmacSz:" + this.hmacSz);
         if (this.hmacSz == 0)
             return false;
         frame.setInt(Integer.BYTES, 0); // reset hmacSz to 0 before calculateMac
         byte[] f = new byte[frameSize];
         frame.getBytes(0, f, 0, frameSize);
+        System.out.println("DATA\n");
+        for (int i = 0; i < f.length; i++) {
+            System.out.print(f[i] + " ");
+        }
+        System.out.println("\n");
+        System.out.println("MACKEY\n");
+        for (int i = 0; i < this.hmacKey.length; i++) {
+            System.out.print(this.hmacKey[i] + " ");
+        }
+        System.out.println("\n");
         // calculate HMAC
 
         try {
@@ -521,6 +535,7 @@ public class QNLRequest {
             }
             System.out.println("verifyHMAC maclength:" + this.hmac.length);
             for (int i = 0; i < this.hmac.length; i++) {
+                System.out.println(i + "/" + this.hmac[i] + "/" + calculatedMac[i]);
                 if (this.hmac[i] != calculatedMac[i])
                     return false;
             }

@@ -42,14 +42,16 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
     boolean r = false;
     int frameSz = 0;
     OTPKey otpKey;
-    short opId = qReq.getOpId();
+    short opId;
 
     frameSz = qReq.decodeMetaData(frame);
+    opId = qReq.getOpId();
     if (opId == QNLConstants.REQ_GET_KP_BLOCK_INDEX) {
       String destSiteId = qReq.getDstSiteId();
       String srcSiteId = qReq.getSrcSiteId();
       otpKey = qConfig.getOTPKey(srcSiteId);
       qReq.setHMACKey(otpKey.getKey());
+      //qReq.setHMACKey("qawsedrf");
     }
 
     r = qReq.decodeNonMetaData(frame, frameSz);
@@ -122,6 +124,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         if (req.getOpId() == QNLConstants.REQ_GET_KP_BLOCK_INDEX) {
             otpKey = qConfig.getOTPKey(adjSiteId);
             req.setHMACKey(otpKey.getKey());
+            //req.setHMACKey("qawsedrf");
         }
         LOGGER.info("REQ_GET_ALLOC_KP_BLOCK/generate new QNLRequest:" + req);
         retainConnectHandler(ctx, adjSiteId);
