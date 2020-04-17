@@ -8,6 +8,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 
 import com.uwaterloo.qkd.qnl.utils.QNLRequest;
+import com.uwaterloo.qkd.qnl.utils.QNLResponse;
 
 @EnableDiscoveryClient
 @SpringBootApplication(scanBasePackages= {"com.uwaterloo.iqc.kms"})
@@ -33,6 +34,8 @@ public class KmsServiceApplication {
         System.out.println("Running KMS-Service");
         QNLRequest.test();
         QNLRequest.test2();
+        QNLResponse.test();
+        QNLResponse.test2();
         SpringApplication.run(KmsServiceApplication.class, args);
     }
     /*

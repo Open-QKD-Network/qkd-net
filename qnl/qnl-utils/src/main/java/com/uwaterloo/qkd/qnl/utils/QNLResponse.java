@@ -512,12 +512,14 @@ public class QNLResponse {
     }
 
     static public void test() {
+        System.out.println("Test regular encode/decode");
         QNLResponse postAllocKPBlock = new QNLResponse(1024);
         postAllocKPBlock.setSiteIds("A", "B");
         postAllocKPBlock.setOpId(QNLConstants.RESP_POST_ALLOC_KP_BLOCK);
         String uniqueID = UUID.randomUUID().toString();
         postAllocKPBlock.setUUID(uniqueID);
         postAllocKPBlock.setKeyBlockIndex(8);
+        postAllocKPBlock.setRespOpId(QNLConstants.RESP_GET_KP_BLOCK_INDEX);
         ByteBuf bb1 = Unpooled.buffer(1024 + 128);
         System.out.println("ENCODE:\n" + postAllocKPBlock);
         postAllocKPBlock.encode(bb1);
@@ -532,6 +534,7 @@ public class QNLResponse {
         assert(postAllocKPBlock.getOpId() == postAllocKPBlock2.getOpId());
         assert(postAllocKPBlock.getUUID().equalsIgnoreCase(postAllocKPBlock2.getUUID()));
         assert(postAllocKPBlock.getKeyBlockIndex() == postAllocKPBlock2.getKeyBlockIndex());
+        assert(postAllocKPBlock.getRespOpId() == postAllocKPBlock2.getRespOpId());
 
         // getKPBLockIndex
         QNLResponse getKPBlockIndex = new QNLResponse(1024);
@@ -561,8 +564,16 @@ public class QNLResponse {
         getAllocKPBlock.setOpId(QNLConstants.RESP_GET_ALLOC_KP_BLOCK);
         uniqueID = UUID.randomUUID().toString();
         getAllocKPBlock.setUUID(uniqueID);
+
         byte[] binDest = null;
-        binDest = new byte[64];
+        try {
+            Mac sha256Mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec sks = new SecretKeySpec("qawsedrf".getBytes(), "HmacSHA256");
+            sha256Mac.init(sks);
+            binDest = sha256Mac.doFinal(uniqueID.getBytes());
+        } catch (Exception e) {
+            binDest = new byte[64];
+        }
         getAllocKPBlock.setPayLoad(binDest);
         ByteBuf bb3 = Unpooled.buffer(1024 + 128);
         System.out.println("ENCODE:\n" + getAllocKPBlock);
@@ -577,5 +588,129 @@ public class QNLResponse {
         assert(getAllocKPBlock.getSrcSiteId().equalsIgnoreCase(getAllocKPBlock2.getSrcSiteId()));
         assert(getAllocKPBlock.getOpId() == getAllocKPBlock2.getOpId());
         assert(getAllocKPBlock.getUUID().equalsIgnoreCase(getAllocKPBlock2.getUUID()));
+
+        ByteBuf bf = getAllocKPBlock2.getPayLoad();
+        byte[] binDest2 = new byte[bf.readableBytes()];
+        int readerIndex = bf.readerIndex();
+        bf.getBytes(readerIndex, binDest2);
+        if (binDest2.length != binDest.length) {
+            System.out.println("Test failed, binDest.length: " +
+                binDest.length + ", binDest2.length: " + binDest2.length);
+                return;
+        }
+        for (int i = 0; i < binDest.length; i++) {
+            if (binDest[i] != binDest2[i]) {
+              System.out.println("Test failed, payload diffent:" +
+                  i + "," + binDest[i] + "/" + binDest2[i]);
+              return;
+            }
+        }
+        System.out.println("Test passed");
+    }
+
+    static public void test2() {
+        System.out.println("Test encode/decodeMetaData & decodeNonMetaData");
+        QNLResponse postAllocKPBlock = new QNLResponse(1024);
+        postAllocKPBlock.setHMACKey("qawsedrftgyhujikolp");
+        postAllocKPBlock.setSiteIds("A", "B");
+        postAllocKPBlock.setOpId(QNLConstants.RESP_POST_ALLOC_KP_BLOCK);
+        String uniqueID = UUID.randomUUID().toString();
+        postAllocKPBlock.setUUID(uniqueID);
+        postAllocKPBlock.setKeyBlockIndex(8);
+        postAllocKPBlock.setRespOpId(QNLConstants.RESP_GET_KP_BLOCK_INDEX);
+        ByteBuf bb1 = Unpooled.buffer(1024 + 128);
+        System.out.println("ENCODE:\n" + postAllocKPBlock);
+        postAllocKPBlock.encode(bb1);
+
+        QNLResponse postAllocKPBlock2 = new QNLResponse(1024);
+        int fz = postAllocKPBlock2.decodeMetaData(bb1);
+        postAllocKPBlock2.setHMACKey("qawsedrftgyhujikolp");
+        boolean r = postAllocKPBlock2.decodeNonMetaData(bb1, fz);
+        assert(r);
+        System.out.println("DEOCDE:\n" + postAllocKPBlock2);
+        System.out.println("\n");
+        assert(postAllocKPBlock.getSrcSiteId().equalsIgnoreCase(postAllocKPBlock2.getSrcSiteId()));
+        assert(postAllocKPBlock.getSrcSiteId().equalsIgnoreCase(postAllocKPBlock2.getSrcSiteId()));
+        assert(postAllocKPBlock.getOpId() == postAllocKPBlock2.getOpId());
+        assert(postAllocKPBlock.getUUID().equalsIgnoreCase(postAllocKPBlock2.getUUID()));
+        assert(postAllocKPBlock.getKeyBlockIndex() == postAllocKPBlock2.getKeyBlockIndex());
+        assert(postAllocKPBlock.getRespOpId() == postAllocKPBlock2.getRespOpId());
+
+        // getKPBLockIndex
+        QNLResponse getKPBlockIndex = new QNLResponse(1024);
+        getKPBlockIndex.setHMACKey("qawsedrftgyhujikolp");
+        getKPBlockIndex.setSiteIds("A", "B");
+        getKPBlockIndex.setOpId(QNLConstants.RESP_GET_KP_BLOCK_INDEX);
+        uniqueID = UUID.randomUUID().toString();
+        getKPBlockIndex.setUUID(uniqueID);
+        getKPBlockIndex.setKeyBlockIndex(8);
+        ByteBuf bb2 = Unpooled.buffer(1024 + 128);
+        System.out.println("ENCODE:\n" + getKPBlockIndex);
+        getKPBlockIndex.encode(bb2);
+
+        QNLResponse getKPBlockIndex2 = new QNLResponse(1024);
+        fz = getKPBlockIndex2.decodeMetaData(bb2);
+        getKPBlockIndex2.setHMACKey("qawsedrftgyhujikolp");
+        r = getKPBlockIndex2.decodeNonMetaData(bb2, fz);
+        assert(r);
+        System.out.println("DEOCDE:\n" + getKPBlockIndex2);
+        System.out.println("\n");
+        assert(getKPBlockIndex.getSrcSiteId().equalsIgnoreCase(getKPBlockIndex2.getSrcSiteId()));
+        assert(getKPBlockIndex.getSrcSiteId().equalsIgnoreCase(getKPBlockIndex2.getSrcSiteId()));
+        assert(getKPBlockIndex.getOpId() == getKPBlockIndex2.getOpId());
+        assert(getKPBlockIndex.getUUID().equalsIgnoreCase(getKPBlockIndex2.getUUID()));
+        assert(getKPBlockIndex.getKeyBlockIndex() == getKPBlockIndex2.getKeyBlockIndex());
+
+        // getAllocKPBlock
+        QNLResponse getAllocKPBlock = new QNLResponse(1024);
+        getAllocKPBlock.setHMACKey("qawsedrftgyhujikolp");
+        getAllocKPBlock.setSiteIds("A", "B");
+        getAllocKPBlock.setOpId(QNLConstants.RESP_GET_ALLOC_KP_BLOCK);
+        uniqueID = UUID.randomUUID().toString();
+        getAllocKPBlock.setUUID(uniqueID);
+
+        byte[] binDest = null;
+        try {
+            Mac sha256Mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec sks = new SecretKeySpec("qawsedrf".getBytes(), "HmacSHA256");
+            sha256Mac.init(sks);
+            binDest = sha256Mac.doFinal(uniqueID.getBytes());
+        } catch (Exception e) {
+            binDest = new byte[64];
+        }
+        getAllocKPBlock.setPayLoad(binDest);
+        ByteBuf bb3 = Unpooled.buffer(1024 + 128);
+        System.out.println("ENCODE:\n" + getAllocKPBlock);
+        getAllocKPBlock.encode(bb3);
+
+        QNLResponse getAllocKPBlock2 = new QNLResponse(1024);
+        fz = getAllocKPBlock2.decodeMetaData(bb3);
+        getAllocKPBlock2.setHMACKey("qawsedrftgyhujikolp");
+        r = getAllocKPBlock2.decodeNonMetaData(bb3, fz);
+        assert(r);
+        System.out.println("DEOCDE:\n" + getAllocKPBlock2);
+        System.out.println("\n");
+        assert(getAllocKPBlock.getSrcSiteId().equalsIgnoreCase(getAllocKPBlock2.getSrcSiteId()));
+        assert(getAllocKPBlock.getSrcSiteId().equalsIgnoreCase(getAllocKPBlock2.getSrcSiteId()));
+        assert(getAllocKPBlock.getOpId() == getAllocKPBlock2.getOpId());
+        assert(getAllocKPBlock.getUUID().equalsIgnoreCase(getAllocKPBlock2.getUUID()));
+
+        ByteBuf bf = getAllocKPBlock2.getPayLoad();
+        byte[] binDest2 = new byte[bf.readableBytes()];
+        int readerIndex = bf.readerIndex();
+        bf.getBytes(readerIndex, binDest2);
+        if (binDest2.length != binDest.length) {
+            System.out.println("Test failed, binDest.length: " +
+                binDest.length + ", binDest2.length: " + binDest2.length);
+                return;
+        }
+        for (int i = 0; i < binDest.length; i++) {
+            if (binDest[i] != binDest2[i]) {
+              System.out.println("Test failed, payload diffent:" +
+                  i + "," + binDest[i] + "/" + binDest2[i]);
+              return;
+            }
+        }
+        System.out.println("Test passed");
     }
 }
