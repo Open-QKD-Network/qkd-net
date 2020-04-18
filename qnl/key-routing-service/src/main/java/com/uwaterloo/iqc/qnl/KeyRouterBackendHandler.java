@@ -44,7 +44,25 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(final ChannelHandlerContext ctx, Object msg) {
         ByteBuf frame = (ByteBuf)msg;
-        if (respQNL.decode(frame)) {
+        boolean r = false;
+        int frameSz = 0;
+        OTPKey otpKey;
+        short opId;
+        RouteConfig rConfig = qConfig.getRouteConfig();
+
+        frameSz = respQNL.decodeMetaData(frame);
+        opId = respQNL.getOpId();
+        if (opId == QNLConstants.RESP_GET_KP_BLOCK_INDEX) {
+            String destSiteId = respQNL.getDstSiteId();
+            String srcSiteId = respQNL.getSrcSiteId();
+            String adjacentId = rConfig.getAdjacentId(destSiteId);
+            LOGGER.info("destId/srcId/adjId:" + destSiteId + "/" + srcSiteId + "/" + adjacentId);
+            otpKey = qConfig.getOTPKey(adjacentId);
+            LOGGER.info("receiving RESP_GET_KP_BLOCK_INDEX, setHMACKey with otpkey:" + adjacentId);
+            respQNL.setHMACKey(otpKey.getKey());
+        }
+        r = respQNL.decodeNonMetaData(frame, frameSz);
+        if (r) {
             processResp(ctx, respQNL);
         }
         ctx.channel().read();
@@ -70,6 +88,12 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
             // opId: RESP_POST_PEER_ALLOC_KP_BLOCK
             // C ---> B ---> A, A is localSiteId, send to B
             adjResp.setOpId(qResp.getRespOpId());
+            if (adjResp.getOpId() == QNLConstants.RESP_GET_KP_BLOCK_INDEX) {
+                LOGGER.info("sending RESP_GET_KP_BLOCK_INDEX, setHMACKey with otpkey:" + srcSiteId);
+                OTPKey otpKey = null;
+                otpKey = qConfig.getOTPKey(srcSiteId);
+                adjResp.setHMACKey(otpKey.getKey());
+            }
             adjResp.setSiteIds(qResp.getSrcSiteId(), qResp.getDstSiteId());
             adjResp.setKeyBlockIndex(qResp.getKeyBlockIndex());
             adjResp.setUUID(qResp.getUUID());
