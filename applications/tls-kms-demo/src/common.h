@@ -22,7 +22,7 @@
 
 
 #define no_argument 0
-#define required_argument 1 
+#define required_argument 1
 #define optional_argument 2
 
 #define INVALID_SOCKET	(-1)
@@ -32,7 +32,15 @@
 #include <curl/curl.h>
 #include <json-c/json.h>
 
+// https://www.geeksforgeeks.org/understanding-extern-keyword-in-c/
+
 extern CURL *gHandle;
+
+/*          uwaterloo        etsi
+
+ bob         newkey         enc_key
+ alice       getkey         dec_key
+*/
 
 struct Net_Crypto {
     //All the char arrays are NULL terminated strings
@@ -45,10 +53,11 @@ struct Net_Crypto {
     char peer_site_id[4];
     int index;
     CURL *curl_handle;
+    int etsi_api; // 1: etsi_api; 0: uwaterloo_api
 };
 
 extern struct Net_Crypto gNC;
-#endif 
+#endif
 
 extern BIO *bio_err;
 extern BIO *bio_out;

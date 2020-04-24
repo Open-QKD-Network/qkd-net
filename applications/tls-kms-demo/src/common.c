@@ -7,21 +7,21 @@ char *psk_key = "1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A";
 #if defined(REST_KMS)
 static const char *token_header = "authorization:Basic aHRtbDU6cGFzc3dvcmQ=";
 static const char *token_post = "password=bot&client_secret=password&client=html5&username=pwebb&grant_type=password&scope=openid";
-static const char *key_header = "Authorization: Bearer ";
+static const char *authorization_header = "Authorization: Bearer ";
 static const char *query_str = "siteid=";
 
 
 void prepare_kms_access(struct Net_Crypto *m) {
   char *str = "/.qkd/kms/kms.conf";
   FILE *fp;
-  char buffer[128];
-  
+  char buffer[128] = { 0 };
+
   const char *homedir;
   homedir = getenv("HOME");
-  char filestr[256];
-  strcpy(filestr, homedir);
-  strcpy(filestr+strlen(homedir), str);
-  filestr[strlen(homedir) + strlen(str)] = '\0';
+  char filestr[256] = { 0 };
+
+  strncpy(filestr, homedir, 255);
+  strncpy(filestr+strlen(homedir), str, 255 - strlen(homedir));
 
   fp = fopen(filestr, "r");
   if (!fp) {
@@ -29,26 +29,34 @@ void prepare_kms_access(struct Net_Crypto *m) {
     exit (0);
   }
 
-  fgets(buffer, sizeof buffer, fp);
+  fgets(buffer, sizeof(buffer), fp);
   buffer[strlen(buffer) - 1] = '\0';
-  strcpy(m->uaa_url, buffer);
-  m->uaa_url[strlen(buffer)] = '\0';  
-  
-  fgets(buffer, sizeof buffer, fp);
-  buffer[strlen(buffer) - 1] = '\0';
-  strcpy(m->newkey_url, buffer);
-  m->newkey_url[strlen(buffer)] = '\0';  
-  
-  fgets(buffer, sizeof buffer, fp);
-  buffer[strlen(buffer) - 1] = '\0';
-  strcpy(m->getkey_url, buffer);
-  m->getkey_url[strlen(buffer)] = '\0';  
+  memset(m->uaa_url, 0, sizeof(m->uaa_url));
+  strncpy(m->uaa_url, buffer, sizeof(m->uaa_url) - 1); // oauth
 
-  fgets(buffer, sizeof buffer, fp);
+  fgets(buffer, sizeof(buffer), fp);
   buffer[strlen(buffer) - 1] = '\0';
-  strcpy(m->site_id, buffer);
-  m->site_id[strlen(buffer)] = '\0';
-  fclose(fp); 
+  memset(m->newkey_url, 0, sizeof(m->newkey_url));
+  strncpy(m->newkey_url, buffer, sizeof(m->newkey_url) - 1); // newkey
+
+  fgets(buffer, sizeof(buffer), fp);
+  buffer[strlen(buffer) - 1] = '\0';
+  memset(m->getkey_url, 0, sizeof(m->getkey_url)); // getkey
+  strncpy(m->getkey_url, buffer, sizeof(m->getkey_url) - 1);
+
+  fgets(buffer, sizeof(buffer), fp);
+  buffer[strlen(buffer) - 1] = '\0';
+  memset(m->site_id, 0, sizeof(m->site_id)); // siteid
+  strncpy(m->site_id, buffer, sizeof(m->site_id) - 1);
+
+  memset(buffer, 0, sizeof(buffer));
+  fgets(buffer, sizeof(buffer), fp);
+  if (strlen(buffer) == 0)
+      m->etsi_api = 0;
+  else if (strncmp(buffer, "etsi_api", strlen("etsi_api")) == 0)
+      m->etsi_api = 1;
+  else m->etsi_api = 0;
+  fclose(fp);
 
   curl_global_init(CURL_GLOBAL_ALL);
   m->curl_handle = gHandle = curl_easy_init();
@@ -288,7 +296,7 @@ static CURLcode fetch(struct Net_Crypto *nc, struct MemoryStruct *chunk, const c
     curl_easy_setopt(handle, CURLOPT_POSTFIELDS, post);
     curl_easy_setopt(handle, CURLOPT_HTTPHEADER, list);
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-    curl_easy_setopt(handle, CURLOPT_VERBOSE, 0L);
+    curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void *)chunk);
     curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 1L);
     res = curl_easy_perform(handle);
@@ -305,12 +313,13 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
     chunk.size = 0;
     char hex[65];
 
-    int len = strlen(key_header) + strlen(token) + 1;
+    int len = strlen(authorization_header) + strlen(token) + 1;
     char *buf = (char*)malloc(len);
-    strcpy(buf, key_header);
-    strcpy(buf+strlen(key_header), token);
+    strcpy(buf, authorization_header);
+    strcpy(buf+strlen(authorization_header), token);
     buf[len] = '\0';
     if (is_new) {
+      if (nc->etsi_api == 0) {
          int len_post = strlen(nc->peer_site_id) + strlen(query_str);
          char *post = (char*)malloc(len_post+1);
 
@@ -319,8 +328,9 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
         post[len_post] = '\0';
         printf("key_post : %s\n", post);
         res = fetch(nc, &chunk, nc->newkey_url, buf, post);
-
+      }
     } else {
+      if (nc->etsi_api == 0) {
         char dex [sizeof(int)*8+1];
         sprintf (dex, "%d", nc->index);
         int len_post =  strlen(query_str) + strlen(nc->peer_site_id) + strlen("&index=") + strlen(dex) + strlen("&blockid=") + strlen(nc->block_id);
@@ -337,6 +347,7 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
 
         res = fetch(nc, &chunk, nc->getkey_url, buf, post);
         free(post);
+      }
     }
 
     if(res != CURLE_OK) {
@@ -413,7 +424,7 @@ void fetch_new_qkd_key(struct Net_Crypto *nc) {
   char *token;
   get_token(nc, &token);
   get_key(nc, token, 1);
-  free(token); 
+  free(token);
 
 }
 
@@ -421,7 +432,7 @@ void fetch_qkd_key(struct Net_Crypto *nc) {
   char *token;
   get_token(nc, &token);
   get_key(nc, token, 0);
-  free(token); 
+  free(token);
 }
 
 void fn(void) {
