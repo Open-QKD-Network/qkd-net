@@ -282,7 +282,7 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
     return realsize;
 }
 
-static CURLcode fetch(struct Net_Crypto *nc, struct MemoryStruct *chunk, const char *url,
+static CURLcode fetch_token(struct Net_Crypto *nc, struct MemoryStruct *chunk, const char *url,
                       const char *header, const char *post) {
     CURLcode res;
     struct curl_slist *list = NULL;
@@ -301,6 +301,41 @@ static CURLcode fetch(struct Net_Crypto *nc, struct MemoryStruct *chunk, const c
     curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 1L);
     res = curl_easy_perform(handle);
     curl_slist_free_all(list);
+    return res;
+}
+
+static CURLcode fetch(struct Net_Crypto *nc, struct MemoryStruct *chunk, const char *url,
+                      const char *header, const char *post) {
+    CURLcode res;
+    struct curl_slist *list = NULL;
+    CURL *handle;
+    char* url2;
+
+    printf("HTTP-FETCH-REQUEST, url:%s,header:%s,post:%s\n\n", url, header, post);
+    handle = nc->curl_handle;
+    if (nc->etsi_api == 1) {
+      int url_len = strlen(url) + strlen("/") + strlen(post) + 1;
+      url2 = (char *) malloc(url_len);
+      memset(url2, 0, sizeof(url_len));
+      sprintf(url2, "%s/%s", url, post);
+      printf("ETSI-GET-URL:%s\n", url2);
+      curl_easy_setopt(handle, CURLOPT_HTTPGET, 1L);
+      curl_easy_setopt(handle, CURLOPT_URL, url2);
+    } else {
+      curl_easy_setopt(handle, CURLOPT_POST, 1L);
+      curl_easy_setopt(handle, CURLOPT_URL, url);
+      curl_easy_setopt(handle, CURLOPT_POSTFIELDS, post);
+    }
+    list = curl_slist_append(NULL, header);
+    curl_easy_setopt(handle, CURLOPT_HTTPHEADER, list);
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+    curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void *)chunk);
+    curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 1L);
+    res = curl_easy_perform(handle);
+    curl_slist_free_all(list);
+    if (nc->etsi_api == 1)
+        free(url2);
     return res;
 }
 
@@ -347,6 +382,18 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
 
         res = fetch(nc, &chunk, nc->getkey_url, buf, post);
         free(post);
+      } else {
+        // etsi api
+        char dex [sizeof(int)*8+1];
+        memset(dex, 0, sizeof(dex));
+        sprintf (dex, "%d", nc->index);
+        int geturl_parameter_len = strlen(nc->peer_site_id) + strlen("/dec_keys?key_ID=") + strlen(dex) + strlen("-") + strlen(nc->block_id);
+        char *geturl_parameter = (char*) malloc(geturl_parameter_len + 1);
+        memset(geturl_parameter, 0, geturl_parameter_len + 1);
+        sprintf(geturl_parameter, "%s/dec_keys?key_ID=%d-%s", nc->peer_site_id, nc->index, nc->block_id);
+        printf("etsi get url_parameter:%s\n", geturl_parameter);
+        res = fetch(nc, &chunk, nc->getkey_url, buf, geturl_parameter);
+        free(geturl_parameter);
       }
     }
 
@@ -355,7 +402,29 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
                 curl_easy_strerror(res));
     } else {
         json_object *keyobj = json_tokener_parse(chunk.memory);
+        json_object *saved = keyobj;
         printf("HTTP-FETCH-RESPONSE:%*.*s\n\n", 0, chunk.size, (unsigned char *)chunk.memory);
+        if (nc->etsi_api) {
+            json_object *key_array;
+
+            if (json_object_object_get_ex(keyobj, "keys", &key_array)) {
+                int length = json_object_array_length(key_array);
+                if (length == 0) {
+                    printf("Empty key array!!!\n");
+                    json_object_put(saved);
+                    err = 1;
+                    free(buf);
+                    return err;
+                }
+                keyobj = json_object_array_get_idx(key_array, 0);
+            } else {
+                printf("No keys!!!\n");
+                json_object_put(saved);
+                err = 1;
+                free(buf);
+                return err;
+            }
+        }
 
         json_object_object_foreach(keyobj, key1, val1) {
 
@@ -378,7 +447,7 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
                 }
             }
         }
-        json_object_put(keyobj);
+        json_object_put(saved);
     }
     free(buf);
     return err;
@@ -392,7 +461,7 @@ int get_token(struct Net_Crypto *nc, char** token) {
 
     chunk.memory = malloc(1);
     chunk.size = 0;
-    res = fetch(nc, &chunk, nc->uaa_url, token_header, token_post);
+    res = fetch_token(nc, &chunk, nc->uaa_url, token_header, token_post);
 
     if(res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n",
