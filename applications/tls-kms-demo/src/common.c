@@ -363,6 +363,15 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
         post[len_post] = '\0';
         printf("key_post : %s\n", post);
         res = fetch(nc, &chunk, nc->newkey_url, buf, post);
+      } else {
+        // etsi api
+        int geturl_parameter_len = strlen(nc->peer_site_id) + strlen("/enc_keys");
+        char* geturl_parameter = (char *) malloc(geturl_parameter_len + 1);
+        memset(geturl_parameter, 0, geturl_parameter_len + 1);
+        sprintf(geturl_parameter, "%s/enc_keys", nc->peer_site_id);
+        printf("etsi get url_parameter:%s\n", geturl_parameter);
+        res = fetch(nc, &chunk, nc->newkey_url, buf, geturl_parameter);
+        free(geturl_parameter);
       }
     } else {
       if (nc->etsi_api == 0) {
