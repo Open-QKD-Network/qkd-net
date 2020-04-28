@@ -10,7 +10,22 @@ static const char *token_post = "password=bot&client_secret=password&client=html
 static const char *authorization_header = "Authorization: Bearer ";
 static const char *query_str = "siteid=";
 
+/* ETSI_api kms.conf*/
+/*
+http://localhost:9992/uaa/oauth/token
+http://localhost:8095/api/v1/keys
+http://localhost:8095/api/v1/keys
+A
+etsi_api
+*/
 
+/* UWaterloo api kms.conf*/
+/*
+http://localhost:9992/uaa/oauth/token
+http://localhost:8095/api/newkey
+http://localhost:8095/api/getkey
+A
+*/
 void prepare_kms_access(struct Net_Crypto *m) {
   char *str = "/.qkd/kms/kms.conf";
   FILE *fp;
