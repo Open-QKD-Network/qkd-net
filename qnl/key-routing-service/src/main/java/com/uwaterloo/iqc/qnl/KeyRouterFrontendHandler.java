@@ -43,15 +43,25 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
     int frameSz = 0;
     OTPKey otpKey;
     short opId;
+    RouteConfig rConfig = qConfig.getRouteConfig();
 
     frameSz = qReq.decodeMetaData(frame);
     opId = qReq.getOpId();
     if (opId == QNLConstants.REQ_GET_KP_BLOCK_INDEX) {
       String destSiteId = qReq.getDstSiteId();
       String srcSiteId = qReq.getSrcSiteId();
-      otpKey = qConfig.getOTPKey(srcSiteId);
+      String adjSiteId = rConfig.getAdjacentId(srcSiteId);
+      LOGGER.info(this + ".channelRead:" + qReq + ",adjSiteId=" + adjSiteId);
+      otpKey = qConfig.getOTPKey(adjSiteId);
       qReq.setHMACKey(otpKey.getKey());
       //qReq.setHMACKey("qawsedrf");
+    } else if (opId == QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK) {
+      String destSiteId = qReq.getDstSiteId();
+      String srcSiteId = qReq.getSrcSiteId();
+      String adjSiteId = rConfig.getAdjacentId(srcSiteId);
+      LOGGER.info(this + ".channelRead:" + qReq + ",adjSiteId=" + adjSiteId);
+      otpKey = qConfig.getOTPKey(adjSiteId);
+      qReq.setHMACKey(otpKey.getKey());
     }
 
     r = qReq.decodeNonMetaData(frame, frameSz);
@@ -228,6 +238,8 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           } catch (Exception e) {
             e.printStackTrace(System.out);
           }
+          otpKey = qConfig.getOTPKey(adjSiteId);
+          req.setHMACKey(otpKey.getKey());
           LOGGER.info("REQ_GET_KP_BLOCK_INDEX/generate new QNLRequest:" + req);
           retainConnectHandler(ctx, adjSiteId);
           ctx.fireChannelActive();
