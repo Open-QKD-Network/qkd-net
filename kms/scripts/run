@@ -1,17 +1,27 @@
+mkdir -p ~/qkd_logs
+echo "Starting config-service"
 screen -Sdm config-svc java -jar config-service/target/config-service-0.0.1-SNAPSHOT.jar
 sleep 10s
+echo "Starting registration-service"
 screen -Sdm reg-svc java -jar registration-service/target/registration-service-0.0.1-SNAPSHOT.jar
 sleep 20s
+echo "Starting auth-service"
 screen -Sdm auth-svc java -jar auth-service/target/auth-service-0.0.1-SNAPSHOT.jar
 sleep 20s
 export SITE_PROPERTIES=$HOME/.qkd/kms/site.properties
+echo "Starting kms-service"
 screen -Sdm kms-svc scripts/run-kms-service.sh
 sleep 20s
+echo "Starting kms-api-gateway-service"
 screen -Sdm kms-gw java -jar kms-api-gateway/target/kms-api-gateway-0.0.1-SNAPSHOT.jar
 sleep 20s
 cd kms-qnl-service
+echo "Starting kms-qnl-service"
 screen -Sdm kms-qnl-svc ./run-kms-qnl-service.sh
+sleep 20s
 cd ../../qnl/key-routing-service
+echo "Starting key-routging-service"
 screen -Sdm kms-routing-svc ./run-key-routing-service.sh
 cd ../../qll_sim
+echo "Starting qll-sim service"
 screen -Sdm qll-sim MAVEN_OPTS="-Dconfig.file=$HOME/.qkd/qll-sim/qll-sim.conf" ./mvnw exec:java
