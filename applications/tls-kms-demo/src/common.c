@@ -457,23 +457,49 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
                 break;
             } else {
                 if(strcmp("index", key1) == 0 ) {
-                    char *ptr;
-                    nc->index = strtol((char *)json_object_get_string(val1), &ptr, 10);
-                    printf("index: %d\n", nc->index);
+                    if (val1) {
+                        char *ptr;
+                        nc->index = strtol((char *)json_object_get_string(val1), &ptr, 10);
+                        printf("index: %d\n", nc->index);
+                        if (nc->index < 0) {
+                            printf("index is negative!\n");
+                            err =1;
+                        }
+                    } else {
+                        printf("index is empty!\n");
+                        err = 1;
+                    }
                 } else if(strcmp("hexKey", key1) == 0 ) {
-                    memcpy(hex, (char *)json_object_get_string(val1), 64);
-                    hex[64] = '\0';
-                    printf("key: %s \n", hex);
-                    hex2bin((char*)hex, (unsigned char*)nc->key);
+                    if (val1) {
+                        memcpy(hex, (char *)json_object_get_string(val1), 64);
+                        hex[64] = '\0';
+                        printf("key: %s \n", hex);
+                        hex2bin((char*)hex, (unsigned char*)nc->key);
+                    } else {
+                        printf("Key is empty!\n");
+                        err = 1;
+                    }
                 } else if(strcmp("blockId", key1) == 0 ) {
-                    strcpy(nc->block_id, (char *)json_object_get_string(val1));
-                    printf("blockId: %.*s \n", 36, nc->block_id);
+                    if (val1) {
+                        strcpy(nc->block_id, (char *)json_object_get_string(val1));
+                        printf("blockId: %.*s \n", 36, nc->block_id);
+                    } else {
+                        printf("BlockdId is empty!\n");
+                        err = 1;
+                    }
                 }
             }
         }
         json_object_put(saved);
     }
     free(buf);
+    if (err) {
+        if (is_new)
+            printf("FAILED TO GET NEW KEY!!!\n");
+        else
+            printf("FAILED TO GET KEY!!!\n");
+        exit(0);
+    }
     return err;
 }
 
@@ -518,7 +544,6 @@ void fetch_new_qkd_key(struct Net_Crypto *nc) {
   get_token(nc, &token);
   get_key(nc, token, 1);
   free(token);
-
 }
 
 void fetch_qkd_key(struct Net_Crypto *nc) {
