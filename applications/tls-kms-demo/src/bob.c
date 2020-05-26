@@ -131,14 +131,14 @@ static char* site_id(char* ip) {
 		return "A";
 	else
 		return "C";
-} 
+}
 
 static int do_accept(int acc_sock, int *sock, char *siteid)
 {
     int ret;
     static struct sockaddr_in from;
     int len;
-    char siteip[16]; 
+    char siteip[16];
 
     memset((char *)&from, 0, sizeof(from));
     len = sizeof(from);
@@ -152,8 +152,8 @@ static int do_accept(int acc_sock, int *sock, char *siteid)
         fprintf(stderr, "errno=%d ", errno);
         return (0);
     }
-    
-    char *addr = inet_ntoa(from.sin_addr); 
+
+    char *addr = inet_ntoa(from.sin_addr);
     strcpy(siteip, addr);
     siteip[strlen(addr)] = '\0';
     char * id = site_id(siteip);
@@ -177,10 +177,10 @@ int server_body(int s, char *site_id)
     int i;
     char buf[128];
 	char bufint[10];
-	
+
 	sprintf(bufint, "%d", file_counter);
 	strcpy(filename, "bobdemo");
-	strcpy(filename+strlen("bobdemo"), bufint);	
+	strcpy(filename+strlen("bobdemo"), bufint);
 	filename[strlen("bobdemo") + strlen(bufint)] = '\0';
     fp = fopen(filename, "wb");
 	++file_counter;
@@ -208,7 +208,9 @@ int server_body(int s, char *site_id)
     if (!SSL_is_init_finished(con)) {
         i = SSL_accept(con);
         if (i <= 0) {
-            //log_error("Handshake Error\n");
+            printf("SSL accept error:%d\n", i);
+            i = SSL_get_error(con, i);
+            printf("SSL_error:%d\n", i);
             goto err;
         }
     }
@@ -395,5 +397,3 @@ int main(int argc, char * argv[])
 #endif
     return serve();
 }
-
-

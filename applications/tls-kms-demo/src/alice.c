@@ -123,6 +123,7 @@ int main(int argc, char *argv[])
     SSL *con = NULL;
     BIO *sbio;
     SSL_CTX *ctx;
+    int i;
 
     const struct option longopts[] =
     {
@@ -202,8 +203,11 @@ int main(int argc, char *argv[])
     SSL_set_bio(con, sbio, sbio);
     SSL_set_connect_state(con);
 //  SSL_connect(con);
-    if (SSL_connect(con) <= 0) {
-        //printf("Connextion error\n");
+    i = SSL_connect(con);
+    if (i <= 0) {
+        printf("Connextion error:%d\n", i);
+        i = SSL_get_error(con, i);
+        printf("SSL_error:%d\n", i);
         goto err;
     }
 
