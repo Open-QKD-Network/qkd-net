@@ -190,7 +190,7 @@ int fetch_key_from_kms(client_cb_kms kcb, short port, char buf[32], long *index)
     //log_info("TCP CONNECTED(%08X)\n",s);
     printf("    -- Successfully connected to KMS ...\n");
 
-    meth = TLSv1_client_method();
+    meth = SSLv23_client_method();
     ctx = SSL_CTX_new(meth);
     if (ctx == NULL) {
         log_error(" SSL_CTX_new error\n");

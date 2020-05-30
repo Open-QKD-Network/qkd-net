@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
     }
     //log_info("TCP CONNECTED(%08X)\n",s);
     printf(" -- Successfully conected to Bob\n");
-    meth=TLSv1_client_method();
+    meth=SSLv23_client_method();
     ctx = SSL_CTX_new(meth);
     if (ctx == NULL) {
         log_error(" SSL_CTX_new error\n");

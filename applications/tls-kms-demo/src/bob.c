@@ -305,7 +305,7 @@ static int serve() {
 
     apps_startup();
 
-    meth = TLSv1_server_method();
+    meth = SSLv23_server_method();
     ctx = SSL_CTX_new(meth);
     if (ctx == NULL) {
         log_error(" SSL_CTX_new error\n");
