@@ -195,6 +195,13 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    /* Disable SSLv2 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+    /* Disable SSLv3 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3);
+    /* Disable TLSv1 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1);
+
     SSL_CTX_set_psk_client_callback(ctx, psk_client_cb);
     SSL_CTX_set_cipher_list(ctx, cipher);
     con = SSL_new(ctx);

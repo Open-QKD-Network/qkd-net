@@ -311,6 +311,13 @@ static int serve() {
         log_error(" SSL_CTX_new error\n");
         return -1;
     }
+    /* Disable SSLv2 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+    /* Disable SSLv3 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3);
+    /* Disable TLSv1 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1);
+
 
     SSL_CTX_set_quiet_shutdown(ctx, 1);
     SSL_CTX_set_options(ctx, off);
