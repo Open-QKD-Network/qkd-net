@@ -127,6 +127,7 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
 21. On Ubuntu B, run command *./bob -b 10446*
 22. On Ubuntu A, run command *./alice -i 192.168.2.212 -b 10446 -f ./data/whale.mp3*
 23. On Ubuntu A, you should see something like below
+```
         -- Successfully conected to Bob
            -- Received PSK identity hint 'B c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc 0'
         HTTP-FETCH-REQUEST,url:http://localhost:9992/uaa/oauth/token,header:authorization:Basic aHRtbDU6cGFzc3dvcmQ=,post:password=bot&client_secret=password&client=html5&username=pwebb&grant_type=password&scope=openid
@@ -137,8 +138,10 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
         index: 0
         key: e27444fab22da64bb65dd108adc84f12a2a94a0fd5129e37df44025ca1622942
         blockId: c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc
+```
 
 24. On Ubuntu B, file is received and saved in **bobdemo** and should see something like below
+```
         Bob is listening for incomming connections on port 10446 ...
         HTTP-FETCH-REQUEST, url:http://localhost:9992/uaa/oauth/token,header:authorization:Basic aHRtbDU6cGFzc3dvcmQ=,post:password=bot&client_secret=password&client=html5&ername=pwebb&grant_type=password&scope=openid
         HTTP-FETCH-RESPONSE:{"access_token":"24b4b875-1146-406d-84cf-4379a4da2b96","token_type":"bearer","refresh_token":"52f93b1b-b642-4884-96e3-0186aaf69381","expires_in":43199,"scope":"openid"}
@@ -153,6 +156,7 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
         -- TLS Closed
         -- Connection Closed
         -- Accept Connection
+```
 25. For 3 nodes system, extract **qkd-kaiduan-c.tar** on Ubuntu, assume we will run alice on A and bob on C, the network topology looks below,
 > A  <----> B <---> C
 26. Assume IP address of **C** is **192.168.2.235**, Add C to **B**'s adjacent nodes
