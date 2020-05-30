@@ -111,9 +111,10 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
 ```
 16. On Ubuntu A, *cd qkd-net/kms*, run command *./scripts/run*
 17. On Ubuntu B, *cd qkd-net/kms*, run command *./scripts/run*
-18. We will run tls-demoa pplication alice on Ubuntu A and run bob on Ubuntu B
+18. We will run tls-demo application alice on Ubuntu A and run bob on Ubuntu B
 19. On Ubuntu A, *cd ../applications/tls-demo/*, run *make* command
 20. On Ubuntu B, *cd ../applications/tls-demo/*, change function static char* site_id(char* ip) in "src/bob.c" as below, and run *make*
+```c
         static char* site_id(char* ip) {
             if (strcmp(ip, "192.168.2.212") == 0)
                 return "B";
@@ -122,6 +123,7 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
             else
                 return "C";
         }
+```
 21. On Ubuntu B, run command *./bob -b 10446*
 22. On Ubuntu A, run command *./alice -i 192.168.2.212 -b 10446 -f ./data/whale.mp3*
 23. On Ubuntu A, you should see something like below
