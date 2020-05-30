@@ -113,7 +113,7 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
 17. On Ubuntu B, *cd qkd-net/kms*, run command *./scripts/run*
 18. We will run tls-demo application alice on Ubuntu A and run bob on Ubuntu B
 19. On Ubuntu A, *cd ../applications/tls-demo/*, run *make* command
-20. On Ubuntu B, *cd ../applications/tls-demo/*, change function static char* site_id(char* ip) in "src/bob.c" as below, and run *make*
+20. On Ubuntu B, *cd ../applications/tls-demo/*, change function static char* site_id(char* ip) in **src/bob.c** as below, and run *make*
 ```c
         static char* site_id(char* ip) {
             if (strcmp(ip, "192.168.2.212") == 0)
