@@ -201,6 +201,12 @@ int main(int argc, char *argv[])
     SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3);
     /* Disable TLSv1 */
     SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1);
+    /* Disable TLSv1.1 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_1);
+    /* Disable TLSv1.3, only openssl after 1.1.1 has TLSv1.3 */
+#if OPENSSL_VERSION_NUMBER > 0x10100000L
+    SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_3);
+#endif
 
     SSL_CTX_set_psk_client_callback(ctx, psk_client_cb);
     SSL_CTX_set_cipher_list(ctx, cipher);
