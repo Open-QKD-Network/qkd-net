@@ -16,12 +16,16 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private QNLRequest qReq;
     private KMSQNLConfig kqCfg;
     private int blockByteSz;
     private int blockSz;
+    private static final Logger logger = LoggerFactory.getLogger(ServerHandler.class);
 
     public ServerHandler(KMSQNLConfig cfg) {
         kqCfg = cfg;
@@ -70,6 +74,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 File f = new File(kqCfg.getLoc() + "/" + srcId + "/" + dstId);
                 if (!f.exists())
                     FileUtils.forceMkdir(f);
+                logger.info("ServerHandler.writeKeys:" + f.getAbsolutePath() + "/" + uuid + ", blockSz:" + blockSz);
                 QNLUtils.writeKeys(hexKeys, f.getAbsolutePath() + "/" + uuid, blockSz);
             } catch (Exception e) {}
             ctx.channel().writeAndFlush(resp).addListener(
