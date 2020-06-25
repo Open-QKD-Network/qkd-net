@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.JsonObject;
 import com.uwaterloo.iqc.qnl.QNLConfig;
 import com.uwaterloo.iqc.qnl.QNLConfiguration;
 import com.uwaterloo.iqc.qnl.RouteConfig;
@@ -70,7 +72,8 @@ public class LSRPRouter {
     for (String k : routeCfg.adjacent.keySet()) {
       String[] ipPort = routeCfg.adjacent.get(k).split(":");
       int port = 9395;
-      if (ipPort.length == 2) port = Integer.valueOf(ipPort[1]);
+      if (ipPort.length == 2)
+        port = Integer.valueOf(ipPort[1]);
       LOGGER.info("Add neighbour:" + k + ",address:" + ipPort[0] + ",port:" + port);
       Node node = new Node(k, ipPort[0], port);
       node.setAdjacent(true);
@@ -99,8 +102,7 @@ public class LSRPRouter {
       return null;
     }
     this.resetShortestPath();
-    LSRPRouter router =
-        LSRPRouter.calculateShortestPathFromSource(this, this.allNodes.get(this.mySiteId));
+    LSRPRouter router = LSRPRouter.calculateShortestPathFromSource(this, this.allNodes.get(this.mySiteId));
     // The first one is always myself
     if (destNode.getShortestPath().size() == 1) {
       // myself and destination are adjacent
@@ -116,33 +118,20 @@ public class LSRPRouter {
     this.testRunnable = new DijkstraRunnable(this, this.allNodes.get(this.mySiteId));
     this.sharedEventLoopGroup.schedule(this.testRunnable, 45, TimeUnit.SECONDS);
     // this.sharedEventLoopGroup.scheduleWithFixedDelay(this.testRunnable,
-    //    120, 60, TimeUnit.SECONDS);
+    // 120, 60, TimeUnit.SECONDS);
   }
 
   public void printShortestPath() {
     for (Map.Entry<String, Node> entry : this.allNodes.entrySet()) {
       Node destination = entry.getValue();
-      if (this.mySiteId.equalsIgnoreCase(destination.getName())) continue;
+      if (this.mySiteId.equalsIgnoreCase(destination.getName()))
+        continue;
       if (destination.getShortestPath().size() == 1) {
-        LOGGER.info(
-            "Shortest path from "
-                + this.mySiteId
-                + " to "
-                + destination.getName()
-                + " is "
-                + destination.getName()
-                + " distance "
-                + destination.getDistance());
+        LOGGER.info("Shortest path from " + this.mySiteId + " to " + destination.getName() + " is "
+            + destination.getName() + " distance " + destination.getDistance());
       } else if (destination.getShortestPath().size() > 1) {
-        LOGGER.info(
-            "Shortest path from "
-                + this.mySiteId
-                + " to "
-                + destination.getName()
-                + " is "
-                + destination.getShortestPath().get(1).getName()
-                + " distance "
-                + destination.getDistance());
+        LOGGER.info("Shortest path from " + this.mySiteId + " to " + destination.getName() + " is "
+            + destination.getShortestPath().get(1).getName() + " distance " + destination.getDistance());
       }
     }
   }
@@ -206,11 +195,10 @@ public class LSRPRouter {
           LOGGER.info("Add node:" + oneighbour.name);
           this.allNodes.put(node.getName(), node);
         }
-        if (remoteAddr.equalsIgnoreCase(msg.getAddress())
-            &&
-            // The above says that IP source of LSRP message is same as address if LSRP message
-            this.mySiteId.equalsIgnoreCase(oneighbour.name)
-            && (this.adjacentNeighbours.get(o.getName()) == null)) {
+        if (remoteAddr.equalsIgnoreCase(msg.getAddress()) &&
+        // The above says that IP source of LSRP message is same as address if LSRP
+        // message
+            this.mySiteId.equalsIgnoreCase(oneighbour.name) && (this.adjacentNeighbours.get(o.getName()) == null)) {
           LOGGER.info("ReAdd neighbour:" + o.getName());
           this.adjacentNeighbours.put(o.getName(), o);
           if (!o.isConnected()) {
@@ -266,15 +254,18 @@ public class LSRPRouter {
     } // update
 
     // write toplogy to file
+    createMapping();
     writeNetworkToFile();
     // forward the msg to all neighbours except the one recevied from
     for (Map.Entry<String, Node> entry : this.adjacentNeighbours.entrySet()) {
       Node n = entry.getValue();
-      if (remoteAddr.equalsIgnoreCase(n.getAddress())) continue;
+      if (remoteAddr.equalsIgnoreCase(n.getAddress()))
+        continue;
       else if (n.getName().equalsIgnoreCase(msg.getOriginator()))
         // donot forward to the originator
         continue;
-      else if (n.isConnected()) n.sendLSRP(msg);
+      else if (n.isConnected())
+        n.sendLSRP(msg);
     }
   }
 
@@ -363,6 +354,7 @@ public class LSRPRouter {
     LinkDetectionRunnable detection = new LinkDetectionRunnable(this, neighbour);
     this.sharedEventLoopGroup.schedule(detection, LINK_DETECTION_TIMER_VALUE, TimeUnit.SECONDS);
     // write toplogy to file
+    createMapping();
     writeNetworkToFile();
   }
 
@@ -373,22 +365,19 @@ public class LSRPRouter {
     try {
       // harcoded port 9395 for now
       ServerBootstrap b = new ServerBootstrap();
-      b.group(bossGroup, sharedEventLoopGroup)
-          .channel(NioServerSocketChannel.class)
-          .handler(new LoggingHandler(LogLevel.INFO))
-          .childHandler(new LSRPServerRouterInitializer(this));
+      b.group(bossGroup, sharedEventLoopGroup).channel(NioServerSocketChannel.class)
+          .handler(new LoggingHandler(LogLevel.INFO)).childHandler(new LSRPServerRouterInitializer(this));
       ChannelFuture f = b.bind(9395);
-      f.addListener(
-          new ChannelFutureListener() {
-            public void operationComplete(ChannelFuture future) {
-              if (future.isSuccess()) {
-                LOGGER.info("LSRPRouter succeeds to bind to 9395");
-                connectAdjacentNeighbours();
-              } else {
-                LOGGER.info("LSRPRouter fails to bind 9395:" + future.cause());
-              }
-            }
-          });
+      f.addListener(new ChannelFutureListener() {
+        public void operationComplete(ChannelFuture future) {
+          if (future.isSuccess()) {
+            LOGGER.info("LSRPRouter succeeds to bind to 9395");
+            connectAdjacentNeighbours();
+          } else {
+            LOGGER.info("LSRPRouter fails to bind 9395:" + future.cause());
+          }
+        }
+      });
       f.channel().closeFuture().sync();
     } finally {
       bossGroup.shutdownGracefully();
@@ -405,29 +394,19 @@ public class LSRPRouter {
       b.option(ChannelOption.SO_KEEPALIVE, true);
       b.handler(new LSRPOutgoingClientInitializer(this));
 
-      LOGGER.info(
-          "LSRPRouter tries to connect to neighbour:"
-              + neighbour.getName()
-              + ", address:"
-              + neighbour.getAddress()
-              + ", port:"
-              + neighbour.getPort());
+      LOGGER.info("LSRPRouter tries to connect to neighbour:" + neighbour.getName() + ", address:"
+          + neighbour.getAddress() + ", port:" + neighbour.getPort());
       ChannelFuture f = b.connect(neighbour.getAddress(), neighbour.getPort());
-      f.addListener(
-          new ChannelFutureListener() {
-            public void operationComplete(ChannelFuture future) {
-              if (future.isSuccess()) {
-                LOGGER.info("LSRPRouter succeeds to connect to " + neighbour.getAddress());
-              } else {
-                LOGGER.info(
-                    "LSRPRouter fails to connect to "
-                        + neighbour.getAddress()
-                        + ", cause:"
-                        + future.cause());
-                connectNeighbourInEventLoop(neighbour);
-              }
-            }
-          });
+      f.addListener(new ChannelFutureListener() {
+        public void operationComplete(ChannelFuture future) {
+          if (future.isSuccess()) {
+            LOGGER.info("LSRPRouter succeeds to connect to " + neighbour.getAddress());
+          } else {
+            LOGGER.info("LSRPRouter fails to connect to " + neighbour.getAddress() + ", cause:" + future.cause());
+            connectNeighbourInEventLoop(neighbour);
+          }
+        }
+      });
     } catch (Exception e) {
       LOGGER.info("LSRPRouter.connectNeighbour exception:" + e);
       connectNeighbourInEventLoop(neighbour);
@@ -506,7 +485,8 @@ public class LSRPRouter {
   }
 
   private void resetShortestPath(Node n) {
-    if (n == null) return;
+    if (n == null)
+      return;
     n.resetShortestPath();
   }
 
@@ -544,23 +524,15 @@ public class LSRPRouter {
 
   // From mySiteId to sourceNode's adjacentNode via sourceNode
   // edgeWeight is the weight from sourceNode to sourceNode's adjacentNode
-  private static void calculateMinimumDistance(
-      Node adjacentNode, Integer edgeWeigh, Node sourceNode) {
+  private static void calculateMinimumDistance(Node adjacentNode, Integer edgeWeigh, Node sourceNode) {
     Integer sourceDistance = sourceNode.getDistance();
     if (sourceDistance + edgeWeigh < adjacentNode.getDistance()) {
       adjacentNode.setDistance(sourceDistance + edgeWeigh);
       LinkedList<Node> shortestPath = new LinkedList<Node>(sourceNode.getShortestPath());
       shortestPath.add(sourceNode);
       adjacentNode.setShortestPath(shortestPath);
-      LOGGER.info(
-          "    SetShortestPath to "
-              + adjacentNode.getName()
-              + " via "
-              + sourceNode
-              + " weight "
-              + edgeWeigh
-              + " is: "
-              + shortestPath);
+      LOGGER.info("    SetShortestPath to " + adjacentNode.getName() + " via " + sourceNode + " weight " + edgeWeigh
+          + " is: " + shortestPath);
     }
   }
 
@@ -584,11 +556,13 @@ public class LSRPRouter {
       Enumeration en = NetworkInterface.getNetworkInterfaces();
       while (en.hasMoreElements()) {
         NetworkInterface ni = (NetworkInterface) en.nextElement();
-        if (ni.isLoopback()) continue;
+        if (ni.isLoopback())
+          continue;
         Enumeration ee = ni.getInetAddresses();
         while (ee.hasMoreElements()) {
           InetAddress ia = (InetAddress) ee.nextElement();
-          if (ia instanceof Inet4Address) address = ia.getHostAddress();
+          if (ia instanceof Inet4Address)
+            address = ia.getHostAddress();
         }
       }
     } catch (Exception e) {
@@ -607,13 +581,8 @@ public class LSRPRouter {
         Node neighbour = entry2.getKey();
         int distance = entry2.getValue();
         if (distance < Integer.MAX_VALUE) {
-          sb.append("    ")
-              .append(node.getName())
-              .append(" <----> ")
-              .append(neighbour.getName())
-              .append(" = ")
-              .append(distance)
-              .append("\n");
+          sb.append("    ").append(node.getName()).append(" <----> ").append(neighbour.getName()).append(" = ")
+              .append(distance).append("\n");
         }
       }
     }
@@ -625,6 +594,22 @@ public class LSRPRouter {
       fw.close();
     } catch (Exception e) {
       LOGGER.info("Write routes to file exception:" + e);
+    }
+  }
+
+  private void createMapping() {
+    JsonObject json = new JsonObject();
+    for (Map.Entry<String, Node> entry : this.allNodes.entrySet()) {
+      Node node = entry.getValue();
+      json.addProperty(node.getAddress(), node.getName());
+    }
+    try {
+      String mappingRoute = System.getProperty("user.home") + "/.qkd/mapping.log";
+      java.io.FileWriter fw = new java.io.FileWriter(mappingRoute);
+      fw.write(json.toString());
+      fw.close();
+    } catch (Exception e) {
+      LOGGER.info("Write mapping to file exception:" + e);
     }
   }
 }
