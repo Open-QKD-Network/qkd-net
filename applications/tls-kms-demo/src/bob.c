@@ -146,6 +146,7 @@ static char* site_id(char* ip) {
     jsonString[fsize] = 0;
 
     json_object * jobj = json_tokener_parse(jsonString);
+    free(jsonString);
     json_object_object_foreach (jobj, key, val) {
         if (strcmp(ip, key) == 0) {
             return (char *)json_object_get_string(val);
