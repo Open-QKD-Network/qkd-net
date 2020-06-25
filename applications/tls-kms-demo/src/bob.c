@@ -1,4 +1,5 @@
 #include "common.h"
+#include <json-c/json.h>
 #define PORT            10445
 #define BOB_PORT        10446
 
@@ -124,13 +125,33 @@ err:
 }
 
 static char* site_id(char* ip) {
+    char *str = "/.qkd/mapping.log";
+    FILE *fp;
 
-	if (strcmp(ip, "192.168.9.168") == 0)
-		return "B";
-	else if (strcmp(ip, "192.168.9.121") == 0)
-		return "A";
-	else
-		return "C";
+    const char *homedir;
+    homedir = getenv("HOME");
+    char filestr[256];
+    strcpy(filestr, homedir);
+    strcpy(filestr+strlen(homedir), str);
+    filestr[strlen(homedir) + strlen(str)] = '\0';
+
+    fp = fopen(filestr, "r");
+    fseek(fp, 0, SEEK_END);
+    long fsize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    char *jsonString = malloc(fsize + 1);
+    fread(jsonString, 1, fsize, fp);
+    fclose(fp);
+    jsonString[fsize] = 0;
+
+    json_object * jobj = json_tokener_parse(jsonString);
+    json_object_object_foreach (jobj, key, val) {
+        if (strcmp(ip, key) == 0) {
+            return (char *)json_object_get_string(val);
+        }
+    }
+	return "\0";
 }
 
 static int do_accept(int acc_sock, int *sock, char *siteid)
