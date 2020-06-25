@@ -101,7 +101,7 @@ public class LSRPRouter {
       return null;
     }
     this.resetShortestPath();
-    LSRPRouter router = 
+    LSRPRouter router =
         LSRPRouter.calculateShortestPathFromSource(this, this.allNodes.get(this.mySiteId));
     // The first one is always myself
     if (destNode.getShortestPath().size() == 1) {
@@ -118,7 +118,7 @@ public class LSRPRouter {
     this.testRunnable = new DijkstraRunnable(this, this.allNodes.get(this.mySiteId));
     this.sharedEventLoopGroup.schedule(this.testRunnable, 45, TimeUnit.SECONDS);
     // this.sharedEventLoopGroup.scheduleWithFixedDelay(this.testRunnable,
-    // 120, 60, TimeUnit.SECONDS);
+    //    120, 60, TimeUnit.SECONDS);
   }
 
   public void printShortestPath() {
@@ -128,22 +128,22 @@ public class LSRPRouter {
       if (destination.getShortestPath().size() == 1) {
         LOGGER.info(
             "Shortest path from " 
-                + this.mySiteId 
-                + " to " 
-                + destination.getName() 
+                + this.mySiteId
+                + " to "
+                + destination.getName()
                 + " is "
-                + destination.getName() 
-                + " distance " 
+                + destination.getName()
+                + " distance "
                 + destination.getDistance());
       } else if (destination.getShortestPath().size() > 1) {
         LOGGER.info(
             "Shortest path from " 
-                + this.mySiteId 
-                + " to " 
-                + destination.getName() 
+                + this.mySiteId
+                + " to "
+                + destination.getName()
                 + " is "
-                + destination.getShortestPath().get(1).getName() 
-                + " distance " 
+                + destination.getShortestPath().get(1).getName()
+                + " distance "
                 + destination.getDistance());
       }
     }
@@ -378,9 +378,9 @@ public class LSRPRouter {
       // harcoded port 9395 for now
       ServerBootstrap b = new ServerBootstrap();
       b.group(bossGroup, sharedEventLoopGroup)
-      .channel(NioServerSocketChannel.class)
-      .handler(new LoggingHandler(LogLevel.INFO))
-      .childHandler(new LSRPServerRouterInitializer(this));
+          .channel(NioServerSocketChannel.class)
+          .handler(new LoggingHandler(LogLevel.INFO))
+          .childHandler(new LSRPServerRouterInitializer(this));
       ChannelFuture f = b.bind(9395);
       f.addListener(
         new ChannelFutureListener() {
@@ -408,6 +408,7 @@ public class LSRPRouter {
       b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000);
       b.option(ChannelOption.SO_KEEPALIVE, true);
       b.handler(new LSRPOutgoingClientInitializer(this));
+
       LOGGER.info(
           "LSRPRouter tries to connect to neighbour:"
               + neighbour.getName()
@@ -548,7 +549,7 @@ public class LSRPRouter {
   // From mySiteId to sourceNode's adjacentNode via sourceNode
   // edgeWeight is the weight from sourceNode to sourceNode's adjacentNode
   private static void calculateMinimumDistance(
-    Node adjacentNode, Integer edgeWeigh, Node sourceNode) {
+      Node adjacentNode, Integer edgeWeigh, Node sourceNode) {
     Integer sourceDistance = sourceNode.getDistance();
     if (sourceDistance + edgeWeigh < adjacentNode.getDistance()) {
       adjacentNode.setDistance(sourceDistance + edgeWeigh);
@@ -556,14 +557,14 @@ public class LSRPRouter {
       shortestPath.add(sourceNode);
       adjacentNode.setShortestPath(shortestPath);
       LOGGER.info(
-        "    SetShortestPath to "
-            + adjacentNode.getName()
-            + " via "
-            + sourceNode
-            + " weight "
-            + edgeWeigh
-            + " is: "
-            + shortestPath);
+          "    SetShortestPath to "
+              + adjacentNode.getName()
+              + " via "
+              + sourceNode
+              + " weight "
+              + edgeWeigh
+              + " is: "
+              + shortestPath);
     }
   }
 
@@ -611,12 +612,12 @@ public class LSRPRouter {
         int distance = entry2.getValue();
         if (distance < Integer.MAX_VALUE) {
           sb.append("    ")
-          .append(node.getName())
-          .append(" <----> ")
-          .append(neighbour.getName())
-          .append(" = ")
-          .append(distance)
-          .append("\n");
+              .append(node.getName())
+              .append(" <----> ")
+              .append(neighbour.getName())
+              .append(" = ")
+              .append(distance)
+              .append("\n");
         }
       }
     }
