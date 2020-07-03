@@ -69,7 +69,7 @@ void bytetohex(uint8_t *byte, int bytelen, char *hex);
 void sha(char *ibuf, unsigned char obuf[20]);
 int fetch_key_from_kms(client_cb_kms, short, char buf[32], long *index);
 #if defined(REST_KMS)
-int get_key(struct Net_Crypto *nc, char *token, int is_new);
+int get_key(struct Net_Crypto *nc, int is_new);
 int get_token(struct Net_Crypto *nc, char** token);
 void prepare_kms_access(struct Net_Crypto *m);
 void fetch_new_qkd_key(struct Net_Crypto *nc);
