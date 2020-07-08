@@ -297,7 +297,6 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 
 static CURLcode fetch(struct Net_Crypto *nc, struct MemoryStruct *chunk, const char *url,
                       const char *header, const char *post) {
-                     const char *post) {
     CURLcode res;
     struct curl_slist *list = NULL;
     CURL *handle;
@@ -349,7 +348,7 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
         strcpy(post + strlen(query_str), nc->peer_site_id);
         post[len_post] = '\0';
         printf("key_post : %s\n", post);
-        res = res = fetch(nc, &chunk, nc->newkey_url, buf, post);
+        res = fetch(nc, &chunk, nc->newkey_url, buf, post);
 
     } else {
         char dex [sizeof(int)*8+1];
