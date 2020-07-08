@@ -9,7 +9,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 
 @EnableDiscoveryClient
 @SpringBootApplication(scanBasePackages= {"com.uwaterloo.iqc.kms"})
-// @EnableResourceServer
+@EnableResourceServer
 public class KmsServiceApplication {
 
     public static void main(String[] args) {

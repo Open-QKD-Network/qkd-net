@@ -5,6 +5,9 @@ char *psk_identity = "Client_identity";
 char *psk_key = "1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A1A";
 
 #if defined(REST_KMS)
+static const char *token_header = "authorization:Basic aHRtbDU6cGFzc3dvcmQ=";
+static const char *token_post = "password=bot&client_secret=password&client=html5&username=pwebb&grant_type=password&scope=openid";
+static const char *key_header = "Authorization: Bearer ";
 static const char *query_str = "siteid=";
 
 
@@ -45,6 +48,14 @@ void prepare_kms_access(struct Net_Crypto *m) {
   buffer[strlen(buffer) - 1] = '\0';
   strcpy(m->site_id, buffer);
   m->site_id[strlen(buffer)] = '\0';
+
+  fgets(buffer, sizeof buffer, fp);
+  buffer[strlen(buffer) - 1] = '\0';
+  if (strcmp(buffer, "false") == 0) {
+      m->auth = false;
+  } else {
+      m->auth = true;
+  }
   fclose(fp);
 
   curl_global_init(CURL_GLOBAL_ALL);
@@ -285,24 +296,35 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 }
 
 static CURLcode fetch(struct Net_Crypto *nc, struct MemoryStruct *chunk, const char *url,
+                      const char *header, const char *post) {
                      const char *post) {
     CURLcode res;
+    struct curl_slist *list = NULL;
     CURL *handle;
-
+    if (nc->auth) {
+        printf("HTTP-FETCH-REQUEST, url:%s,header:%s,post:%s\n\n", url, header, post);
+    }
     printf("HTTP-FETCH-REQUEST, url:%s,post:%s\n\n", url, post);
     handle = nc->curl_handle;
     curl_easy_setopt(handle, CURLOPT_POST, 1L);
     curl_easy_setopt(handle, CURLOPT_URL, url);
     curl_easy_setopt(handle, CURLOPT_POSTFIELDS, post);
+    if (nc->auth) {
+        list = curl_slist_append(NULL, header);
+        curl_easy_setopt(handle, CURLOPT_HTTPHEADER, list);
+    }
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
     curl_easy_setopt(handle, CURLOPT_VERBOSE, 0L);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void *)chunk);
     curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 1L);
     res = curl_easy_perform(handle);
+    if (nc->auth) {
+        curl_slist_free_all(list);
+    }
     return res;
 }
 
-int get_key(struct Net_Crypto *nc, int is_new) {
+int get_key(struct Net_Crypto *nc, char *token, int is_new) {
 
     CURLcode res;
     struct MemoryStruct chunk;
@@ -311,6 +333,14 @@ int get_key(struct Net_Crypto *nc, int is_new) {
     chunk.size = 0;
     char hex[65];
 
+    char *buf;
+    if (nc->auth) {
+        int len = strlen(key_header) + strlen(token) + 1;
+        buf = (char*)malloc(len);
+        strcpy(buf, key_header);
+        strcpy(buf+strlen(key_header), token);
+        buf[len] = '\0';
+    }
     if (is_new) {
          int len_post = strlen(nc->peer_site_id) + strlen(query_str);
          char *post = (char*)malloc(len_post+1);
@@ -319,7 +349,7 @@ int get_key(struct Net_Crypto *nc, int is_new) {
         strcpy(post + strlen(query_str), nc->peer_site_id);
         post[len_post] = '\0';
         printf("key_post : %s\n", post);
-        res = fetch(nc, &chunk, nc->newkey_url, post);
+        res = res = fetch(nc, &chunk, nc->newkey_url, buf, post);
 
     } else {
         char dex [sizeof(int)*8+1];
@@ -336,7 +366,7 @@ int get_key(struct Net_Crypto *nc, int is_new) {
 
         printf("post String %s\n", post);
 
-        res = fetch(nc, &chunk, nc->getkey_url, post);
+        res = fetch(nc, &chunk, nc->getkey_url, buf, post);
         free(post);
     }
 
@@ -370,15 +400,68 @@ int get_key(struct Net_Crypto *nc, int is_new) {
         }
         json_object_put(keyobj);
     }
+    if (nc->auth) {
+        free(buf);
+    }
+    return err;
+}
+
+int get_token(struct Net_Crypto *nc, char** token) {
+
+    CURLcode res;
+    struct MemoryStruct chunk;
+    int err = 0;
+
+    chunk.memory = malloc(1);
+    chunk.size = 0;
+    res = fetch(nc, &chunk, nc->uaa_url, token_header, token_post);
+
+    if(res != CURLE_OK) {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n",
+                curl_easy_strerror(res));
+        err = 1;
+    } else {
+        json_object *jobj = json_tokener_parse(chunk.memory);
+        printf("HTTP-FETCH-RESPONSE:%*.*s\n\n", 0, chunk.size, (unsigned char *)chunk.memory);
+        json_object_object_foreach(jobj, key, val) {
+            if (strcmp("error", key) == 0 ) {
+                err =1;
+                printf("key: %s, type of val: %s\n", key, (char *)json_object_get_string(val));
+                break;
+            } else if (strcmp("access_token", key) == 0 ) {
+                int len = strlen((char *)json_object_get_string(val));
+                *token = (char*)malloc(len+1);
+                strcpy(*token, (char *)json_object_get_string(val));
+                (*token)[len] = '\0';
+            }
+        }
+        json_object_put(jobj);
+    }
+
+    free(chunk.memory);
     return err;
 }
 
 void fetch_new_qkd_key(struct Net_Crypto *nc) {
-  get_key(nc, 1);
+  char *token;
+  if (nc->auth) {
+    get_token(nc, &token);
+  }
+  get_key(nc, token, 1);
+  if (nc->auth) {
+    free(token);
+  }
 }
 
 void fetch_qkd_key(struct Net_Crypto *nc) {
-  get_key(nc, 0);
+   char *token;
+  if (nc->auth) {
+    get_token(nc, &token);
+  }
+  get_key(nc, token, 0);
+  if (nc->auth) {
+    free(token);
+  }
 }
 
 void fn(void) {

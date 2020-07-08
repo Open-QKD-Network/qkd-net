@@ -12,7 +12,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 @EnableZuulProxy
 @EnableDiscoveryClient
 @SpringBootApplication
-// @EnableResourceServer
+@EnableResourceServer
 public class KmsApiGatewayApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(KmsApiGatewayApplication.class);

@@ -9,7 +9,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 
 
 @EnableDiscoveryClient
-// @EnableResourceServer
+@EnableResourceServer
 @SpringBootApplication
 public class AuthServiceApplication {
 	private static final Logger logger = LoggerFactory.getLogger(AuthServiceApplication.class);
