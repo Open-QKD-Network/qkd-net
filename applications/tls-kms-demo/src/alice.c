@@ -188,12 +188,25 @@ int main(int argc, char *argv[])
     }
     //log_info("TCP CONNECTED(%08X)\n",s);
     printf(" -- Successfully conected to Bob\n");
-    meth=TLSv1_client_method();
+    meth=SSLv23_client_method();
     ctx = SSL_CTX_new(meth);
     if (ctx == NULL) {
         log_error(" SSL_CTX_new error\n");
         return -1;
     }
+
+    /* Disable SSLv2 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+    /* Disable SSLv3 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3);
+    /* Disable TLSv1 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1);
+    /* Disable TLSv1.1 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_1);
+    /* Disable TLSv1.3, only openssl after 1.1.1 has TLSv1.3 */
+#if OPENSSL_VERSION_NUMBER > 0x10100000L
+    SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_3);
+#endif
 
     SSL_CTX_set_psk_client_callback(ctx, psk_client_cb);
     SSL_CTX_set_cipher_list(ctx, cipher);

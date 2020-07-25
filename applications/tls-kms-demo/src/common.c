@@ -15,7 +15,7 @@ void prepare_kms_access(struct Net_Crypto *m) {
   char *str = "/.qkd/kms/kms.conf";
   FILE *fp;
   char buffer[128];
-  
+
   const char *homedir;
   homedir = getenv("HOME");
   char filestr[256];
@@ -32,23 +32,23 @@ void prepare_kms_access(struct Net_Crypto *m) {
   fgets(buffer, sizeof buffer, fp);
   buffer[strlen(buffer) - 1] = '\0';
   strcpy(m->uaa_url, buffer);
-  m->uaa_url[strlen(buffer)] = '\0';  
-  
+  m->uaa_url[strlen(buffer)] = '\0';
+
   fgets(buffer, sizeof buffer, fp);
   buffer[strlen(buffer) - 1] = '\0';
   strcpy(m->newkey_url, buffer);
-  m->newkey_url[strlen(buffer)] = '\0';  
-  
+  m->newkey_url[strlen(buffer)] = '\0';
+
   fgets(buffer, sizeof buffer, fp);
   buffer[strlen(buffer) - 1] = '\0';
   strcpy(m->getkey_url, buffer);
-  m->getkey_url[strlen(buffer)] = '\0';  
+  m->getkey_url[strlen(buffer)] = '\0';
 
   fgets(buffer, sizeof buffer, fp);
   buffer[strlen(buffer) - 1] = '\0';
   strcpy(m->site_id, buffer);
   m->site_id[strlen(buffer)] = '\0';
-  fclose(fp); 
+  fclose(fp);
 
   curl_global_init(CURL_GLOBAL_ALL);
   m->curl_handle = gHandle = curl_easy_init();
@@ -190,12 +190,25 @@ int fetch_key_from_kms(client_cb_kms kcb, short port, char buf[32], long *index)
     //log_info("TCP CONNECTED(%08X)\n",s);
     printf("    -- Successfully connected to KMS ...\n");
 
-    meth = TLSv1_client_method();
+    meth = SSLv23_client_method();
     ctx = SSL_CTX_new(meth);
     if (ctx == NULL) {
         log_error(" SSL_CTX_new error\n");
         return -1;
     }
+
+    /* Disable SSLv2 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+    /* Disable SSLv3 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3);
+    /* Disable TLSv1 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1);
+    /* Disable TLSv1.1 */
+    SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_1);
+    /* Disable TLSv1.3, only openssl after 1.1.1 has TLSv1.3 */
+#if OPENSSL_VERSION_NUMBER > 0x10100000L
+    SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_3);
+#endif
 
     SSL_CTX_set_psk_client_callback(ctx, kcb);
     SSL_CTX_set_cipher_list(ctx, cipher);
@@ -413,7 +426,7 @@ void fetch_new_qkd_key(struct Net_Crypto *nc) {
   char *token;
   get_token(nc, &token);
   get_key(nc, token, 1);
-  free(token); 
+  free(token);
 
 }
 
@@ -421,7 +434,7 @@ void fetch_qkd_key(struct Net_Crypto *nc) {
   char *token;
   get_token(nc, &token);
   get_key(nc, token, 0);
-  free(token); 
+  free(token);
 }
 
 void fn(void) {
