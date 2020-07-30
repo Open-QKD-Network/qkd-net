@@ -393,30 +393,37 @@ sudo apt-get install \
 
 #### Ubuntu >=16.04:
 
+Install the dependencies in tls-demo.
+
 ```bash
-sudo apt-get install \
-    build-essential \
-    cmake \
-    libavcodec-dev \
-    libavdevice-dev \
-    libavfilter-dev \
-    libavutil-dev \
-    libexif-dev \
-    libgdk-pixbuf2.0-dev \
-    libglib2.0-dev \
-    libgtk2.0-dev \
-    libopenal-dev \
-    libqrencode-dev \
-    libqt5opengl5-dev \
-    libqt5svg5-dev \
-    libsqlcipher-dev \
-    libswresample-dev \
-    libswscale-dev \
-    libxss-dev \
-    qrencode \
-    qt5-default \
-    qttools5-dev-tools \
-    qttools5-dev
+
+sudo apt-get update
+sudo apt-get install -y build-essential
+sudo apt-get install -y autotools-dev
+sudo apt-get install -y autoconf
+sudo apt install -y libglfw3-dev
+sudo apt install -y pkg-config
+sudo apt install -y cmake
+sudo apt install -y libavcodec-dev
+sudo apt install -y libavcdevice-dev
+sudo apt install -y libexif-dev
+sudo apt install -y libqrencode-dev
+sudo apt install -y libsqlcipher-dev
+sudo apt install -y libvpx-dev
+sudo apt install -y libopenal-dev
+sudo apt-get install -y libxss-dev
+sudo apt-get install -y libgdk-pixbuf2.0-dev
+sudo apt-get install -y libgtk2.0-dev
+sudo apt-get install -y libopus-dev
+sudo apt-get install qtdeclarative5-dev qml-module-qtquick-controls
+
+sudo apt-get install qttools5-dev-tools
+
+sudo apt-get install libqt5svg5-dev
+
+sudo apt-get install libqt5opengl5-dev
+
+sudo apt-get install libavdevice-dev
 ```
 
 ### toxcore dependencies
@@ -497,15 +504,11 @@ cd ..
 Provided that you have all required dependencies installed, you can simply run:
 
 ```bash
-git clone https://github.com/toktok/c-toxcore.git toxcore
-cd toxcore
-git checkout v0.2.1
-autoreconf -if
-./configure
-make -j$(nproc)
-sudo make install
-echo '/usr/local/lib/' | sudo tee -a /etc/ld.so.conf.d/locallib.conf
-sudo ldconfig
+cd c-toxcore
+./autogen.sh
+./configure CFLAGS=-g3 --enable-qkd-keys LIBS="-lssl -lcrypto" --no-recursion
+make clean;make -j8;make install
+cd ..
 ```
 
 ### Compile qTox
@@ -524,8 +527,13 @@ export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig"
 Run in qTox directory to compile:
 
 ```bash
-cmake .
-make
+./bootstrap.sh --without-tox 
+rm -rf build
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-DQKD" -DCMAKE_PREFIX_PATH="$1" ..
+make -j8
+cd ..
 ```
 
 Now you can start compiled qTox with `./qtox`
