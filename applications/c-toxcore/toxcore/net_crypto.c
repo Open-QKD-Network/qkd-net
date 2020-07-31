@@ -167,6 +167,7 @@ struct Net_Crypto {
     unsigned char key[32]; //shared key from KMS
     char peer_site_id[4];
     int index;
+    bool auth;
     CURL *curl_handle;
 #endif 
 
@@ -212,6 +213,14 @@ void prepare_kms_access(Net_Crypto *m) {
   buffer[strlen(buffer) - 1] = '\0';
   strcpy(m->site_id, buffer);
   m->site_id[strlen(buffer)] = '\0';
+
+fgets(buffer, sizeof buffer, fp);
+  buffer[strlen(buffer) - 1] = '\0';
+  if (strcmp(buffer, "false") == 0) {
+      m->auth = false;
+  } else {
+      m->auth = true;
+  }
   fclose(fp); 
 
   curl_global_init(CURL_GLOBAL_ALL);
@@ -278,15 +287,19 @@ static CURLcode fetch(Net_Crypto *nc, struct MemoryStruct *chunk, const char *ur
     handle = nc->curl_handle;
     curl_easy_setopt(handle, CURLOPT_POST, 1L);
     curl_easy_setopt(handle, CURLOPT_URL, url);
-    list = curl_slist_append(NULL, header);
     curl_easy_setopt(handle, CURLOPT_POSTFIELDS, post);
-    curl_easy_setopt(handle, CURLOPT_HTTPHEADER, list);
+    if (nc->auth) {
+        list = curl_slist_append(NULL, header);
+        curl_easy_setopt(handle, CURLOPT_HTTPHEADER, list);
+    }
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
     curl_easy_setopt(handle, CURLOPT_VERBOSE, 0L);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void *)chunk);
     curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 1L);
     res = curl_easy_perform(handle);
-    curl_slist_free_all(list);
+    if (nc->auth) {
+        curl_slist_free_all(list);
+    }
     return res;
 }
 
@@ -302,11 +315,14 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
     chunk.size = 0;
     char hex[65];
 
-    int len = strlen(key_header) + strlen(token) + 1;
-    char *buf = (char*)malloc(len);
-    strcpy(buf, key_header);
-    strcpy(buf+strlen(key_header), token);
-    buf[len] = '\0';
+    char *buf;
+    if (nc->auth) {
+        int len = strlen(key_header) + strlen(token) + 1;
+        buf = (char*)malloc(len);
+        strcpy(buf, key_header);
+        strcpy(buf+strlen(key_header), token);
+        buf[len] = '\0';
+    }
     if (is_new) {
          int len_post = strlen(nc->peer_site_id) + strlen(query_str);
          char *post = (char*)malloc(len_post+1);
@@ -366,7 +382,9 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
         }
         json_object_put(keyobj);
     }
-    free(buf);
+    if (nc->auth) {
+        free(buf);
+    }
     return err;
 }
 
@@ -409,17 +427,24 @@ int get_token(struct Net_Crypto *nc, char** token) {
 
 void fetch_new_qkd_key(struct Net_Crypto *nc) {
   char *token;
-  get_token(nc, &token);
+  if (nc->auth) {
+    get_token(nc, &token);
+  }
   get_key(nc, token, 1);
-  free(token); 
-
+  if (nc->auth) {
+    free(token);
+  }
 }
 
 void fetch_qkd_key(struct Net_Crypto *nc) {
   char *token;
-  get_token(nc, &token);
+  if (nc->auth) {
+    get_token(nc, &token);
+  }
   get_key(nc, token, 0);
-  free(token); 
+  if (nc->auth) {
+    free(token);
+  }
 }
 #endif
 
