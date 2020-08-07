@@ -151,7 +151,7 @@ AED3 1134 9C23 A123 E5C4  AA4B 139C A045 3DA2 D773
 [Latest release]: https://github.com/qTox/qTox/releases/latest
 [Fedora]: /INSTALL.md#fedora
 [Gentoo]: /INSTALL.md#gentoo
-[Install/Build]: /INSTALL.md
+[Install/Build]: /applications/qTox/INSTALL.md
 [IRC logs]: https://github.com/qTox/qtox-irc-logs
 [issues that need help]: https://github.com/qTox/qTox/labels/help%20wanted
 [Jenkins builds]: https://build.tox.chat/
