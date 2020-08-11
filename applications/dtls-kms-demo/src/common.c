@@ -349,7 +349,7 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
         post[len_post] = '\0';
         printf("key_post : %s\n", post);
         res = fetch(nc, &chunk, nc->newkey_url, buf, post);
-
+        free(post);
     } else {
         char dex [sizeof(int)*8+1];
         sprintf (dex, "%d", nc->index);
