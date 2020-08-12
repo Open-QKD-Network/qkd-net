@@ -205,19 +205,6 @@ int fetch_key_from_kms(client_cb_kms kcb, short port, char buf[32], long *index)
         return -1;
     }
 
-//     /* Disable SSLv2 */
-//     SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
-//     /* Disable SSLv3 */
-//     SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3);
-//     /* Disable TLSv1 */
-//     SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1);
-//     /* Disable TLSv1.1 */
-//     SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_1);
-//     /* Disable TLSv1.3, only openssl after 1.1.1 has TLSv1.3 */
-// #if OPENSSL_VERSION_NUMBER > 0x10100000L
-//     SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_3);
-// #endif
-
     SSL_CTX_set_psk_client_callback(ctx, kcb);
     SSL_CTX_set_cipher_list(ctx, cipher);
 
