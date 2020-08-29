@@ -12,6 +12,7 @@ int main(int argc, char * argv[]) {
   int len = 0;
 
 #if 0
+  /* run this on server side/bob/site B */
   ret = oqkd_get_new_key_url(&new_key_url);
   if (ret == 0) {
       printf("new_key_url:%s\n", new_key_url);
@@ -29,6 +30,7 @@ int main(int argc, char * argv[]) {
     printf("Fails to new key\n");
   }
 #else
+  /* run this on client side/alice/site C */
   ret = oqkd_get_key("http://localhost:8095/api/getkey&siteid=B&index=0&blockid=f2febd3d-fcb4-4410-a522-66c672227d4c",
       &key, &len);
   if (ret == 0) {
