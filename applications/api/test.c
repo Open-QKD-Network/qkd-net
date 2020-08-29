@@ -23,24 +23,13 @@ int main(int argc, char * argv[]) {
   if (ret ==0) {
     printf("new key succeeds, key len:%d, get_key_url:%s\n", len, get_key_url);
     free(new_key_url);
-    //free(get_key_url);
+    free(get_key_url);
     free(key);
-    key = NULL;
-    len = 0;
-    ret = oqkd_get_key(get_key_url, &key, &len);
-    if (ret == 0) {
-      printf("get key succeeds, key len:%d\n", len);
-      free(key);
-      return 0;
-    } else {
-      printf("get key fails\n");
-      return -1;
-    }
   } else {
     printf("Fails to new key\n");
   }
 #else
-  ret = oqkd_get_key("http://localhost:8095/api/getkey&siteid=B&index=0&blockid=a6440463-78c7-4af7-b4ff-a8cd2b007646",
+  ret = oqkd_get_key("http://localhost:8095/api/getkey&siteid=B&index=0&blockid=f2febd3d-fcb4-4410-a522-66c672227d4c",
       &key, &len);
   if (ret == 0) {
     printf("oqkd_get_key succeed: len=%d\n", len);
