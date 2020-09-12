@@ -166,7 +166,7 @@ int oqkd_new_key(char* new_key_url, char**key, int* key_len, char** get_key_url)
   memcpy(new_key, new_key_url, siteId - new_key_url);
   siteId++; // move &
 
-  ret = fetch(&chunk, new_key, "siteid=C"); // hardcoded it for now
+  ret = fetch(&chunk, new_key, siteId);
   if (ret != 0) {
     printf("Fails to get new key\n");
     return -1;
