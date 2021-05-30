@@ -80,13 +80,15 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
 2. On Ubuntu **A**
 3. *git clone https://github.com/Open-QKD-Network/qkd-net.git*
 4. *cd qkd-net*
-5. *cd kms*
-6. *./scripts/build*
-7. *rm ~/.qkd* (Step 6 generates ~/.qkd directory)
-8. *cd ..*
-9. *tar xvf **qkd-kaiduan-a.tar***
-10. *mv .qkd ~/*
-11. On Ubuntu **A**, changes IP address of **B** in the **~/.qkd/qnl/routes.json**.
+5. *git checkout disable-spring-auth*
+6. *cd kms*
+7. *./scripts/build*
+8. *rm ~/.qkd* (Step 6 generates ~/.qkd directory)
+9. *cd ..*
+10. *tar xvf **qkd-kaiduan-a.tar***
+11. *mv .qkd ~/*
+12. Add **false** to the end of kms.conf and kms/kms.conf to disable OAuth authentication
+13. On Ubuntu **A**, changes IP address of **B** in the **~/.qkd/qnl/routes.json**.
 ```json
 {
   "adjacent": {
@@ -96,10 +98,11 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
   }
 }
 ```
-12. Run commands 3 to 8 on Ubuntu B
-13. *tar xvf **qkd-kaiduan-b.tar***
-14. *mv .qkd ~/*
-15. On Ubuntu **B**, changes IP address of **A** in the **~/.qkd/qnl/routes.json**
+14. Run commands 3 to 9 on Ubuntu B
+15. *tar xvf **qkd-kaiduan-b.tar***
+16. *mv .qkd ~/*
+17. Add **false** to the end of kms.conf and kms/kms.conf to disable OAuth authentication
+18. On Ubuntu **B**, changes IP address of **A** in the **~/.qkd/qnl/routes.json**
 ```json
 {
   "adjacent": {
@@ -109,24 +112,13 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
   }
 }
 ```
-16. On Ubuntu A, *cd qkd-net/kms*, run command *./scripts/run*
-17. On Ubuntu B, *cd qkd-net/kms*, run command *./scripts/run*
-18. We will run tls-demo application alice on Ubuntu A and run bob on Ubuntu B
-19. On Ubuntu A, *cd ../applications/tls-demo/*, run *make* command
-20. On Ubuntu B, *cd ../applications/tls-demo/*, change function static char* site_id(char* ip) in **src/bob.c** as below, and run *make*
-```c
-        static char* site_id(char* ip) {
-            if (strcmp(ip, "192.168.2.212") == 0)
-                return "B";
-            else if (strcmp(ip, "192.168.2.207") == 0)
-                return "A";
-            else
-                return "C";
-        }
-```
-21. On Ubuntu B, run command *./bob -b 10446*
-22. On Ubuntu A, run command *./alice -i 192.168.2.212 -b 10446 -f ./data/whale.mp3*
-23. On Ubuntu A, you should see something like below
+19. On Ubuntu A, *cd qkd-net/kms*, run command *./scripts/run*
+20. On Ubuntu B, *cd qkd-net/kms*, run command *./scripts/run*
+21. We will run tls-demo application alice on Ubuntu A and run bob on Ubuntu B
+22. On Ubuntu A, *cd ../applications/tls-demo/*, run *make* command
+23. On Ubuntu B, run command *./bob -b 10446*
+24. On Ubuntu A, run command *./alice -i 192.168.2.212 -b 10446 -f ./data/whale.mp3*
+25. On Ubuntu A, you should see something like below
 ```
         -- Successfully conected to Bob
            -- Received PSK identity hint 'B c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc 0'
@@ -140,7 +132,7 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
         blockId: c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc
 ```
 
-24. On Ubuntu B, file is received and saved in **bobdemo** and should see something like below
+26. On Ubuntu B, file is received and saved in **bobdemo** and should see something like below
 ```
         Bob is listening for incomming connections on port 10446 ...
         HTTP-FETCH-REQUEST, url:http://localhost:9992/uaa/oauth/token,header:authorization:Basic aHRtbDU6cGFzc3dvcmQ=,post:password=bot&client_secret=password&client=html5&ername=pwebb&grant_type=password&scope=openid
@@ -157,9 +149,9 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
         -- Connection Closed
         -- Accept Connection
 ```
-25. For 3 nodes system, extract **qkd-kaiduan-c.tar** on Ubuntu, assume we will run alice on A and bob on C, the network topology looks below,
+27. For 3 nodes system, extract **qkd-kaiduan-c.tar** on Ubuntu, assume we will run alice on A and bob on C, the network topology looks below,
 > A  <----> B <---> C
-26. Assume IP address of **C** is **192.168.2.235**, Add C to **B**'s adjacent nodes
+28. Assume IP address of **C** is **192.168.2.235**, Add C to **B**'s adjacent nodes
 ```json
 {
   "adjacent": {
@@ -186,6 +178,7 @@ http://localhost:9992/uaa/oauth/token
 http://localhost:8095/api/newkey
 http://localhost:8095/api/getkey
 C
+false
 ```
 
 Depending on where the KMS node is deployed, `localhost` can be replaced by the IP address of
@@ -319,7 +312,7 @@ cd <top level director>/qkd-net/kms
 
 ### Testing KMS service
 
-Since OAuth is enabled, first access token is fetched:
+When OAuth is enabled, first access token is fetched:
 
 ```shell
 curl -X POST -H"authorization:Basic aHRtbDU6cGFzc3dvcmQ=" -F"password=bot" -F"client_secret=password" -F"client=html5" -F"username=pwebb" -F"grant_type=password" -F"scope=openid"  http://localhost:9992/uaa/oauth/token | jq
