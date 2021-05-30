@@ -114,11 +114,23 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
 ```
 19. On Ubuntu A, *cd qkd-net/kms*, run command *./scripts/run*
 20. On Ubuntu B, *cd qkd-net/kms*, run command *./scripts/run*
-21. We will run tls-demo application alice on Ubuntu A and run bob on Ubuntu B
-22. On Ubuntu A, *cd ../applications/tls-demo/*, run *make* command
-23. On Ubuntu B, run command *./bob -b 10446*
-24. On Ubuntu A, run command *./alice -i 192.168.2.212 -b 10446 -f ./data/whale.mp3*
-25. On Ubuntu A, you should see something like below
+21. You can check if OpenQKDNetwork is up by looking the ~/.qkd/mapping.log and ~/qkd_logs/lsrp.log
+```
+{"192.168.2.207":"A","192.168.2.212":"B"}
+```
+```
+========Nodes/Links========
+A
+    A <----> B = 1
+B
+    B <----> A = 1
+========Nodes/Links========
+```
+22. We will run tls-demo application alice on Ubuntu A and run bob on Ubuntu B
+23. On Ubuntu A, *cd ../applications/tls-demo/*, run *make* command
+24. On Ubuntu B, run command *./bob -b 10446*
+25. On Ubuntu A, run command *./alice -i 192.168.2.212 -b 10446 -f ./data/whale.mp3*
+26. On Ubuntu A, you should see something like below
 ```
         -- Successfully conected to Bob
            -- Received PSK identity hint 'B c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc 0'
@@ -132,7 +144,7 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
         blockId: c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc
 ```
 
-26. On Ubuntu B, file is received and saved in **bobdemo** and should see something like below
+27. On Ubuntu B, file is received and saved in **bobdemo** and should see something like below
 ```
         Bob is listening for incomming connections on port 10446 ...
         HTTP-FETCH-REQUEST, url:http://localhost:9992/uaa/oauth/token,header:authorization:Basic aHRtbDU6cGFzc3dvcmQ=,post:password=bot&client_secret=password&client=html5&ername=pwebb&grant_type=password&scope=openid
@@ -149,7 +161,7 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
         -- Connection Closed
         -- Accept Connection
 ```
-27. For 3 nodes system, extract **qkd-kaiduan-c.tar** on Ubuntu, assume we will run alice on A and bob on C, the network topology looks below,
+28. For 3 nodes system, extract **qkd-kaiduan-c.tar** on Ubuntu, assume we will run alice on A and bob on C, the network topology looks below,
 > A  <----> B <---> C
 28. Assume IP address of **C** is **192.168.2.235**, Add C to **B**'s adjacent nodes
 ```json
