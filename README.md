@@ -146,20 +146,20 @@ B
 
 27. On Ubuntu B, file is received and saved in **bobdemo** and should see something like below
 ```
-        Bob is listening for incomming connections on port 10446 ...
-        HTTP-FETCH-REQUEST, url:http://localhost:9992/uaa/oauth/token,header:authorization:Basic aHRtbDU6cGFzc3dvcmQ=,post:password=bot&client_secret=password&client=html5&ername=pwebb&grant_type=password&scope=openid
-        HTTP-FETCH-RESPONSE:{"access_token":"24b4b875-1146-406d-84cf-4379a4da2b96","token_type":"bearer","refresh_token":"52f93b1b-b642-4884-96e3-0186aaf69381","expires_in":43199,"scope":"openid"}
-        key_post : siteid=A
-        HTTP-FETCH-REQUEST, url:http://localhost:8095/api/newkey,header:Authorization: Bearer 24b4b875-1146-406d-84cf-4379a4da2b96,post:siteid=A
-        HTTP-FETCH-RESPONSE:{"index":0,"hexKey":"e27444fab22da64bb65dd108adc84f12a2a94a0fd5129e37df44025ca1622942","blockId":"c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc"}
-        index: 0
-        key: e27444fab22da64bb65dd108adc84f12a2a94a0fd5129e37df44025ca1622942
-        blockId: c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc
-        SSL-Server-PSK-Hint:B c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc 0
-        -- SHA1 of the received key : 8F23A277146D8DB4F9C4B6F320BE5D772396CD10
-        -- TLS Closed
-        -- Connection Closed
-        -- Accept Connection
+ -- Bob is listening for incomming connections on port 10446 ...
+key_post : siteid=B
+HTTP-FETCH-REQUEST, url:http://localhost:8095/api/newkey,post:siteid=B
+
+HTTP-FETCH-RESPONSE:{"index":0,"hexKey":"36b4bf06cc5cbb7e61983f8b4dfd7771edc2ee01bb049b52e0a91a4f2e90fa0c","blockId":"5048deac-4aa0-42a3-9b9a-f9d01b8a884d"}
+
+index: 0
+key: 36b4bf06cc5cbb7e61983f8b4dfd7771edc2ee01bb049b52e0a91a4f2e90fa0c
+blockId: 5048deac-4aa0-42a3-9b9a-f9d01b8a884d
+SSL-Server-PSK-Hint:C 5048deac-4aa0-42a3-9b9a-f9d01b8a884d 0
+    -- SHA1 of the received key : F7DC264E8C6165228EF9E0EBF0EFCF50B217B4D3
+ -- TLS Closed
+ -- Connection Closed
+ -- Accept Connection
 ```
 28. For 3 nodes system, extract **qkd-kaiduan-c.tar** on Ubuntu, assume we will run alice on A and bob on C, the network topology looks below,
 > A  <----> B <---> C
