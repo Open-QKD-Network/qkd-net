@@ -156,7 +156,7 @@ HTTP-FETCH-RESPONSE:{"index":0,"hexKey":"36b4bf06cc5cbb7e61983f8b4dfd7771edc2ee0
 index: 0
 key: 36b4bf06cc5cbb7e61983f8b4dfd7771edc2ee01bb049b52e0a91a4f2e90fa0c
 blockId: 5048deac-4aa0-42a3-9b9a-f9d01b8a884d
-SSL-Server-PSK-Hint:C 5048deac-4aa0-42a3-9b9a-f9d01b8a884d 0
+SSL-Server-PSK-Hint:B 5048deac-4aa0-42a3-9b9a-f9d01b8a884d 0
     -- SHA1 of the received key : F7DC264E8C6165228EF9E0EBF0EFCF50B217B4D3
  -- TLS Closed
  -- Connection Closed
