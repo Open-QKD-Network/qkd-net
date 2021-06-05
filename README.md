@@ -148,8 +148,8 @@ blockId: 5048deac-4aa0-42a3-9b9a-f9d01b8a884d
 27. On Ubuntu B, file is received and saved in **bobdemo** and should see something like below
 ```
  -- Bob is listening for incomming connections on port 10446 ...
-key_post : siteid=B
-HTTP-FETCH-REQUEST, url:http://localhost:8095/api/newkey,post:siteid=B
+key_post : siteid=A
+HTTP-FETCH-REQUEST, url:http://localhost:8095/api/newkey,post:siteid=A
 
 HTTP-FETCH-RESPONSE:{"index":0,"hexKey":"36b4bf06cc5cbb7e61983f8b4dfd7771edc2ee01bb049b52e0a91a4f2e90fa0c","blockId":"5048deac-4aa0-42a3-9b9a-f9d01b8a884d"}
 
