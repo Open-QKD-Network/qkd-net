@@ -132,16 +132,17 @@ B
 25. On Ubuntu A, run command *./alice -i 192.168.2.212 -b 10446 -f ./data/whale.mp3*
 26. On Ubuntu A, you should see something like below
 ```
-        -- Successfully conected to Bob
-           -- Received PSK identity hint 'B c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc 0'
-        HTTP-FETCH-REQUEST,url:http://localhost:9992/uaa/oauth/token,header:authorization:Basic aHRtbDU6cGFzc3dvcmQ=,post:password=bot&client_secret=password&client=html5&username=pwebb&grant_type=password&scope=openid
-        HTTP-FETCH-RESPONSE:{"access_token":"e5d40647-81c6-467b-98f2-54fe2e9086d5","token_type":"bearer","refresh_token":"fd26f0a0-8c30-43af-beae-700147bed","expires_in":43199,"scope":"openid"}
-        post String siteid=B&index=0&blockid=c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc
-        HTTP-FETCH-REQUEST,url:http://localhost:8095/api/getkey,header:Authorization: Bearer e5d40647-81c6-467b-98f2-54fe2e9086d5,post:siteid=B&index=0&blockid=c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc
-        HTTP-FETCH-RESPONSE:{"index":0,"hexKey":"e27444fab22da64bb65dd108adc84f12a2a94a0fd5129e37df44025ca1622942","blockId":"c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc"}
-        index: 0
-        key: e27444fab22da64bb65dd108adc84f12a2a94a0fd5129e37df44025ca1622942
-        blockId: c5460688-c6ff-4e0e-8c7c-7c82d18ce0cc
+ -- Successfully conected to Bob
+    -- Received PSK identity hint 'B 5048deac-4aa0-42a3-9b9a-f9d01b8a884d 0'
+post String siteid=B&index=0&blockid=5048deac-4aa0-42a3-9b9a-f9d01b8a884d
+HTTP-FETCH-REQUEST, url:http://localhost:8095/api/getkey,post:siteid=B&index=0&blockid=5048deac-4aa0-42a3-9b9a-f9d01b8a884d
+
+HTTP-FETCH-RESPONSE:{"index":0,"hexKey":"36b4bf06cc5cbb7e61983f8b4dfd7771edc2ee01bb049b52e0a91a4f2e90fa0c","blockId":"5048deac-4aa0-42a3-9b9a-f9d01b8a884d"}
+
+index: 0
+key: 36b4bf06cc5cbb7e61983f8b4dfd7771edc2ee01bb049b52e0a91a4f2e90fa0c
+blockId: 5048deac-4aa0-42a3-9b9a-f9d01b8a884d
+    -- SHA1 of the received key : F7DC264E8C6165228EF9E0EBF0EFCF50B217B4D3
 ```
 
 27. On Ubuntu B, file is received and saved in **bobdemo** and should see something like below
