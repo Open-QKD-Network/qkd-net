@@ -87,9 +87,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         "KeyRouterFrontend/processQNLRequest,localSiteId:" + localSiteId + ", QNLRequest:" + qReq);
     switch (opId) {
       case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
-        // Step 1: it should be rConfig.getRoutes(srcSiteId, destSiteId)
-        // and puts routes into QNLRequest()
-        // adjSiteId should be next hop on the path
+        // Step 1: adjSiteId should be next hop on the path
         adjSiteId = rConfig.getAdjacentId(destSiteId);
         LOGGER.info("adjSiteId:" + adjSiteId);
         req = new QNLRequest(blockByteSz);
