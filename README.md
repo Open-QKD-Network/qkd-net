@@ -64,6 +64,7 @@ Make sure the executables are in system path.
 2. Maven - https://maven.apache.org/ or apt-get, if on Ubuntu
 3. screen - apt-get, if on Ubuntu
 4. git - apt-get, if on Ubuntu
+5. libjson-c-dev
 
 ### Prerequisites for testing (Optional)
 
