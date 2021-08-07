@@ -49,6 +49,7 @@ public class OTPKey {
             AtomicLong ref = new AtomicLong(0);
             QLLRdr.getNextBlockIndex(config.getKeyBlockSz(), ref);
             QLLRdr.read(hex, config.getKeyBlockSz(), ref.get());
+            LOGGER.info("OTPKey.writeKeys to :" + otpFile);
             QNLUtils.writeKeys(hex, otpFile, config.getKeyBlockSz());
         } else {
             QNLUtils.readKeys(hex, otpFile, config.getKeyBlockSz());

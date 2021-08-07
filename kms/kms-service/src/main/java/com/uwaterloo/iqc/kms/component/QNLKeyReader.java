@@ -38,7 +38,7 @@ public class QNLKeyReader {
                 f.mkdirs();
             }
             sb.append("/").append(blockId);
-            logger.info("QNLKeyReader.writeKeys:" + sb + ", blockSz:" + blockSz);
+            logger.info("QNLKeyReader.writeKeys to keypool:" + sb.toString() + ", blockSz:" + blockSz);
             QNLUtils.writeKeys(keys, sb.toString(), (int)blockSz);
         } catch(Exception e) {
             java.io.StringWriter sw = new java.io.StringWriter();
@@ -81,6 +81,7 @@ public class QNLKeyReader {
 
     public void read(String src, String dest, String blockId,
                      Vector<String> keys, String poolBaseDir, long blockSz) {
+        logger.info("QNLKeyReader.read:" + src + "->" + dest + "," + blockId + "," + poolBaseDir + "," + blockSz);
         StringBuilder sb = new StringBuilder();
         sb.append(poolBaseDir).append("/").append(src).append("/").append(dest);
         File f = new File(sb.toString());

@@ -74,7 +74,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                 File f = new File(kqCfg.getLoc() + "/" + srcId + "/" + dstId);
                 if (!f.exists())
                     FileUtils.forceMkdir(f);
-                logger.info("ServerHandler.writeKeys:" + f.getAbsolutePath() + "/" + uuid + ", blockSz:" + blockSz);
+                logger.info("ServerHandler.writeKeys to keypool:" + f.getAbsolutePath() + "/" + uuid + ", blockSz:" + blockSz);
                 QNLUtils.writeKeys(hexKeys, f.getAbsolutePath() + "/" + uuid, blockSz);
             } catch (Exception e) {}
             ctx.channel().writeAndFlush(resp).addListener(
