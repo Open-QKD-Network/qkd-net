@@ -25,7 +25,7 @@ public class QLLFileReader implements QLLReader {
         this.qllBlockSz = qCfg.getQllBlockSz();
         this.keyLoc = qCfg.getQNLSiteKeyLoc(siteId);
         this.keyByteSz = qCfg.getKeyBytesSz();
-        LOGGER.info("QLLFileReader.new:" + this);
+        LOGGER.info("QLLFileReader.new:|" + this);
     }
 
     private int readKeyBlock(byte[] dst, int len, long offset) {
@@ -41,14 +41,14 @@ public class QLLFileReader implements QLLReader {
         BufferedReader reader;
         int destPos = 0;
 
-        LOGGER.info(this + "-readKeyBlock:len:" + len + ",offset:" + offset);
+        LOGGER.info("QLLFileReader.readKeyBlock:len:" + len + ",end offset:" + offset + "|" + this);
         try {
             index = offset;
             startIndex = index - len;
             while (linesRead < len) {
-                qllBlockIndex = startIndex / qllBlockSz;
-                qllIndexWithinBlock = (int)startIndex % qllBlockSz;
-                qllFile = keyLoc + "/" + siteId + "_" + qllBlockIndex;
+                qllBlockIndex = startIndex / this.qllBlockSz;
+                qllIndexWithinBlock = (int)startIndex % this.qllBlockSz;
+                qllFile = this.keyLoc + "/" + this.siteId + "_" + qllBlockIndex;
 
                 reader = new BufferedReader(new FileReader(qllFile));
 
@@ -79,18 +79,18 @@ public class QLLFileReader implements QLLReader {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        LOGGER.info(this + "-readKeyBlock:linesRead:" + linesRead);
+        LOGGER.info("QLLFileReader.readKeyBlock:linesRead:" + linesRead + "|" + this);
         return linesRead;
     }
 
     public int read(byte[] dst, int len, AtomicLong indexRef) {
-        long index = qllBlockIndex.addAndGet(len);
+        long index = this.qllBlockIndex.addAndGet(len);
         int linesRead = readKeyBlock(dst, len, index);
         if (linesRead == len)
         	indexRef.set(index);
         else {
         	indexRef.set(-1);
-        	qllBlockIndex.addAndGet(-len);
+        	this.qllBlockIndex.addAndGet(-len);
         }
         return linesRead;
     }
@@ -102,15 +102,15 @@ public class QLLFileReader implements QLLReader {
     }
 
     public void getNextBlockIndex(int len, AtomicLong indexRef) {
-        LOGGER.info(this + ".getNextBlockIndex,len:" + len + ",indexRef:" + indexRef.get());
-        long index = qllBlockIndex.addAndGet(len);
-        int blockIndex = (int)index / qllBlockSz;
-        String fileStr = keyLoc + "/" + siteId + "_" + blockIndex;
+        LOGGER.info("QLLFileReader.getNextBlockIndex,len:" + len + ",indexRef:" + indexRef.get() + "|" + this);
+        long index = this.qllBlockIndex.addAndGet(len);
+        int blockIndex = (int)index / this.qllBlockSz;
+        String fileStr = this.keyLoc + "/" + this.siteId + "_" + blockIndex;
         File f = new File(fileStr);
         if (f.exists())
         	indexRef.set(index);
         else {
-        	qllBlockIndex.addAndGet(-len);
+        	this.qllBlockIndex.addAndGet(-len);
         	indexRef.set(-1);
         }
     }
