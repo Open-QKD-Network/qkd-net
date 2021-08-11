@@ -11,7 +11,7 @@ A very flexible layered approach has been adopted adhering to [SOLID](https://en
 Microservice based architecture approach has been taken for software design and
 and implementation. One benefit of it is to have flexibility in production deployment.
 
-**Complied and tested successfully on Ubuntu 16.04 and Linux Mint 18.3 with Java 8.  Changes will be needed for working in other environments (OS, Java version, etc.)**
+**Complied and tested successfully on Ubuntu 16.04 and Linux Mint 18.3 with Java 8, Ubuntu 20.4/Java 11.  Changes will be needed for working in other environments (OS, Java version, etc.)**
 
 Layers
 ------
