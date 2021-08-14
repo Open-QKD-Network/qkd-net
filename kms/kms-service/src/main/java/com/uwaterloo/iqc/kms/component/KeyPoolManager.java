@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.io.File;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,7 +166,15 @@ public class KeyPoolManager {
                         throw e;
                     }
 
-                    keyPools.remove(poolName);
+                    KeyPool removed = keyPools.remove(poolName);
+                    if (removed != null) {
+                        String fileName = this.poolsDir + File.separator + srcSiteId + File.separator + dstSiteId + File.separator + removed.getBlockId();
+                        logger.info("Delete keypool " + fileName);
+                        File file = new File(fileName);
+                        if (file != null) {
+                            file.delete();
+                        }
+                    }
                     KeyPool kp = new KeyPool(blockId, blockSz, keyBlockDst);
                     logger.info("KeyPoolManager.fetchKey, add keypool: " + poolName + ",blockId:" + blockId + ",blockSz:" + blockSz + ",keyBlockDest:" + keyBlockDst);
                     keyPools.put(poolName, kp);
