@@ -11,6 +11,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 import com.uwaterloo.iqc.qnl.lsrp.LSRPRouter;
+import com.uwaterloo.iqc.qnl.qll.cqptoolkit.client.GrpcClient;
 
 public class KeyRouter {
 
@@ -23,6 +24,8 @@ public class KeyRouter {
         else
           qConfig = new QNLConfiguration(args[0]);
 
+        GrpcClient client = new GrpcClient();
+        client.getSiteDetails("localhost", 8000);
         LOGGER.info("Key router started, args.length:" + args.length);
         LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
         lsrpRouter.start();

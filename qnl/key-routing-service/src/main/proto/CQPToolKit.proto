@@ -1,0 +1,109 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package cqp.remote;
+option java_package = "com.cqp.remote";
+import public "google/protobuf/empty.proto";
+
+message Pair {
+    /// name portion
+    string name = 1;
+    /// value portion
+    string value = 2;
+}
+
+message SessionDetails {
+    /// arbritary parameters
+    repeated Pair parameters = 1;
+    /// The loss in dB for this link
+    double lineAttenuation = 2;
+    /// The number of photons transmitted on each frame
+    uint64 photonsPerBurst = 3;
+    /// The number of photons per second in each burst
+    uint32 repitionRate = 4;
+    /// Which key to use for initial authentication/bootstrap
+    uint64 initialKeyId = 5;
+};
+
+/// An entry point for QKD
+message Hop {
+    /// The address of the site, localhost:8000
+    string site = 1;
+    /// which device to use in the connection
+    string deviceId = 2;
+    /// Optional, filled in by the site managing the device
+    string deviceAddress = 3;
+}
+
+/// two points
+message HopPair {
+    /// left side of a connection
+    Hop first = 1;
+    /// right side of a connection
+    Hop second = 2;
+    /// properties for this link, optional
+    SessionDetails params = 3;
+};
+
+/// A list of sites with a port to define an end point
+message PhysicalPath {
+    /// connections which make up the path
+    repeated HopPair hops = 1;
+}
+
+/** Defines which side of a pair of devices
+*/
+message Side {
+    /** Encapsulated type for scoping
+    */
+    enum Type {
+        Alice = 0;
+        Bob = 1;
+        /// For device independent QKD
+        Any = 2;
+    }
+    /// Value
+    Type value = 1;
+}
+
+/// Define a device
+message DeviceConfig {
+    /// An identifier for the device, unique to the site
+    string id = 1;
+    /// Which side of a pair the device belongs to
+    Side.Type side = 2;
+    /// The openflow name of the switching device the QKD device is connected to
+    /// e.g: openflow:1234
+    string switchName = 3;
+    /// The physical port the device is connected to
+    repeated string switchPort = 4;
+    /// What kind of device is it
+    string kind = 5;
+    /// Number of bytes the key is split into before publishing
+    uint32 bytesPerKey = 6;
+}
+
+/// Settings for a device
+message ControlDetails
+{
+    /// Details on how to setup the device
+    DeviceConfig config = 1;
+    /// The connection address for controlling the device
+    string controlAddress = 2;
+    /// The Site to register with
+    string siteAgentAddress = 3;
+}
+
+/// Defines the site and it's capabilities
+message Site {
+    /// site address
+    string url = 1;
+    /// devices attached to the site
+    repeated ControlDetails devices = 2;
+}
+
+service ISiteAgent
+{
+    rpc StartNode(PhysicalPath) returns (google.protobuf.Empty);
+    rpc EndKeyExchange(PhysicalPath) returns (google.protobuf.Empty);
+    rpc GetSiteDetails(google.protobuf.Empty) returns (Site);
+}
