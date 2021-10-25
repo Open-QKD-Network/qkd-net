@@ -13,6 +13,13 @@ import io.netty.handler.logging.LoggingHandler;
 import com.uwaterloo.iqc.qnl.lsrp.LSRPRouter;
 import com.uwaterloo.iqc.qnl.qll.cqptoolkit.client.GrpcClient;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
+import java.io.IOException;
+
 public class KeyRouter {
 
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
@@ -24,10 +31,14 @@ public class KeyRouter {
         else
           qConfig = new QNLConfiguration(args[0]);
 
+        final KeyTransferServer server = new KeyTransferServer();
+        server.start();
+
         GrpcClient client = new GrpcClient();
         //client.getSiteDetails("localhost", 8000);
         client.startNode("localhost", 8000, "localhost", 8001);
         LOGGER.info("Key router started, args.length:" + args.length);
+
         LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
         lsrpRouter.start();
 

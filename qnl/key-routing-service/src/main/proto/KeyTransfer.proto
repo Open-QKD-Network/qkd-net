@@ -1,0 +1,17 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package cqp.remote;
+option java_package = "com.cqp.remote";
+import public "google/protobuf/empty.proto";
+
+message Key {
+    bytes key =  1;
+    uint64 seqID = 2;
+}
+
+message Empty {}
+
+service KeyTransfer
+{
+    rpc SendKey(Key) returns (Empty);
+}
