@@ -27,3 +27,5 @@ sudo apt-get install libqt5svg5-dev
 sudo apt-get install libqt5opengl5-dev
 
 sudo apt-get install libavdevice-dev
+
+sudo apt-get install qttools5-dev
