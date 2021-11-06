@@ -845,9 +845,9 @@ static int handle_crypto_handshake(Net_Crypto *c, uint8_t *nonce, uint8_t *sessi
     memcpy(c->peer_site_id, packet + 1 + QKD_KEY_INDEX_SIZE, QKD_SITE_ID_SIZE);
     memcpy(c->block_id, packet + 1 + QKD_KEY_INDEX_SIZE + QKD_SITE_ID_SIZE, QKD_BLOCK_ID_SIZE);
  
-    printf("Index recieved: %d (handle_crypto_handshake)\n", c->index);
-    printf("Site ID recieved: %s (handle_crypto_handshake)\n", c->peer_site_id);
-    printf("Block ID recieved: %*.*s (handle_crypto_handshake)\n", 0, QKD_BLOCK_ID_SIZE,c->block_id);
+    printf("Index received: %d (handle_crypto_handshake)\n", c->index);
+    printf("Peer Site ID received: %s (handle_crypto_handshake)\n", c->peer_site_id);
+    printf("Block ID received: %*.*s (handle_crypto_handshake)\n", 0, QKD_BLOCK_ID_SIZE,c->block_id);
 #else
     uint8_t cookie_hash[CRYPTO_SHA512_SIZE];
     crypto_sha512(cookie_hash, packet + 1, COOKIE_LENGTH);
@@ -1988,6 +1988,7 @@ static int handle_packet_connection(Net_Crypto *c, int crypt_connection_id, cons
 
                 if (public_key_cmp(dht_public_key, conn->dht_public_key) == 0) {
 #ifdef QKD_KEYS
+                    printf("fetch_qkd_key in handle_packet_connection\n");
                     fetch_qkd_key(c); 
                     memcpy(conn->shared_key, c->key, QKD_KEY_SIZE);
 #else
@@ -2244,6 +2245,7 @@ static int handle_new_connection_handshake(Net_Crypto *c, IP_Port source, const 
                 memcpy(conn->recv_nonce, n_c.recv_nonce, CRYPTO_NONCE_SIZE);
                 memcpy(conn->peersessionpublic_key, n_c.peersessionpublic_key, CRYPTO_PUBLIC_KEY_SIZE);
 #ifdef QKD_KEYS
+                printf("fetch_new_qkd_key in handle_new_connection_handshake\n");
                 fetch_new_qkd_key(c);
                  memcpy(conn->shared_key, c->key, QKD_KEY_SIZE);
 #else
@@ -2305,6 +2307,7 @@ int accept_crypto_connection(Net_Crypto *c, New_Connection *n_c)
     random_nonce(conn->sent_nonce);
     crypto_new_keypair(conn->sessionpublic_key, conn->sessionsecret_key);
 #ifdef QKD_KEYS
+     printf("fetch_new_qkd_key in accept_crypto_connection\n");
      fetch_new_qkd_key(c);
      memcpy(conn->shared_key, c->key, QKD_KEY_SIZE);
 #else
