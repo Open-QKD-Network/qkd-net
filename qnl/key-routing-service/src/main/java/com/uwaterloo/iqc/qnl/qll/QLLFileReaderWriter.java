@@ -53,23 +53,22 @@ public class QLLFileReaderWriter implements QLLReader {
     }
 
     private synchronized int readKeyBlock(byte[] dst, int len, long offset) {
-        int linesRead = 0;
-        long index;
-        long startIndex;
-        long qllBlockIndex;
+
+        int linesRead = 0; int linesSkipped = 0; int destPos = 0;
         int qllIndexWithinBlock;
-        String qllFile;
+        long index, startIndex, qllBlockIndex;
         boolean isSkipLines = true;
-        int linesSkipped = 0;
-        String line;
+        String qllFile, line;
         BufferedReader reader;
-        int destPos = 0;
 
         LOGGER.info("QLLFileReaderWriter.readKeyBlock:len:" + len + ",end offset:" + offset + "|" + this);
         try {
+
             index = offset;
             startIndex = index - len;
+
             while (linesRead < len) {
+
                 qllBlockIndex = startIndex / this.qllBlockSz;
                 qllIndexWithinBlock = (int)startIndex % this.qllBlockSz;
                 qllFile = this.keyLoc + "/" + this.siteId + "_" + qllBlockIndex;
@@ -89,15 +88,19 @@ public class QLLFileReaderWriter implements QLLReader {
 
                 line = reader.readLine();
                 while (line != null && linesRead < len) {
+
                 	++linesRead;
+                    line = (line.trim().split(" ", 2))[1]; //split the line by the whitespace separating seqID & key and retain the key
+
                     System.arraycopy(line.getBytes(), 0, dst, destPos, line.length());
                     destPos += line.length();
                     line = reader.readLine();
-                    //if (line != null)
-                    //	++linesRead;
                 }
-                if (linesRead < len)
+
+                if (linesRead < len) {
                     startIndex = linesRead;
+                }
+
                 reader.close();
             }
         } catch (IOException e) {
