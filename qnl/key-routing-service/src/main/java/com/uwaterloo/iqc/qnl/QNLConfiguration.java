@@ -13,7 +13,7 @@ import com.google.gson.stream.JsonReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.uwaterloo.iqc.qnl.qll.QLLFileReader;
+import com.uwaterloo.iqc.qnl.qll.QLLFileReaderWriter;
 import com.uwaterloo.iqc.qnl.qll.QLLReader;
 
 public class QNLConfiguration {
@@ -81,7 +81,7 @@ public class QNLConfiguration {
 
     private void createQLLClients() {
         for (String k : routeCfg.adjacent.keySet()) {
-            qllClientMap.put(k, new QLLFileReader(k, config));
+            qllClientMap.put(k, new QLLFileReaderWriter(k, config));
         }
     }
 }

@@ -9,4 +9,5 @@ public interface QLLReader {
 
     public int read(byte[] dst, int len, long offset);
 
+    public void write(long seqId, String keyHexString, String destinationSiteId);
 }

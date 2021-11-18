@@ -1,5 +1,8 @@
 package com.uwaterloo.iqc.qnl.qll.cqptoolkit.server;
 
+import com.uwaterloo.iqc.qnl.QNLConfiguration;
+import com.uwaterloo.iqc.qnl.qll.QLLReader;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,10 +32,11 @@ public class KeyTransferServer {
 
     private final int port;
     private final Server server;
+    
 
-    public KeyTransferServer() throws IOException {
+    public KeyTransferServer(QNLConfiguration qConfig) throws IOException {
         this.port = 50051;
-        this.server = ServerBuilder.forPort(this.port).addService(new KeyTransferService()).build();
+        this.server = ServerBuilder.forPort(this.port).addService(new KeyTransferService(qConfig)).build();
     }
 
     public void start() throws IOException {
@@ -57,12 +61,19 @@ public class KeyTransferServer {
     }
 
     private static class KeyTransferService extends KeyTransferGrpc.KeyTransferImplBase {
-        KeyTransferService() {
+        private QNLConfiguration qConfig;
+        KeyTransferService(QNLConfiguration qConfig) {
+            this.qConfig = qConfig;
         }
         @Override
         public void sendKey(Key keyMessage, StreamObserver<Empty> responseObserver) {
-            
+            String source = "A";
+            String destination = "B";
+
             try {
+                QLLReader qllRdr = this.qConfig.getQLLReader(source);
+                qllRdr.write(keyMessage.getSeqID(), Hex.encodeHexString(keyMessage.getKey().toByteArray()), destination);
+                
                 FileWriter fw = new FileWriter("KeyTransferLog.txt", true);
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw);
