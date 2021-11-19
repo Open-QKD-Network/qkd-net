@@ -24,13 +24,11 @@ public class QNLConfig {
     }
 
     public String getQNLSiteKeyLoc(String siteId) {
-        return System.getProperty("user.home") + "/" + base + "/"  +
-               "/" + qnlSiteKeyLoc + "/" + siteId;
+        return System.getProperty("user.home") + "/" + base + "/" + qnlSiteKeyLoc + "/" + siteId;
     }
 
     public String getOTPKeyLoc(String siteId) {
-        return System.getProperty("user.home") + "/" + base + "/" +
-               "/" + OTPConfig.get("keyLoc") + "/" + siteId;
+        return System.getProperty("user.home") + "/" + base + "/" + OTPConfig.get("keyLoc") + "/" + siteId;
     }
 
     public String getBase() {
