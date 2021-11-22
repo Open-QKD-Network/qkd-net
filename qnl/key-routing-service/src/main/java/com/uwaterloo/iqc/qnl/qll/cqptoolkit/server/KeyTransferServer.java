@@ -2,6 +2,7 @@ package com.uwaterloo.iqc.qnl.qll.cqptoolkit.server;
 
 import com.uwaterloo.iqc.qnl.QNLConfiguration;
 import com.uwaterloo.iqc.qnl.qll.QLLReader;
+import com.uwaterloo.iqc.qnl.KeyListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,6 @@ public class KeyTransferServer {
     private final int port;
     private final Server server;
     
-
     public KeyTransferServer(QNLConfiguration qConfig) throws IOException {
         this.port = 50051;
         this.server = ServerBuilder.forPort(this.port).addService(new KeyTransferService(qConfig)).build();
@@ -60,17 +60,33 @@ public class KeyTransferServer {
         }
     }
 
+    public void setListener(KeyListener k) {
+        KeyTransferService.setListener(k);
+    }
+
+
     private static class KeyTransferService extends KeyTransferGrpc.KeyTransferImplBase {
+
         private QNLConfiguration qConfig;
+        private static KeyListener keyListener;
+
         KeyTransferService(QNLConfiguration qConfig) {
             this.qConfig = qConfig;
         }
+
+        public static void setListener(KeyListener k) {
+            keyListener = k;
+            keyListener.reset();
+        }
+
         @Override
         public void sendKey(Key keyMessage, StreamObserver<Empty> responseObserver) {
+
             String source = "A";
             String destination = "B";
 
             try {
+
                 QLLReader qllRdr = this.qConfig.getQLLReader(source);
                 qllRdr.write(keyMessage.getSeqID(), Hex.encodeHexString(keyMessage.getKey().toByteArray()), destination);
                 
@@ -81,13 +97,15 @@ public class KeyTransferServer {
                 out.close();
                 bw.close();
                 fw.close();
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
             Empty reply = Empty.newBuilder().build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
+            this.keyListener.onKeyGenerated();
         }
     }
-       
 }

@@ -11,7 +11,7 @@ import org.apache.commons.codec.binary.Hex;
 import com.uwaterloo.iqc.qnl.qll.QLLReader;
 import com.uwaterloo.qkd.qnl.utils.QNLUtils;
 
-public class OTPKey {
+public class OTPKey implements KeyListener {
     private static Logger LOGGER = LoggerFactory.getLogger(OTPKey.class);
 
     private QNLConfiguration qnlConfig;
@@ -19,6 +19,7 @@ public class OTPKey {
     private byte[] otpKey;
 
     public static final String OTPKEYNAME = "otpkey";
+    private boolean canRead = false;
 
     public OTPKey(QNLConfiguration qnlConfig, String id) {
         this.qnlConfig = qnlConfig;
@@ -33,30 +34,49 @@ public class OTPKey {
             data[i] = (byte)(b ^ data[i++]);
     }
 
-    private void createKey() {
-        QNLConfig config = qnlConfig.getConfig();
-        byte[] hex =  new byte[config.getKeyBlockSz()*config.getKeyBytesSz()*2];
-        try {
-        	File otpF = new File(config.getOTPKeyLoc(id));
-        	if (!otpF.exists()) {
-        		otpF.mkdirs();
-        	}
-        } catch(Exception e) {}
-        String otpFile = config.getOTPKeyLoc(id) + "/" + OTPKEYNAME;
-        File f = new File(otpFile);
-        if(!f.exists()) {
-            QLLReader QLLRdr = qnlConfig.getQLLReader(id);
-            AtomicLong ref = new AtomicLong(0);
-            QLLRdr.getNextBlockIndex(config.getKeyBlockSz(), ref);
-            QLLRdr.read(hex, config.getKeyBlockSz(), ref.get());
-            LOGGER.info("OTPKey.writeKeys to :" + otpFile);
-            QNLUtils.writeKeys(hex, otpFile, config.getKeyBlockSz());
-        } else {
-            QNLUtils.readKeys(hex, otpFile, config.getKeyBlockSz());
-        }
+    public void onKeyGenerated() {
+        canRead = true;
+    }
 
-        try {
-            otpKey = new Hex().decode(hex);
-        } catch(Exception e) {}
+    public void reset() {
+        canRead = false;
+    }
+
+    private void createKey() {
+
+        if(canRead) {
+
+            QNLConfig config = qnlConfig.getConfig();
+            byte[] hex =  new byte[config.getKeyBlockSz()*config.getKeyBytesSz()*2];
+
+            try {
+
+            	File otpF = new File(config.getOTPKeyLoc(id));
+            	if (!otpF.exists()) {
+            		otpF.mkdirs();
+            	}
+
+            } catch(Exception e) {}
+
+            String otpFile = config.getOTPKeyLoc(id) + "/" + OTPKEYNAME;
+            File f = new File(otpFile);
+
+            if(!f.exists()) {
+
+                QLLReader QLLRdr = qnlConfig.getQLLReader(id);
+                AtomicLong ref = new AtomicLong(0);
+                QLLRdr.getNextBlockIndex(config.getKeyBlockSz(), ref);
+                QLLRdr.read(hex, config.getKeyBlockSz(), ref.get());
+                LOGGER.info("OTPKey.writeKeys to :" + otpFile);
+                QNLUtils.writeKeys(hex, otpFile, config.getKeyBlockSz());
+
+            } else {
+                QNLUtils.readKeys(hex, otpFile, config.getKeyBlockSz());
+            }
+
+            try {
+                otpKey = new Hex().decode(hex);
+            } catch(Exception e) {}
+        }
     }
 }
