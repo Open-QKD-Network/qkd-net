@@ -19,7 +19,7 @@ public class OTPKey implements KeyListener {
     private byte[] otpKey;
 
     public static final String OTPKEYNAME = "otpkey";
-    private boolean canRead = false;
+    private boolean canRead = true;
 
     public OTPKey(QNLConfiguration qnlConfig, String id) {
         this.qnlConfig = qnlConfig;

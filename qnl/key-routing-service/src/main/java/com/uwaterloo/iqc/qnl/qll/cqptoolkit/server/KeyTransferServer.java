@@ -105,7 +105,10 @@ public class KeyTransferServer {
             Empty reply = Empty.newBuilder().build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
-            this.keyListener.onKeyGenerated();
+            
+            if(this.keyListener != null) {
+                this.keyListener.onKeyGenerated();
+            }
         }
     }
 }
