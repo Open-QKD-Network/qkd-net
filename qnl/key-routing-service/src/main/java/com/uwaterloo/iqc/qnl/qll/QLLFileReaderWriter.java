@@ -52,7 +52,7 @@ public class QLLFileReaderWriter implements QLLReader {
                 this.currentWriter = new BufferedWriter(new FileWriter(this.currentFile, true));
 
                 /*
-                    the branching statement below results in text files with only resulting line after ./scripts/run is complete
+                    the branching statement below results in text files with only one resulting line after ./scripts/run is complete
                     i suspect this is because the destination file changes all the time when the key blocks are being received.
                     i am not sure if that is the expected behaviour, however, because i initially expected qllFileName to remain constant for each block of keys being written.
                     if so, then we should clear the text files based on completion rather than existence.
@@ -70,7 +70,7 @@ public class QLLFileReaderWriter implements QLLReader {
 
             }
 
-            this.currentWriter.write(keyHexString + "\n");
+            this.currentWriter.write(seqId + " " + keyHexString + "\n");
             this.currentWriter.flush();
 
         } catch (IOException e) {

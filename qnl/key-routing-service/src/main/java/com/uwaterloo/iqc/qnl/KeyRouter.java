@@ -32,7 +32,7 @@ public class KeyRouter {
 
         GrpcClient client = new GrpcClient();
         //client.getSiteDetails("localhost", 8000);
-        client.startNode("localhost", 8000, "localhost", 8001);
+        //client.startNode("localhost", 8000, "localhost", 8001);
         LOGGER.info("Key router started, args.length:" + args.length);
 
         LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
