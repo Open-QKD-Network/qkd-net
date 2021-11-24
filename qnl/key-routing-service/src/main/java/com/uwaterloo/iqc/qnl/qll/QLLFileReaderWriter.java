@@ -46,7 +46,7 @@ public class QLLFileReaderWriter implements QLLReader {
 
         try {
 
-            if(currentFile == null || !qllFileName.equals(this.currentFile.getName())) {
+            if(this.currentFile == null || !qllFileName.equals(this.currentFile.getName())) {
 
                 this.currentFile = new File(qllFileName);
                 this.currentWriter = new BufferedWriter(new FileWriter(this.currentFile, true));

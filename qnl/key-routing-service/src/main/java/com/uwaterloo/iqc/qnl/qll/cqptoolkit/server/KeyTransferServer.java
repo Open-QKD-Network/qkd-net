@@ -82,10 +82,9 @@ public class KeyTransferServer {
         @Override
         public void sendKey(Key keyMessage, StreamObserver<Empty> responseObserver) {
 
-            String source = "A";//qConfig.getConfig().getSiteId();
-            String destination = source.equals("A") ? "B" : "A";
-
-            LOGGER.info("THIS IS RUNNING CHECK CHECK");
+            String source = qConfig.getConfig().getSiteId();
+            String destination = source;
+            //String destination = source.equals("A") ? "B" : "A";
 
             try {
 
@@ -108,9 +107,9 @@ public class KeyTransferServer {
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
 
-            //if(this.keyListener != null) {
-              //  this.keyListener.onKeyGenerated();
-            //}
+            if(this.keyListener != null) {
+              this.keyListener.onKeyGenerated();
+            }
         }
     }
 }
