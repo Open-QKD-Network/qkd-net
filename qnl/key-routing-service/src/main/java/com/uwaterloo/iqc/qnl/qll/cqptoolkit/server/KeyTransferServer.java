@@ -82,13 +82,13 @@ public class KeyTransferServer {
         @Override
         public void sendKey(Key keyMessage, StreamObserver<Empty> responseObserver) {
 
-            String source = qConfig.getConfig().getSiteId();
-            String destination = source;
-            //String destination = source.equals("A") ? "B" : "A";
+            String source = this.qConfig.getConfig().getSiteId();
+            //LOGGER.info("SITEID: ~" + this.qConfig.getConfig().getSiteId() + "~");
+            String destination = source.equals("A") ? "B" : "A";
 
             try {
 
-                QLLReader qllRdr = this.qConfig.getQLLReader(source);
+                QLLReader qllRdr = this.qConfig.getQLLReader(destination);
                 qllRdr.write(keyMessage.getSeqID(), Hex.encodeHexString(keyMessage.getKey().toByteArray()), destination);
                 
                 FileWriter fw = new FileWriter("KeyTransferLog.txt", true);
@@ -107,9 +107,9 @@ public class KeyTransferServer {
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
 
-            if(this.keyListener != null) {
-              this.keyListener.onKeyGenerated();
-            }
+            //if(this.keyListener != null) {
+              //this.keyListener.onKeyGenerated();
+            //}
         }
     }
 }
