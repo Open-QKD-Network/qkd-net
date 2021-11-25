@@ -107,9 +107,9 @@ public class KeyTransferServer {
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
 
-            //if(this.keyListener != null) {
-              //this.keyListener.onKeyGenerated();
-            //}
+            if(this.keyListener != null) {
+              this.keyListener.onKeyGenerated();
+            }
         }
     }
 }
