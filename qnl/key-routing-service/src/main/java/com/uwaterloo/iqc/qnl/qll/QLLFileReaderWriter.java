@@ -115,8 +115,7 @@ public class QLLFileReaderWriter implements QLLReader {
                 line = reader.readLine();
                 while (line != null && linesRead < len) {
 
-                	++linesRead;
-                    line = (line.trim().split(" ", 2))[1]; //split the line by the whitespace separating seqID & key and retain the key
+                    ++linesRead;
 
                     System.arraycopy(line.getBytes(), 0, dst, destPos, line.length());
                     destPos += line.length();
