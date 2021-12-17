@@ -41,7 +41,7 @@ public class QLLFileReaderWriter implements QLLReader {
 
     private synchronized void writeKeyBlock(long seqId, String keyHexString, String destinationSiteId) {
 
-        long qllBlockIndex = seqId/this.qllBlockSz;
+        long qllBlockIndex = (seqId-1)/this.qllBlockSz;
         String qllFileName = this.keyLoc + "/" + destinationSiteId+"_"+qllBlockIndex;
 
         try {
@@ -51,21 +51,10 @@ public class QLLFileReaderWriter implements QLLReader {
                 this.currentFile = new File(qllFileName);
                 this.currentWriter = new BufferedWriter(new FileWriter(this.currentFile, true));
 
-                /*
-                    the branching statement below results in text files with only one resulting line after ./scripts/run is complete
-                    i suspect this is because the destination file changes all the time when the key blocks are being received.
-                    i am not sure if that is the expected behaviour, however, because i initially expected qllFileName to remain constant for each block of keys being written.
-                    if so, then we should clear the text files based on completion rather than existence.
-
                 if(!this.currentFile.exists()) {
                     this.currentFile.createNewFile();
-                } else {
+                } else if (seqId % this.qllBlockSz == 1) {
                     new RandomAccessFile(qllFileName, "rw").setLength(0); //empties file
-                }
-                */
-
-                if(!this.currentFile.exists()) {
-                    this.currentFile.createNewFile();
                 }
 
             }

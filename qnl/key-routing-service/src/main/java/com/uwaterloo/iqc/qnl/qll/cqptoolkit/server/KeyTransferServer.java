@@ -80,7 +80,7 @@ public class KeyTransferServer {
         }
 
         @Override
-        public void sendKey(Key keyMessage, StreamObserver<Empty> responseObserver) {
+        public void onKeyFromCQP(Key keyMessage, StreamObserver<Empty> responseObserver) {
 
             String source = this.qConfig.getConfig().getSiteId();
             //LOGGER.info("SITEID: ~" + this.qConfig.getConfig().getSiteId() + "~");
