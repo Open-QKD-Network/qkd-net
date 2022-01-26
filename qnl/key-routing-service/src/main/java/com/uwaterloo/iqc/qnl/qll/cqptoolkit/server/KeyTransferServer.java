@@ -84,6 +84,7 @@ public class KeyTransferServer {
 
             String source = this.qConfig.getConfig().getSiteId();
             //LOGGER.info("SITEID: ~" + this.qConfig.getConfig().getSiteId() + "~");
+            // String destination = keyMessage.localID;
             String destination = source.equals("A") ? "B" : "A";
 
             try {
@@ -94,7 +95,9 @@ public class KeyTransferServer {
                 FileWriter fw = new FileWriter("KeyTransferLog.txt", true);
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw);
-                out.println("Key " + keyMessage.getSeqID() + " received: " + Hex.encodeHexString(keyMessage.getKey().toByteArray()));
+                out.println("Key " + keyMessage.getSeqID() +
+                        " received from " + keyMessage.getLocalID() + ": " +
+                        Hex.encodeHexString(keyMessage.getKey().toByteArray()));
                 out.close();
                 bw.close();
                 fw.close();
