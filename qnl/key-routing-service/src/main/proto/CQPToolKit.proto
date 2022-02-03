@@ -101,9 +101,17 @@ message Site {
     repeated ControlDetails devices = 2;
 }
 
+/// An identifier for the device, unique to the site
+message DeviceID {
+/// An identifier for the device, unique to the site
+    string id = 1;
+}
+
 service ISiteAgent
 {
     rpc StartNode(PhysicalPath) returns (google.protobuf.Empty);
     rpc EndKeyExchange(PhysicalPath) returns (google.protobuf.Empty);
     rpc GetSiteDetails(google.protobuf.Empty) returns (Site);
+    rpc RegisterDevice(ControlDetails) returns (google.protobuf.Empty);
+    rpc UnregisterDevice(DeviceID) returns (google.protobuf.Empty);
 }
