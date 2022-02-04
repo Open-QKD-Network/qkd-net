@@ -47,7 +47,7 @@ public class KeyRouter {
         // TODO: implement more flexible logic like above instead of hardcoding
 
         LOGGER.info("starting site agent a");
-        final ISiteAgentServer siteAgent = new ISiteAgentServer("192.168.1.237:8080");
+        final ISiteAgentServer siteAgent = new ISiteAgentServer("192.168.1.237", 8080);
         siteAgent.start();
         LOGGER.info("finished starting site agent a");
 
@@ -56,8 +56,8 @@ public class KeyRouter {
         //client.startNode("localhost", 8000, "localhost", 8001);
         LOGGER.info("Key router started, args.length:" + args.length);
 
-        LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
-        lsrpRouter.start();
+        // LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
+        // lsrpRouter.start();
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
