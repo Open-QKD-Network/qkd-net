@@ -85,22 +85,22 @@ public class KeyTransferServer {
             String myID = this.qConfig.getConfig().getSiteId();
             LOGGER.info("SITEID: " + this.qConfig.getConfig().getSiteId());
             String qkdID = keyMessage.getLocalID();
-	    LOGGER.info("QKDID: " + qkdID);
+            LOGGER.info("QKDID: " + qkdID);
 
-	    String[] splits = qkdID.split("_");
-	    if (splits.length != 3) {
+            String[] splits = qkdID.split("_");
+            if (splits.length != 3) {
                 LOGGER.error("Unexpected QKDID format! Expected format alicesite_bobsite_localsite (ex. A_B_A, A_B_B, or B_C_B). Key cannot be stored");
-		return;
-	    }
+                return;
+            }
 
             String peerID = splits[0].equals(myID) ? splits[1] : splits[0];
-	    LOGGER.info("PEERID: " + peerID);
+            LOGGER.info("PEERID: " + peerID);
 
             try {
 
                 QLLReader qllRdr = this.qConfig.getQLLReader(peerID);
                 qllRdr.write(keyMessage.getSeqID(), Hex.encodeHexString(keyMessage.getKey().toByteArray()), peerID);
-                
+
                 FileWriter fw = new FileWriter("KeyTransferLog.txt", true);
                 BufferedWriter bw = new BufferedWriter(fw);
                 PrintWriter out = new PrintWriter(bw);
