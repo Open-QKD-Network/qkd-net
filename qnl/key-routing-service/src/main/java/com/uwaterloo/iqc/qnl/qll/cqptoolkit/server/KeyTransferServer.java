@@ -83,9 +83,9 @@ public class KeyTransferServer {
         public void onKeyFromCQP(Key keyMessage, StreamObserver<Empty> responseObserver) {
 
             String myID = this.qConfig.getConfig().getSiteId();
-            LOGGER.info("SITEID: " + this.qConfig.getConfig().getSiteId());
+            // LOGGER.info("SITEID: " + this.qConfig.getConfig().getSiteId());
             String qkdID = keyMessage.getLocalID();
-            LOGGER.info("QKDID: " + qkdID);
+            // LOGGER.info("QKDID: " + qkdID);
 
             String[] splits = qkdID.split("_");
             if (splits.length != 3) {
@@ -94,7 +94,7 @@ public class KeyTransferServer {
             }
 
             String peerID = splits[0].equals(myID) ? splits[1] : splits[0];
-            LOGGER.info("PEERID: " + peerID);
+            // LOGGER.info("PEERID: " + peerID);
 
             try {
 
