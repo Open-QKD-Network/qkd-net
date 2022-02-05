@@ -23,6 +23,7 @@ public class QNLConfiguration {
     private String configLoc;
     private RouteConfig routeCfg;
     private QNLConfig config;
+    private Map<String, QKDLinkConfig> qkdLinkCfgMap = new HashMap<String, QKDLinkConfig>();
     private Map<String, QLLReader> qllClientMap = new HashMap<String, QLLReader>();
     private Map<String, OTPKey> otpKeyMap =  new HashMap<String, OTPKey>();
 
@@ -40,17 +41,28 @@ public class QNLConfiguration {
                 configLoc = System.getProperty("user.home") + "/.qkd" + instanceId + "/qnl/config.yaml";
             else
                 configLoc = System.getProperty("user.home") + "/.qkd/qnl/config.yaml";
+
             ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             config = mapper.readValue(new File(configLoc), QNLConfig.class);
+
             Gson gson = new Gson();
-            JsonReader reader = new JsonReader(new FileReader(config.getRouteConfigLoc()));
-            routeCfg = gson.fromJson(reader, RouteConfig.class);
-            reader.close();
+
+            JsonReader routeReader = new JsonReader(new FileReader(config.getRouteConfigLoc()));
+            routeCfg = gson.fromJson(routeReader, RouteConfig.class);
+            routeReader.close();
+
+            for (String siteID: routeCfg.adjacent.keySet()) {
+                LOGGER.info("Parsing file: " + config.getQKDLinkConfigLoc(siteID));
+                JsonReader qkdLinkReader = new JsonReader(new FileReader(config.getQKDLinkConfigLoc(siteID)));
+                qkdLinkCfgMap.put(siteID, (QKDLinkConfig) gson.fromJson(qkdLinkReader, QKDLinkConfig.class));
+                qkdLinkReader.close();
+            }
+
             createQLLClients();
             createOTPKeys();
         } catch(Exception e) {
             e.printStackTrace();
-            LOGGER.info("Fails to load/parse JSON routes file, please check the file:" + config.getRouteConfigLoc() + " and to make sure it is valid JSON.");
+            LOGGER.info("Failed to load/parse JSON files, please check the files: " + config.getRouteConfigLoc() + " and qkdlink files and to make sure they are valid JSON.");
         }
     }
 
@@ -60,6 +72,14 @@ public class QNLConfiguration {
 
     public RouteConfig getRouteConfig() {
         return routeCfg;
+    }
+
+    public QKDLinkConfig getQKDLinkConfig(String id) {
+        return qkdLinkCfgMap.get(id);
+    }
+
+    public Map<String, QKDLinkConfig> getQKDLinkConfigMap() {
+        return qkdLinkCfgMap;
     }
 
     public QNLConfig getConfig() {

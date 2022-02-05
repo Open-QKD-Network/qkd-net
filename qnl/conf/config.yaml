@@ -1,6 +1,7 @@
 base: .qkd/qnl
 routeConfigLoc: routes.json
 qnlSiteKeyLoc: qll/keys
+qkdLinkConfigLoc: qkdlink.json
 siteId: A
 port: 9292
 keyBytesSz: 32
