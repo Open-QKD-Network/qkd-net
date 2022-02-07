@@ -48,7 +48,11 @@ public class KeyRouter {
 
         LOGGER.info("starting site agent a");
         final ISiteAgentServer siteAgent = new ISiteAgentServer("192.168.1.237", 8080);
-        siteAgent.start();
+        try {
+          siteAgent.start();
+        } catch(IOException e) {
+          LOGGER.error("Unable to start site agent", e);
+        }
         LOGGER.info("finished starting site agent a");
 
         GrpcClient client = new GrpcClient();
