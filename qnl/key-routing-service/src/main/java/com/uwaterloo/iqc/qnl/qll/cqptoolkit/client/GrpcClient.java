@@ -40,36 +40,18 @@ public class GrpcClient {
         }
     }
 
-    public boolean startNode(String aliceAddress,
-                            int alicePort,
-                            String bobAddress,
-                            int bobPort) {
-        Site aliceSite = getSiteDetails(aliceAddress, alicePort);
-        if (aliceSite == null || aliceSite.getDevicesCount() == 0) {
-            LOGGER.error("Fails to get device id for Alice " + aliceAddress + ":" + alicePort);
-            return false;
-        }
-
-        Site bobSite = getSiteDetails(bobAddress, bobPort);
-        if (bobSite == null || bobSite.getDevicesCount() == 0) {
-            LOGGER.error("Fails to get device id for Bob " + bobAddress + ":" + bobPort);
-            return false;
-        }
-
-        String aliceUrl = aliceSite.getUrl();
-        String aliceId = aliceSite.getDevices(0).getConfig().getId();
-
-        String bobUrl = bobSite.getUrl();
-        String bobId = bobSite.getDevices(0).getConfig().getId();
-
+    public boolean startNode(String aliceUrl,
+                            String aliceDeviceId,
+                            String bobUrl,
+                            String bobDeviceId) {
         Hop alice = Hop.newBuilder()
             .setSite(aliceUrl)
-            .setDeviceId(aliceId)
+            .setDeviceId(aliceDeviceId)
             .build();
 
         Hop bob = Hop.newBuilder()
             .setSite(bobUrl)
-            .setDeviceId(bobId)
+            .setDeviceId(bobDeviceId)
             .build();
 
         HopPair hpp = HopPair.newBuilder()
@@ -80,6 +62,21 @@ public class GrpcClient {
         PhysicalPath pp = PhysicalPath.newBuilder()
             .addHops(hpp)
             .build();
+
+        String[] splits = aliceUrl.split(":");
+        if (splits.length != 2) {
+            LOGGER.error("Invalid Alice URL. Expected address:port, found " + aliceUrl);
+            return false;
+        }
+
+        String aliceAddress = splits[0];
+        int alicePort;
+        try {
+            alicePort = Integer.parseInt(splits[1]);
+        } catch (NumberFormatException e) {
+            LOGGER.error("Invalid Alice port in URL. Expected number, found " + splits[1]);
+            return false;
+        }
 
         LOGGER.info("GRPC/C/SiteAgent::StartNode between Alice="
                 + aliceUrl + ", Bob=" + bobUrl);

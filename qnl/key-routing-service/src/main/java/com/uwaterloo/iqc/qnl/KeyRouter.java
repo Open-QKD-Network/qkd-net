@@ -15,6 +15,7 @@ import com.uwaterloo.iqc.qnl.qll.cqptoolkit.client.GrpcClient;
 import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.KeyTransferServer;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class KeyRouter {
 
@@ -31,6 +32,23 @@ public class KeyRouter {
         server.start();
 
         GrpcClient client = new GrpcClient();
+
+        String localSite = qConfig.getConfig().getSiteId();
+
+        // Iterate over registered QKD links
+        for (Map.Entry<String, QKDLinkConfig> cfgEntry:
+                qConfig.getQKDLinkConfigMap().entrySet()) {
+            String remoteSite = cfgEntry.getKey();
+            QKDLinkConfig cfg = cfgEntry.getValue();
+
+            // Start node if we are alice (our site id is lexiographically
+            // smaller)
+            if (localSite.compareTo(remoteSite) < 0) { // i.e. we are alice
+                LOGGER.info("Starting node " + localSite + " --> " + remoteSite);
+                client.startNode(cfg.localSiteAgentUrl, cfg.localQKDDeviceId,
+                        cfg.remoteSiteAgentUrl, cfg.remoteQKDDeviceId);
+            }
+        }
         //client.getSiteDetails("localhost", 8000);
         //client.startNode("localhost", 8000, "localhost", 8001);
         LOGGER.info("Key router started, args.length:" + args.length);
