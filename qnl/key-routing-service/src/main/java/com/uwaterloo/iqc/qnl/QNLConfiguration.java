@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import com.uwaterloo.iqc.qnl.qll.QLLFileReaderWriter;
 import com.uwaterloo.iqc.qnl.qll.QLLReader;
 
+import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.*;
+
 public class QNLConfiguration {
 
     private static Logger LOGGER = LoggerFactory.getLogger(QNLConfiguration.class);
@@ -47,7 +49,6 @@ public class QNLConfiguration {
             routeCfg = gson.fromJson(reader, RouteConfig.class);
             reader.close();
             createQLLClients();
-            createOTPKeys();
         } catch(Exception e) {
             e.printStackTrace();
             LOGGER.info("Fails to load/parse JSON routes file, please check the file:" + config.getRouteConfigLoc() + " and to make sure it is valid JSON.");
@@ -74,9 +75,12 @@ public class QNLConfiguration {
         return otpKeyMap.get(id);
     }
 
-    private void createOTPKeys() {
-        for (String k : routeCfg.adjacent.keySet())
-            otpKeyMap.put(k, new OTPKey(this, k));
+    public void createOTPKeys(KeyTransferServer server) {
+        for (String k : routeCfg.adjacent.keySet()) {
+            OTPKey key = new OTPKey(this, k);
+            server.setListener(key);
+            otpKeyMap.put(k, key);
+        }
     }
 
     private void createQLLClients() {

@@ -69,9 +69,11 @@ public class KeyTransferServer {
 
         private QNLConfiguration qConfig;
         private static KeyListener keyListener;
+        private long keys;
 
         KeyTransferService(QNLConfiguration qConfig) {
             this.qConfig = qConfig;
+            this.keys = 0;
         }
 
         public static void setListener(KeyListener k) {
@@ -83,32 +85,18 @@ public class KeyTransferServer {
         public void onKeyFromCQP(Key keyMessage, StreamObserver<Empty> responseObserver) {
 
             String source = this.qConfig.getConfig().getSiteId();
-            //LOGGER.info("SITEID: ~" + this.qConfig.getConfig().getSiteId() + "~");
             String destination = source.equals("A") ? "B" : "A";
 
-            try {
-
-                QLLReader qllRdr = this.qConfig.getQLLReader(destination);
-                qllRdr.write(keyMessage.getSeqID(), Hex.encodeHexString(keyMessage.getKey().toByteArray()), destination);
-                
-                FileWriter fw = new FileWriter("KeyTransferLog.txt", true);
-                BufferedWriter bw = new BufferedWriter(fw);
-                PrintWriter out = new PrintWriter(bw);
-                out.println("Key " + keyMessage.getSeqID() + " received: " + Hex.encodeHexString(keyMessage.getKey().toByteArray()));
-                out.close();
-                bw.close();
-                fw.close();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            QLLReader qllRdr = this.qConfig.getQLLReader(destination);
+            qllRdr.write(keyMessage.getSeqID(), Hex.encodeHexString(keyMessage.getKey().toByteArray()), destination);
+            this.keys++;
 
             Empty reply = Empty.newBuilder().build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
 
-            if(this.keyListener != null) {
-              this.keyListener.onKeyGenerated();
+            if ((this.keys == this.qConfig.getConfig().getQllBlockSz()) && this.keyListener != null) {
+                this.keyListener.onKeyGenerated();
             }
         }
     }

@@ -105,6 +105,13 @@ public class QLLFileReaderWriter implements QLLReader {
                 while (line != null && linesRead < len) {
 
                     ++linesRead;
+                    for (int i =0; i < line.length(); i++) {
+                        if (line.charAt(i) == ' ') {
+                            line = line.substring(i+1);
+                            break;
+                        }
+                    }
+                    LOGGER.info("line length= " + line.length() + ", destPost=" + destPos + ", line is: " + line);
 
                     System.arraycopy(line.getBytes(), 0, dst, destPos, line.length());
                     destPos += line.length();
@@ -118,7 +125,10 @@ public class QLLFileReaderWriter implements QLLReader {
                 reader.close();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            e.printStackTrace(pw);
+            LOGGER.error("QLLFileReaderWriter.readKeyBlock exception:" + e + ",stacktrace:" + sw.toString());
         }
         LOGGER.info("QLLFileReaderWriter.readKeyBlock:linesRead:" + linesRead + "|" + this);
         return linesRead;

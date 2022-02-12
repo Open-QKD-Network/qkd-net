@@ -19,7 +19,7 @@ public class OTPKey implements KeyListener {
     private byte[] otpKey;
 
     public static final String OTPKEYNAME = "otpkey";
-    private boolean canRead = true;
+    private boolean canRead = false;
 
     public OTPKey(QNLConfiguration qnlConfig, String id) {
         this.qnlConfig = qnlConfig;
@@ -35,7 +35,10 @@ public class OTPKey implements KeyListener {
     }
 
     public void onKeyGenerated() {
-        canRead = true;
+        if (!this.canRead) {
+            this.canRead = true;
+            createKey();
+        }
     }
 
     public void reset() {
@@ -58,7 +61,12 @@ public class OTPKey implements KeyListener {
               otpF.mkdirs();
            }
 
-        } catch(Exception e) {}
+        } catch(Exception e) {
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            e.printStackTrace(pw);
+            LOGGER.error("OTPKey.createKey exception:" + e + ",stacktrace:" + sw.toString());
+        }
 
         String otpFile = config.getOTPKeyLoc(id) + "/" + OTPKEYNAME;
         File f = new File(otpFile);
