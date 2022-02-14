@@ -26,6 +26,7 @@ import java.io.PrintWriter;
 
 import java.util.concurrent.TimeUnit;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 import org.apache.commons.codec.binary.Hex;
@@ -71,11 +72,11 @@ public class KeyTransferServer {
 
         private QNLConfiguration qConfig;
         private static Map<String, KeyListener> keyListenerMap;
-        private long keys;
+        private Map<String, Long> keysMap;
 
         KeyTransferService(QNLConfiguration qConfig) {
             this.qConfig = qConfig;
-            this.keys = 0;
+            this.keysMap = new HashMap();
             keyListenerMap = new Hashtable();
         }
 
@@ -102,13 +103,17 @@ public class KeyTransferServer {
 
             QLLReader qllRdr = this.qConfig.getQLLReader(peerID);
             qllRdr.write(keyMessage.getSeqID(), Hex.encodeHexString(keyMessage.getKey().toByteArray()), peerID);
-            this.keys++;
+            if (this.keysMap.containsKey(qkdID)) {
+                this.keysMap.put(qkdID, this.keysMap.get(qkdID) + 1);
+            } else {
+                this.keysMap.put(qkdID, 1L);
+            }
 
             Empty reply = Empty.newBuilder().build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
 
-            if ((this.keys == this.qConfig.getConfig().getQllBlockSz()) && keyListenerMap.containsKey(qkdID)) {
+            if ((this.keysMap.get(qkdID) == this.qConfig.getConfig().getQllBlockSz()) && keyListenerMap.containsKey(qkdID)) {
                 KeyListener keyListener = keyListenerMap.get(qkdID);
                 keyListener.onKeyGenerated();
             }
