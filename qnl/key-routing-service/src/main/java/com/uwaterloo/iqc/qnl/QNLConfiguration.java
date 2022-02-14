@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import com.uwaterloo.iqc.qnl.qll.QLLFileReaderWriter;
 import com.uwaterloo.iqc.qnl.qll.QLLReader;
 
+import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.*;
+
 public class QNLConfiguration {
 
     private static Logger LOGGER = LoggerFactory.getLogger(QNLConfiguration.class);
@@ -59,7 +61,6 @@ public class QNLConfiguration {
             }
 
             createQLLClients();
-            createOTPKeys();
         } catch(Exception e) {
             e.printStackTrace();
             LOGGER.info("Failed to load/parse JSON files, please check the files: " + config.getRouteConfigLoc() + " and qkdlink files and to make sure they are valid JSON.");
@@ -94,9 +95,12 @@ public class QNLConfiguration {
         return otpKeyMap.get(id);
     }
 
-    private void createOTPKeys() {
-        for (String k : routeCfg.adjacent.keySet())
-            otpKeyMap.put(k, new OTPKey(this, k));
+    public void createOTPKeys(KeyTransferServer server) {
+        for (String k : routeCfg.adjacent.keySet()) {
+            OTPKey key = new OTPKey(this, k);
+            server.setListener(key);
+            otpKeyMap.put(k, key);
+        }
     }
 
     private void createQLLClients() {

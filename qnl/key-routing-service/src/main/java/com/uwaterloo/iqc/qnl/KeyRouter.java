@@ -29,6 +29,7 @@ public class KeyRouter {
           qConfig = new QNLConfiguration(args[0]);
 
         final KeyTransferServer server = new KeyTransferServer(qConfig);
+        qConfig.createOTPKeys(server);
         server.start();
 
         GrpcClient client = new GrpcClient();
