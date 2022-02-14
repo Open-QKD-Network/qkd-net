@@ -98,7 +98,10 @@ public class QNLConfiguration {
     public void createOTPKeys(KeyTransferServer server) {
         for (String k : routeCfg.adjacent.keySet()) {
             OTPKey key = new OTPKey(this, k);
-            server.setListener(key);
+
+            String localDeviceId = qkdLinkCfgMap.get(k).localQKDDeviceId;
+            server.addListener(localDeviceId, key);
+
             otpKeyMap.put(k, key);
         }
     }

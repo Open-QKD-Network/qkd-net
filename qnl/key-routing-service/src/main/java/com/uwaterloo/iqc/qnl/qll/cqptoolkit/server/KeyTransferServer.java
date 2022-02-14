@@ -25,6 +25,8 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.Hashtable;
 
 import org.apache.commons.codec.binary.Hex;
 
@@ -60,25 +62,26 @@ public class KeyTransferServer {
         }
     }
 
-    public void setListener(KeyListener k) {
-        KeyTransferService.setListener(k);
+    public void addListener(String id, KeyListener k) {
+        KeyTransferService.addListener(id, k);
     }
 
 
     private static class KeyTransferService extends KeyTransferGrpc.KeyTransferImplBase {
 
         private QNLConfiguration qConfig;
-        private static KeyListener keyListener;
+        private static Map<String, KeyListener> keyListenerMap;
         private long keys;
 
         KeyTransferService(QNLConfiguration qConfig) {
             this.qConfig = qConfig;
             this.keys = 0;
+            keyListenerMap = new Hashtable();
         }
 
-        public static void setListener(KeyListener k) {
-            keyListener = k;
-            keyListener.reset();
+        public static void addListener(String id, KeyListener k) {
+            k.reset();
+            keyListenerMap.put(id, k);
         }
 
         @Override
@@ -105,8 +108,9 @@ public class KeyTransferServer {
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
 
-            if ((this.keys == this.qConfig.getConfig().getQllBlockSz()) && this.keyListener != null) {
-                this.keyListener.onKeyGenerated();
+            if ((this.keys == this.qConfig.getConfig().getQllBlockSz()) && keyListenerMap.containsKey(qkdID)) {
+                KeyListener keyListener = keyListenerMap.get(qkdID);
+                keyListener.onKeyGenerated();
             }
         }
     }
