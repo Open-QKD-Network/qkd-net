@@ -71,27 +71,43 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
             this.url = url;
         }
 
+        private String findDeviceAddress(String deviceId) {
+            for(ControlDetails cd : devices) {
+                if(cd.getConfig().getId().equals(deviceId)) {
+                    return cd.getControlAddress();
+                }
+            }
+            return null;
+        }
+
+        private ManagedChannel splitAndGetChannel(String addr) {
+            // TODO: possibly make getting address and port less hacky?
+            String address = addr.split(":")[0];
+            int port = Integer.parseInt(addr.split(":")[1]);
+            return ManagedChannelBuilder.forAddress(address, port)
+                .usePlaintext()
+                .build();
+        }
+
         private void prepHop(final String localDevice) {
             Thread t = new Thread() {
                 public void run() {
                     LOGGER.info("Starting key reader thread");
-                    // TODO: possibly make getting address and port less hacky?
-                    String address = localDevice.split(":")[0];
-                    int port = Integer.parseInt(localDevice.split(":")[1]);
-                    ManagedChannel channel = ManagedChannelBuilder.forAddress(address, port)
-                        .usePlaintext()
-                        .build();
+                    LOGGER.info("localDevice is " + localDevice);
+                    ManagedChannel channel = splitAndGetChannel(localDevice);
                     IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
                     // initial key is garbage value - not used
                     // see DummyQKD::setinitialkey in cqptoolkit
+                    LOGGER.info("starting waitForSession for stub " + localDevice);
                     Iterator<RawKeys> keys = stub.waitForSession(LocalSettings.newBuilder()
                                                                             .setInitialKey(ByteString.copyFromUtf8("garbage value initial key"))
                                                                             .build());
+                    LOGGER.info("ended waitForSession for stub " + localDevice);
                     while(keys.hasNext()) {
                         RawKeys key = keys.next();
                         List<ByteString> byteStrList = key.getKeyDataList();
                         for(ByteString byteStr : byteStrList) {
-                            LOGGER.info("got bytes: " + byteStr.toStringUtf8());
+                            LOGGER.info("got key bytes: " + byteStr.toStringUtf8());
                             // TODO: find more elegant way to add List<ByteString> to arraylist
                             byte[] byteArr = byteStr.toByteArray();
                             for(byte b : byteArr) {
@@ -104,29 +120,39 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
             t.start();
         }
 
-        private void startNode(HopPair hop, final PhysicalPath path) {
-            if(hop.getFirst().getSite() == url) {
+        private void startNode(int hopIndex, PhysicalPath path) {
+            HopPair hop = path.getHops(hopIndex);
+            if(hop.getFirst().getSite().equals(url)) {
                 LOGGER.info("Starting Alice node with url " + url);
-                prepHop(hop.getFirst().getDeviceAddress());
-                // TODO: possibly make getting address and port less hacky?
-                String address = hop.getSecond().getSite().split(":")[0];
-                int port = Integer.parseInt(hop.getSecond().getSite().split(":")[1]);
-                ManagedChannel channel = ManagedChannelBuilder.forAddress(address, port)
-                    .usePlaintext()
-                    .build();
+                // device ID is necessary since we don't know if device address is set for us
+                String deviceAddress = findDeviceAddress(hop.getFirst().getDeviceId());
+                if(deviceAddress == null) {
+                    LOGGER.error("Device with id " + hop.getFirst().getDeviceId() + " not found on site agent "
+                                    + url + ". Unable to start key reading thread. Fatal.");
+                }
+                prepHop(deviceAddress); // starts key reader thread
+                ManagedChannel channel = splitAndGetChannel(hop.getSecond().getSite());
                 ISiteAgentGrpc.ISiteAgentBlockingStub stub = ISiteAgentGrpc.newBlockingStub(channel);
-                stub.startNode(path);
-            } else if(hop.getSecond().getSite() == url) {
+                // set device address for left/first side
+                // TODO: find a less hacky way to edit a grpc object
+                PhysicalPath newPath = PhysicalPath.newBuilder(path).setHops(hopIndex,
+                                        HopPair.newBuilder(hop).setFirst(
+                                            Hop.newBuilder(hop.getFirst()).setDeviceAddress(deviceAddress))).build();
+                stub.startNode(newPath);
+            } else if(hop.getSecond().getSite().equals(url)) {
                 LOGGER.info("Starting Bob node with url " + url);
-                prepHop(hop.getSecond().getDeviceAddress());
-                // TODO: possibly make getting address and port less hacky?
-                String address = hop.getSecond().getDeviceAddress().split(":")[0];
-                int port = Integer.parseInt(hop.getSecond().getDeviceAddress().split(":")[1]);
-                ManagedChannel channel = ManagedChannelBuilder.forAddress(address, port)
-                    .usePlaintext()
-                    .build();
+                // device ID is necessary since we don't know if device address is set for us
+                String deviceAddress = findDeviceAddress(hop.getSecond().getDeviceId());
+                if(deviceAddress == null) {
+                    LOGGER.error("Device with id " + hop.getSecond().getDeviceId() + " not found on site agent "
+                                    + url + ". Unable to start key reading thread. Fatal.");
+                }
+                prepHop(deviceAddress); // starts key reader thread
+                ManagedChannel channel = splitAndGetChannel(deviceAddress);
                 IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
                 stub.runSession(SessionDetailsTo.newBuilder()
+                                            // getDeviceAddress() works here because we always start on left/first side
+                                            // and we set deviceaddress when doing that side
                                             .setPeerAddress(hop.getFirst().getDeviceAddress())
                                             .setDetails(hop.getParams())
                                             .build());
@@ -137,9 +163,9 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
 
         @Override
         public void startNode(PhysicalPath path, StreamObserver<Empty> responseObserver) {
-            List<HopPair> hops = path.getHopsList();
-            for(HopPair hop : hops) {
-                startNode(hop, path);
+            LOGGER.info("startNode starting on " + url);
+            for(int i = 0; i < path.getHopsCount(); i++) {
+                startNode(i, path);
             }
         }
 
