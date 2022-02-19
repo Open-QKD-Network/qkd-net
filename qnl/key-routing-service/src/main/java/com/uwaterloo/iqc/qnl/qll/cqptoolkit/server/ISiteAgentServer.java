@@ -135,9 +135,11 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                 ISiteAgentGrpc.ISiteAgentBlockingStub stub = ISiteAgentGrpc.newBlockingStub(channel);
                 // set device address for left/first side
                 // TODO: find a less hacky way to edit a grpc object
+                // TODO: frankenstein url correct way to do this?
+                String thisDeviceAddr = url.split(":")[0] + ":" + deviceAddress.split(":")[1];
                 PhysicalPath newPath = PhysicalPath.newBuilder(path).setHops(hopIndex,
                                         HopPair.newBuilder(hop).setFirst(
-                                            Hop.newBuilder(hop.getFirst()).setDeviceAddress(deviceAddress))).build();
+                                            Hop.newBuilder(hop.getFirst()).setDeviceAddress(thisDeviceAddr))).build();
                 stub.startNode(newPath);
             } else if(hop.getSecond().getSite().equals(url)) {
                 LOGGER.info("Starting Bob node with url " + url);
@@ -150,6 +152,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                 prepHop(deviceAddress); // starts key reader thread
                 ManagedChannel channel = splitAndGetChannel(deviceAddress);
                 IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
+                LOGGER.info("Peer address has length " + hop.getFirst().getDeviceAddress().length() + " and message " + hop.getFirst().getDeviceAddress());
                 stub.runSession(SessionDetailsTo.newBuilder()
                                             // getDeviceAddress() works here because we always start on left/first side
                                             // and we set deviceaddress when doing that side
