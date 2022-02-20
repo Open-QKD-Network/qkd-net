@@ -22,7 +22,7 @@ public class KeyRouter {
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
 
     public static void main(String[] args) throws Exception {
-        QNLConfiguration qConfig;
+        final QNLConfiguration qConfig;
         if (args.length == 0)
           qConfig = new QNLConfiguration(null);
         else
@@ -32,24 +32,32 @@ public class KeyRouter {
         qConfig.createOTPKeys(server);
         server.start();
 
-        GrpcClient client = new GrpcClient();
+        final GrpcClient client = new GrpcClient();
 
-        String localSite = qConfig.getConfig().getSiteId();
+        final String localSite = qConfig.getConfig().getSiteId();
 
-        // Iterate over registered QKD links
-        for (Map.Entry<String, QKDLinkConfig> cfgEntry:
-                qConfig.getQKDLinkConfigMap().entrySet()) {
-            String remoteSite = cfgEntry.getKey();
-            QKDLinkConfig cfg = cfgEntry.getValue();
+	new Thread(new Runnable() {
+	    @Override
+	    public void run() {
+		try {
+                    Thread.sleep(60000); // sleep 60 seconds to make QKD-Network settle down.
+		} catch (Exception e) {
+                }
+                // Iterate over registered QKD links
+                for (Map.Entry<String, QKDLinkConfig> cfgEntry:
+                    qConfig.getQKDLinkConfigMap().entrySet()) {
+                    String remoteSite = cfgEntry.getKey();
+                    QKDLinkConfig cfg = cfgEntry.getValue();
 
-            // Start node if we are alice (our site id is lexiographically
-            // smaller)
-            if (localSite.compareTo(remoteSite) < 0) { // i.e. we are alice
-                LOGGER.info("Starting node " + localSite + " --> " + remoteSite);
-                client.startNode(cfg.localSiteAgentUrl, cfg.localQKDDeviceId,
-                        cfg.remoteSiteAgentUrl, cfg.remoteQKDDeviceId);
-            }
-        }
+                    // Start node if we are alice (our site id is lexiographically
+                    // smaller)
+                   if (localSite.compareTo(remoteSite) < 0) { // i.e. we are alice
+                       LOGGER.info("Starting node " + localSite + " --> " + remoteSite);
+                       client.startNode(cfg.localSiteAgentUrl, cfg.localQKDDeviceId,
+                                    cfg.remoteSiteAgentUrl, cfg.remoteQKDDeviceId);
+                   }
+                }
+	   }}).start();
         //client.getSiteDetails("localhost", 8000);
         //client.startNode("localhost", 8000, "localhost", 8001);
         LOGGER.info("Key router started, args.length:" + args.length);
