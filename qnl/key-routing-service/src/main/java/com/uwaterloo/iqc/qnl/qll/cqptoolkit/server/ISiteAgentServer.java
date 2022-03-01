@@ -174,7 +174,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
 
         @Override
         public void endKeyExchange(PhysicalPath path, StreamObserver<Empty> responseObserver) {
-
+            // TODO: do this
         }
 
         @Override
@@ -197,7 +197,14 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
 
         @Override
         public void unregisterDevice(DeviceID deviceID, StreamObserver<Empty> responseObserver) {
-
+            LOGGER.info("Unregistering device with device ID " + deviceID.getId());
+            for(ControlDetails cd : devices) {
+                if(cd.getConfig().getId().equals(deviceID)) {
+                    devices.remove(cd);
+                    return;
+                }
+            }
+            LOGGER.info("Could not find device with id " + deviceID.getId());
         }
     }
 
