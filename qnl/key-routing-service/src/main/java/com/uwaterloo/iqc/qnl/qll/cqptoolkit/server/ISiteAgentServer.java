@@ -110,11 +110,12 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                     int maxKeyBlocks = 10;
 
                     ManagedChannel keyTransferChannel =
-		        ManagedChannelBuilder
-			    .forAddress(keyTransferHost, keyTransferPort)
-			    .usePlaintext()
-			    .build();
-                    KeyTransferGrpc.KeyTransferStub keyTransferStub = KeyTransferGrpc.newStub(keyTransferChannel);
+                        ManagedChannelBuilder
+                        .forAddress(keyTransferHost, keyTransferPort)
+                        .usePlaintext()
+                        .build();
+
+                    KeyTransferGrpc.KeyTransferBlockingStub keyTransferStub = KeyTransferGrpc.newBlockingStub(keyTransferChannel);
 
 
                     // initial key is garbage value - not used
@@ -136,26 +137,15 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                                 keyData.add(b);
                             }
 
-			    Key keyMessage =
-			        Key.newBuilder()
-			            .setKey(byteStr)
-			            .setSeqID(keysSent)
-			            .setLocalID(localDeviceId)
-				    .build();
-			    keysSent += 1;
+                            Key keyMessage =
+                                Key.newBuilder()
+                                    .setKey(byteStr)
+                                    .setSeqID(keysSent)
+                                    .setLocalID(localDeviceId)
+                                .build();
+                            keysSent += 1;
 
-			    StreamObserver<com.cqp.remote.Empty> responseObserver = new StreamObserver<com.cqp.remote.Empty>() {
-                    @Override
-                    public void onNext(com.cqp.remote.Empty e) { }
-
-                    @Override
-                    public void onError(Throwable t) { }
-
-                    @Override
-                    public void onCompleted() { }
-			    };
-
-			    keyTransferStub.onKeyFromCQP(keyMessage, responseObserver);
+                            keyTransferStub.onKeyFromCQP(keyMessage);
                         }
                     }
                 }
