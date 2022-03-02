@@ -24,6 +24,7 @@ public class QNLConfiguration {
 
     private String configLoc;
     private RouteConfig routeCfg;
+    private SiteAgentConfig siteAgentCfg;
     private QNLConfig config;
     private Map<String, QKDLinkConfig> qkdLinkCfgMap = new HashMap<String, QKDLinkConfig>();
     private Map<String, QLLReader> qllClientMap = new HashMap<String, QLLReader>();
@@ -53,6 +54,10 @@ public class QNLConfiguration {
             routeCfg = gson.fromJson(routeReader, RouteConfig.class);
             routeReader.close();
 
+            JsonReader siteAgentReader = new JsonReader(new FileReader(config.getSiteAgentConfigLoc()));
+            siteAgentCfg = gson.fromJson(siteAgentReader, SiteAgentConfig.class);
+            siteAgentReader.close();
+
             for (String siteID: routeCfg.adjacent.keySet()) {
                 LOGGER.info("Parsing file: " + config.getQKDLinkConfigLoc(siteID));
                 JsonReader qkdLinkReader = new JsonReader(new FileReader(config.getQKDLinkConfigLoc(siteID)));
@@ -81,6 +86,10 @@ public class QNLConfiguration {
 
     public Map<String, QKDLinkConfig> getQKDLinkConfigMap() {
         return qkdLinkCfgMap;
+    }
+
+    public SiteAgentConfig getSiteAgentConfig() {
+        return siteAgentCfg;
     }
 
     public QNLConfig getConfig() {

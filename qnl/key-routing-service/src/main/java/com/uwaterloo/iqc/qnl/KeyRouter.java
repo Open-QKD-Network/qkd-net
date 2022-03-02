@@ -62,23 +62,10 @@ public class KeyRouter {
                 }
 	   }}).start();
 	
-        // String url = null;
-        // if(args.length == 2 && "-c".equals(args[0])) {
-        //   JSONObject json = (JSONObject) new JSONParser().parse(new FileReader(args[1]));
-        //   url = (String) json.get("connectionAddress") + ":" + (String) json.get("listenPort");
-        // } else {
-        //   LOGGER.error("Unable to start site agent: no config file specified");
-        // }
-        // final ISiteAgentServer siteAgent = new ISiteAgentServer(url);
-        // if(url != null) {
-        //   siteAgent.start();
-        // }
-        // TODO: remove/move magic values such as "-c" and "connectionAddress"
-        // TODO: standardize clean way of processing input flags
-        // TODO: implement more flexible logic like above instead of hardcoding
+        //TODO: investigate auto-generating siteagent.json, and/or find a way to communicate requirement of having such a file
 
         LOGGER.info("starting site agent a");
-        final ISiteAgentServer siteAgent = new ISiteAgentServer("192.168.2.29", 8000);
+        final ISiteAgentServer siteAgent = new ISiteAgentServer(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port);
         try {
           siteAgent.start();
         } catch(IOException e) {

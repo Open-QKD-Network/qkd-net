@@ -8,6 +8,7 @@ public class QNLConfig {
     private String routeConfigLoc;
     private String qnlSiteKeyLoc;
     private String qkdLinkConfigLoc;
+    private String siteAgentConfigLoc;
     private String siteId;
     private int port;
     private int keyBytesSz;
@@ -32,6 +33,10 @@ public class QNLConfig {
         return getQNLSiteKeyLoc(siteID) + "/" + qkdLinkConfigLoc;
     }
 
+    public String getSiteAgentConfigLoc() {
+        return System.getProperty("user.home") + "/" + base + "/" + siteAgentConfigLoc;
+    }
+
     public String getOTPKeyLoc(String siteId) {
         return System.getProperty("user.home") + "/" + base + "/" + OTPConfig.get("keyLoc") + "/" + siteId;
     }
@@ -47,7 +52,6 @@ public class QNLConfig {
     public String getQkdLinkConfigLoc() {
         return qkdLinkConfigLoc;
     }
-
 
     public int getKeyBytesSz() {
         return keyBytesSz;
