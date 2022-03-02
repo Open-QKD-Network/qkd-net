@@ -16,6 +16,8 @@ import com.cqp.remote.Hop;
 import com.cqp.remote.HopPair;
 import com.cqp.remote.IDeviceGrpc;
 import com.cqp.remote.ISiteAgentGrpc;
+import com.cqp.remote.Key;
+import com.cqp.remote.KeyTransferGrpc;
 import com.cqp.remote.LocalSettings;
 import com.cqp.remote.PhysicalPath;
 import com.cqp.remote.RawKeys;
@@ -96,6 +98,24 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                     LOGGER.info("localDevice is " + localDevice);
                     ManagedChannel channel = splitAndGetChannel(localDevice);
                     IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
+
+		    //Key Transfer Stub Setup
+                    //TODO get these automatically
+                    String keyTransferHost = "localhost";
+                    int keyTransferPort = 50051;
+                    int keysSent = 1;
+
+                    int qllBlockSz = 4096;
+                    int maxKeyBlocks = 10;
+
+                    ManagedChannel keyTransferChannel =
+		        ManagedChannelBuilder
+			    .forAddress(keyTransferHost, keyTransferPort)
+			    .usePlaintext()
+			    .build();
+                    KeyTransferGrpc.KeyTransferStub keyTransferStub = KeyTransferGrpc.newStub(keyTransferChannel);
+
+
                     // initial key is garbage value - not used
                     // see DummyQKD::setinitialkey in cqptoolkit
                     LOGGER.info("starting waitForSession for stub " + localDevice);
@@ -103,6 +123,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                                                                             .setInitialKey(ByteString.copyFromUtf8("garbage value initial key"))
                                                                             .build());
                     LOGGER.info("ended waitForSession for stub " + localDevice);
+
                     while(keys.hasNext()) {
                         RawKeys key = keys.next();
                         List<ByteString> byteStrList = key.getKeyDataList();
@@ -113,6 +134,27 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                             for(byte b : byteArr) {
                                 keyData.add(b);
                             }
+
+			    Key keyMessage =
+			        Key.newBuilder()
+			            .setKey(byteStr)
+			            .setSeqID(keysSent)
+			            .setLocalID(localDevice)
+				    .build();
+			    keysSent += 1;
+
+			    StreamObserver<com.cqp.remote.Empty> responseObserver = new StreamObserver<com.cqp.remote.Empty>() {
+			        @Override
+				public void onNext(com.cqp.remote.Empty e) { }
+
+                                @Override
+                                public void onError(Throwable t) { }
+
+				@Override
+                                public void onCompleted() { }
+			    };
+
+			    keyTransferStub.onKeyFromCQP(keyMessage, responseObserver);
                         }
                     }
                 }
