@@ -91,12 +91,13 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                 .build();
         }
 
-        private void prepHop(final String localDevice) {
+        private void prepHop(final String localDeviceUrl, final String localDeviceId) {
             Thread t = new Thread() {
                 public void run() {
                     LOGGER.info("Starting key reader thread");
-                    LOGGER.info("localDevice is " + localDevice);
-                    ManagedChannel channel = splitAndGetChannel(localDevice);
+                    LOGGER.info("localDeviceUrl is " + localDeviceUrl);
+                    LOGGER.info("localDeviceId is " + localDeviceId);
+                    ManagedChannel channel = splitAndGetChannel(localDeviceUrl);
                     IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
 
 		    //Key Transfer Stub Setup
@@ -118,11 +119,11 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
 
                     // initial key is garbage value - not used
                     // see DummyQKD::setinitialkey in cqptoolkit
-                    LOGGER.info("starting waitForSession for stub " + localDevice);
+                    LOGGER.info("starting waitForSession for stub " + localDeviceUrl);
                     Iterator<RawKeys> keys = stub.waitForSession(LocalSettings.newBuilder()
                                                                             .setInitialKey(ByteString.copyFromUtf8("garbage value initial key"))
                                                                             .build());
-                    LOGGER.info("ended waitForSession for stub " + localDevice);
+                    LOGGER.info("ended waitForSession for stub " + localDeviceUrl);
 
                     while(keys.hasNext()) {
                         RawKeys key = keys.next();
@@ -139,19 +140,19 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
 			        Key.newBuilder()
 			            .setKey(byteStr)
 			            .setSeqID(keysSent)
-			            .setLocalID(localDevice)
+			            .setLocalID(localDeviceId)
 				    .build();
 			    keysSent += 1;
 
 			    StreamObserver<com.cqp.remote.Empty> responseObserver = new StreamObserver<com.cqp.remote.Empty>() {
-			        @Override
-				public void onNext(com.cqp.remote.Empty e) { }
+                    @Override
+                    public void onNext(com.cqp.remote.Empty e) { }
 
-                                @Override
-                                public void onError(Throwable t) { }
+                    @Override
+                    public void onError(Throwable t) { }
 
-				@Override
-                                public void onCompleted() { }
+                    @Override
+                    public void onCompleted() { }
 			    };
 
 			    keyTransferStub.onKeyFromCQP(keyMessage, responseObserver);
@@ -172,7 +173,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                     LOGGER.error("Device with id " + hop.getFirst().getDeviceId() + " not found on site agent "
                                     + url + ". Unable to start key reading thread. Fatal.");
                 }
-                prepHop(deviceAddress); // starts key reader thread
+                prepHop(deviceAddress, hop.getFirst().getDeviceId()); // starts key reader thread
                 ManagedChannel channel = splitAndGetChannel(hop.getSecond().getSite());
                 ISiteAgentGrpc.ISiteAgentBlockingStub stub = ISiteAgentGrpc.newBlockingStub(channel);
                 // set device address for left/first side
@@ -191,7 +192,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                     LOGGER.error("Device with id " + hop.getSecond().getDeviceId() + " not found on site agent "
                                     + url + ". Unable to start key reading thread. Fatal.");
                 }
-                prepHop(deviceAddress); // starts key reader thread
+                prepHop(deviceAddress, hop.getSecond().getDeviceId()); // starts key reader thread
                 ManagedChannel channel = splitAndGetChannel(deviceAddress);
                 IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
                 LOGGER.info("Peer address has length " + hop.getFirst().getDeviceAddress().length() + " and message " + hop.getFirst().getDeviceAddress());

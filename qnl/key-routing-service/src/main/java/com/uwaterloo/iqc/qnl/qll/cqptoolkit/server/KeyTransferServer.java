@@ -94,7 +94,7 @@ public class KeyTransferServer {
 
             String[] splits = qkdID.split("_");
             if (splits.length != 3) {
-                LOGGER.error("Unexpected QKDID format! Expected format alicesite_bobsite_localsite (ex. A_B_A, A_B_B, or B_C_B). Key cannot be stored");
+                LOGGER.error("Unexpected QKDID format! Expected format alicesite_bobsite_localsite (ex. A_B_A, A_B_B, or B_C_B), found " + qkdID + ". Key cannot be stored");
                 return;
             }
 
