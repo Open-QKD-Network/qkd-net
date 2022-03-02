@@ -1,0 +1,143 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package cqp.remote;
+option java_package = "com.cqp.remote";
+import public "google/protobuf/empty.proto";
+import "CQPToolKit.proto";
+
+/// A message containing only key bytes
+message RawKeys {
+    /// raw key data
+    repeated bytes keyData = 1;
+}
+
+/// Settings which are shared between the device controller and the local device
+message LocalSettings {
+    /// The key to provide initial authentication of the other side
+    bytes initialKey = 1;
+}
+
+/// Session details including details about the destination
+message SessionDetailsTo {
+    /// session details
+    SessionDetails details = 1;
+    /// The address for the device to pair with
+    string peerAddress = 2;
+}
+
+/// @details
+/// @startuml
+///     !pragma horizontalLineBetweenDifferentPackageAllowed
+///     title Processes and GRPC interfaces they provide
+///     skinparam interface<<external>> {
+///         backgroundColor Green
+///     }
+///     skinparam linetype ortho
+///
+///     package Device {
+///         component QKDDevice as qkddev
+///         interface IQKDDevice as iqkddev <<external>>
+///         interface IReporting as irpt <<external>>
+///         interface ISession as isession
+///
+///         qkddev -r- iqkddev
+///         qkddev -u- irpt
+///         qkddev -- isession
+///
+///         note left of qkddev
+///             For use ether standalone
+///             or as part of a site
+///         end note
+///     }
+///
+///     package Site {
+///         component SiteAgent as sa
+///         interface ISiteAgent as isa
+///         interface IReporting as isarpt <<external>>
+///         interface IKey as ikey <<external>>
+///
+///         sa -right- isa
+///         sa -d- ikey
+///         sa -u- isarpt
+///
+///     }
+///
+///     package Net {
+///         component NetworkManager as nm
+///         interface INetworkManager as inm
+///
+///         nm -l- inm
+///
+///     }
+///
+///     Device .[hidden]right. Site
+///     Site .[hidden]right. Net
+///
+///     qkddev .d.> isession
+///     sa .l.> iqkddev
+///     sa .l.> irpt
+///     sa .r.> inm
+///     nm .l.> isarpt
+///     nm .l.> isa
+///
+/// @enduml
+service IDevice
+{
+
+    /**
+     * @brief RunSession
+     * Start exchanging key using the supplied remote device details
+     * @startuml
+         actor user1
+         box "Device 1"
+         boundary "IDevice" as dev1
+         endbox
+
+         box "Device 2"
+         boundary "ISession" as ises2
+         boundary "IDevice" as dev2
+         endbox
+         actor user2
+
+
+         user2 -> dev2 : WaitForSession()
+         activate dev2
+         user1 -> dev1 : WaitForSession()
+             activate dev1
+         user1 -> dev1 : RunSession()
+             activate dev1
+             dev1 -> ises2 : SessionStarting
+             deactivate dev1
+             == Key is exchanged ==
+             loop
+                 user1 /-- dev1 : key
+                 user2 /-- dev2 : key
+
+             end loop
+
+             dev1 -> ises2 : SessionEnding
+             deactivate dev1
+         deactivate dev2
+     @enduml
+    * @param request Session details to start the session
+    * @return status
+    */
+    rpc RunSession(SessionDetailsTo) returns (google.protobuf.Empty);
+
+    /**
+     * @brief RunSession
+     * Notify the device that key exchange will begin
+     * @param request settings for the device
+     * @param writer A stream of keys as they are created
+     * @return status
+     */
+    rpc WaitForSession(LocalSettings) returns (stream RawKeys);
+
+    /**
+     * @brief EndSession
+     * Stop a session
+     * @return status
+     */
+    rpc EndSession(google.protobuf.Empty) returns (google.protobuf.Empty);
+
+}

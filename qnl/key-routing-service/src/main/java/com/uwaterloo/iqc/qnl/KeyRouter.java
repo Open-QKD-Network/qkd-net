@@ -12,6 +12,7 @@ import io.netty.handler.logging.LoggingHandler;
 
 import com.uwaterloo.iqc.qnl.lsrp.LSRPRouter;
 import com.uwaterloo.iqc.qnl.qll.cqptoolkit.client.GrpcClient;
+import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.ISiteAgentServer;
 import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.KeyTransferServer;
 
 import java.io.IOException;
@@ -33,6 +34,8 @@ public class KeyRouter {
         server.start();
 
         final GrpcClient client = new GrpcClient();
+        //client.getSiteDetails("localhost", 8000);
+        //client.startNode("localhost", 8000, "localhost", 8001);
 
         final String localSite = qConfig.getConfig().getSiteId();
 
@@ -58,8 +61,31 @@ public class KeyRouter {
                    }
                 }
 	   }}).start();
-        //client.getSiteDetails("localhost", 8000);
-        //client.startNode("localhost", 8000, "localhost", 8001);
+	
+        // String url = null;
+        // if(args.length == 2 && "-c".equals(args[0])) {
+        //   JSONObject json = (JSONObject) new JSONParser().parse(new FileReader(args[1]));
+        //   url = (String) json.get("connectionAddress") + ":" + (String) json.get("listenPort");
+        // } else {
+        //   LOGGER.error("Unable to start site agent: no config file specified");
+        // }
+        // final ISiteAgentServer siteAgent = new ISiteAgentServer(url);
+        // if(url != null) {
+        //   siteAgent.start();
+        // }
+        // TODO: remove/move magic values such as "-c" and "connectionAddress"
+        // TODO: standardize clean way of processing input flags
+        // TODO: implement more flexible logic like above instead of hardcoding
+
+        LOGGER.info("starting site agent a");
+        final ISiteAgentServer siteAgent = new ISiteAgentServer("192.168.2.29", 8000);
+        try {
+          siteAgent.start();
+        } catch(IOException e) {
+          LOGGER.error("Unable to start site agent", e);
+        }
+        LOGGER.info("finished starting site agent a");
+
         LOGGER.info("Key router started, args.length:" + args.length);
 
         LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
