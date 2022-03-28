@@ -67,8 +67,13 @@ public class QNLConfiguration {
 
             createQLLClients();
         } catch(Exception e) {
-            e.printStackTrace();
-            LOGGER.info("Failed to load/parse JSON files, please check the files: " + config.getRouteConfigLoc() + " and qkdlink files and to make sure they are valid JSON.");
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            e.printStackTrace(pw);
+            LOGGER.info("Failed to load/parse JSON files, please check the files: " +
+                    config.getRouteConfigLoc() +
+                    " and qkdlink files and to make sure they are valid JSON. Stacktrace:" +
+                    sw.toString());
         }
     }
 
