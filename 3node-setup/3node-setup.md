@@ -11,11 +11,12 @@ Steps to reproduce demo:
 - Edit `~/.qkd/qnl/routes.json` as you normally would to set up a three node network (see link above).
 - Make sure `~/.qkd/qnl/config.yaml` has the line `qkdLinkConfigLoc: qkdlink.json` on all sites. \
 ex.
-```json
+```
 base: .qkd/qnl
 routeConfigLoc: routes.json
 qnlSiteKeyLoc: qll/keys
 qkdLinkConfigLoc: qkdlink.json
+siteAgentConfigLoc: siteagent.json
 siteId: A
 port: 9292
 keyBytesSz: 32
@@ -71,13 +72,9 @@ keyLoc: otp/keys
 
 ## Setup
 1. On all sites, first copy the relevant dummy driver config files to build-cqptoolkit (the ones ending with the site ID, so dummy\_A\_B\_A for site A, both dummy\_A\_B\_B and dummy\_B\_C\_B for site B, and dummy\_B\_C\_C for site C).Then, copy the script setupTest3`ID`.sh to build-cqptoolkit and run, where `ID` is the site ID. Also make sure teardownTest.sh is present. Wait for dummy drivers to start. They will not immediately register as qkd-net hasn't started yet. On site B, make sure there are two dummy drivers with device IDs `A_B_B` and `B_C_B`.
-2. On all sites, navigate to qkd-net/kms and run `./scripts/run`. Wait for it to finish, and you should soon see the dummy drivers register. You should see something that looks like this:
-	```
-	DEBUG:  20220228-112841.289 /home/dell1/cqptoolkit/src/KeyManagement/Sites/SiteAgent.cpp.827:RegisterDevice: Device registering: A_B_A
-	INFO:  20220228-112841.289 /home/dell1/cqptoolkit/src/KeyManagement/Sites/SiteAgent.cpp.851:RegisterDevice: New Alice device: A_B_A at '192.168.2.29:9000' on switch '' port ''
-	INFO:  20220228-112841.289 /home/dell1/cqptoolkit/src/Drivers/DummyQKDDriver/DummyQKDDriver.cpp.109:Main: My device id is A_B_A
-	```
-    Around a minute later you should see the line:
-	> Device pushed first key! \
-	Then, inspect `lsrp.log`, `mapping.log`, and check `~/.qkd/qnl/qll/keys` for incoming keys. Make sure the first few keys match between nodes `A` and `B`, and nodes `B` and `C`.
+2. On all sites, navigate to qkd-net/kms and run `./scripts/run`. Around a minute later you should see the line:
+
+	> Device pushed first key! <br>
+
+    In the dummy driver output. Then, inspect `lsrp.log`, `mapping.log`, and check `~/.qkd/qnl/qll/keys` for incoming keys. Make sure the first few keys match between nodes `A` and `B`, and nodes `B` and `C`.
 3. You can now navigate to `qkd-net/applications/tls-kms-demo` on sites `A` and `C`, and run the file transfer as you normally would with bob as node `C` and alice as node `A`.
