@@ -225,8 +225,6 @@ void  cleanup_kms_handles(Net_Crypto *c) {
 }
 
 
-static const char *token_header = "authorization:Basic aHRtbDU6cGFzc3dvcmQ=";
-static const char *token_post = "password=bot&client_secret=password&client=html5&username=pwebb&grant_type=password&scope=openid";
 static const char *key_header = "Authorization: Bearer ";
 static const char *query_str = "siteid=";
 
@@ -290,7 +288,7 @@ static CURLcode fetch(Net_Crypto *nc, struct MemoryStruct *chunk, const char *ur
     return res;
 }
 
-int get_key(struct Net_Crypto *nc, char *token, int is_new) {
+int get_key(struct Net_Crypto *nc, int is_new) {
 
     CURLcode res;
     struct MemoryStruct chunk;
@@ -302,10 +300,9 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
     chunk.size = 0;
     char hex[65];
 
-    int len = strlen(key_header) + strlen(token) + 1;
+    int len = strlen(key_header) + 1;
     char *buf = (char*)malloc(len);
     strcpy(buf, key_header);
-    strcpy(buf+strlen(key_header), token);
     buf[len] = '\0';
     if (is_new) {
          int len_post = strlen(nc->peer_site_id) + strlen(query_str);
@@ -316,6 +313,7 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
         post[len_post] = '\0';
         printf("key_post : %s\n", post);
         res = fetch(nc, &chunk, nc->newkey_url, buf, post);
+        printf("res : %s\n", res);
         free(post);
     } else {
         char dex [sizeof(long)*8+1];
@@ -370,56 +368,13 @@ int get_key(struct Net_Crypto *nc, char *token, int is_new) {
     return err;
 }
 
-int get_token(struct Net_Crypto *nc, char** token) {
-
-    CURLcode res;
-    struct MemoryStruct chunk;
-    int err = 0;
-    CURL *handle;
-
-    handle = nc->curl_handle;
-    chunk.memory = malloc(1);
-    chunk.size = 0;
-    res = fetch(nc, &chunk, nc->uaa_url, token_header, token_post);
-
-    if(res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                curl_easy_strerror(res));
-        err = 1;
-    } else {
-        json_object *jobj = json_tokener_parse(chunk.memory);
-        json_object_object_foreach(jobj, key, val) {
-            if (strcmp("error", key) == 0 ) {
-                err =1;
-                printf("key: %s, type of val: %s\n", key, (char *)json_object_get_string(val));
-                break;
-            } else if (strcmp("access_token", key) == 0 ) {
-                int len = strlen((char *)json_object_get_string(val));
-                *token = (char*)malloc(len+1);
-                strcpy(*token, (char *)json_object_get_string(val));
-                (*token)[len] = '\0';
-            }
-        }
-        json_object_put(jobj);
-    }
-
-    free(chunk.memory);
-    return err;
-}
-
 void fetch_new_qkd_key(struct Net_Crypto *nc) {
-  char *token;
-  get_token(nc, &token);
-  get_key(nc, token, 1);
-  free(token); 
+  get_key(nc, 1);
 
 }
 
 void fetch_qkd_key(struct Net_Crypto *nc) {
-  char *token;
-  get_token(nc, &token);
-  get_key(nc, token, 0);
-  free(token); 
+  get_key(nc, 0);
 }
 #endif
 
