@@ -1,0 +1,32 @@
+1. Install all developer dependencies
+  sh ./modules-to-install
+
+2. Install libsodium
+ 2.1) tar xvf libsodium-1.0.17.tar.gz
+ 2.2) cd libsodium
+ 2.3) ./autogen.sh
+ 2.4) ./configure
+ 2.5) make
+ 2.6) sudo -s
+ 2.7) make install
+
+3. Build and install c-toxcore
+ 3.1) cd c-toxcore
+ 3.2) ./autogen.sh
+ 3.4) ./configure CFLAGS=-g3 --enable-qkd-keys LIBS=-lssl -lcrypto --no-recursion
+ 3.5) make
+ 3.6) sudo -s
+ 3.7) make install
+
+4. Build qtox
+ 4.1) cd qtox
+ 4.2) ./bootstrap.sh --without-tox
+ 4.3) rm -rf build
+ 4.4) mkdir build
+ 4.5) cd build
+ 4.6) cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-DQKD" -DCMAKE_PREFIX_PATH="$1" ..
+ 4.7) make
+
+5. Run qtox
+ 5.1) cd build
+ 5.2) ./qtox
