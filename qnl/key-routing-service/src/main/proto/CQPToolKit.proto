@@ -87,10 +87,12 @@ message ControlDetails
 {
     /// Details on how to setup the device
     DeviceConfig config = 1;
+    /// The local dummy driver address
+    string bindAddress = 2;
     /// The connection address for controlling the device
-    string controlAddress = 2;
+    string controlAddress = 3;
     /// The Site to register with
-    string siteAgentAddress = 3;
+    string siteAgentAddress = 4;
 }
 
 /// Defines the site and it's capabilities
