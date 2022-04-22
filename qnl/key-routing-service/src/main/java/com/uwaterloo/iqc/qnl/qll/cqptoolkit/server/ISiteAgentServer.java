@@ -169,7 +169,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                 // set device address for left/first side
                 // TODO: find a less hacky way to edit a grpc object
                 // TODO: frankenstein url correct way to do this?
-                String thisDeviceAddr = url.split(":")[0] + ":" + deviceAddress.split(":")[1];
+                String thisDeviceAddr = deviceAddress;
                 PhysicalPath newPath = PhysicalPath.newBuilder(path).setHops(hopIndex,
                                         HopPair.newBuilder(hop).setFirst(
                                             Hop.newBuilder(hop.getFirst()).setDeviceAddress(thisDeviceAddr))).build();
