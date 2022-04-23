@@ -316,6 +316,11 @@ static CURLcode fetch(struct Net_Crypto *nc, struct MemoryStruct *chunk, const c
     curl_easy_setopt(handle, CURLOPT_VERBOSE, 0L);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void *)chunk);
     curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 1L);
+    if (!strncmp(url, "https://", 8)) {
+        printf("Disable SSL certificate check\n");
+        curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0L);
+        curl_easy_setopt(handle, CURLOPT_SSL_VERIFYHOST, 0L);
+    }
     res = curl_easy_perform(handle);
     if (nc->auth) {
         curl_slist_free_all(list);
