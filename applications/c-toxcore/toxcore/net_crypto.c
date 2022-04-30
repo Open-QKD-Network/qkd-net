@@ -166,7 +166,7 @@ struct Net_Crypto {
     char block_id[37];
     unsigned char key[32]; //shared key from KMS
     char peer_site_id[4];
-    int index;
+    int index; // -1 is the invalid value
     bool auth;
     CURL *curl_handle;
 #endif 
@@ -324,13 +324,13 @@ int get_key(struct Net_Crypto *nc, int is_new) {
         strcpy(post, query_str);
         strcpy(post + strlen(query_str), nc->peer_site_id);
         post[len_post] = '\0';
-        printf("key_post : %s\n", post);
+        printf("new key post string : %s\n", post);
         res = fetch(nc, &chunk, nc->newkey_url, buf, post);
-        printf("res : %s\n", res);
+        //printf("new key res : %s\n", res);
         free(post);
     } else {
         char dex [sizeof(long)*8+1];
-        snprintf (dex, sizeof(dex), "%ld", nc->index);
+        snprintf (dex, sizeof(dex), "%d", nc->index);
         int len_post =  strlen(query_str) + strlen(nc->peer_site_id) + strlen("&index=") + strlen(dex) + strlen("&blockid=") + strlen(nc->block_id);
         char *post = (char*)malloc(len_post+1);
         strcpy(post, query_str);
@@ -341,7 +341,7 @@ int get_key(struct Net_Crypto *nc, int is_new) {
         strcpy(post + strlen(query_str) + strlen(nc->peer_site_id) + strlen("&index=") + strlen(dex) + strlen("&blockid="), nc->block_id);
         post[len_post] = '\0';
 
-        printf("post String %s\n", post);
+        printf("get key post String %s\n", post);
 
         res = fetch(nc, &chunk, nc->getkey_url, buf, post);
         free(post);
@@ -363,7 +363,7 @@ int get_key(struct Net_Crypto *nc, int is_new) {
                 if(strcmp("index", key1) == 0 ) {
                     char *ptr;
                     nc->index = strtol((char *)json_object_get_string(val1), &ptr, 10);
-                    printf("index: %ld\n", nc->index);
+                    printf("index: %d\n", nc->index);
                 } else if(strcmp("hexKey", key1) == 0 ) {
                     memcpy(hex, (char *)json_object_get_string(val1), 64);
                     hex[64] = '\0';
@@ -728,6 +728,7 @@ static int create_crypto_handshake(const Net_Crypto *c, uint8_t *packet, const u
         return -1;
     }
 
+    printf("In create_crypto_handshake, sending index:%d, site_id:%s, block_id:%s\n", c->index, c->site_id, c->block_id);
     packet[0] = NET_PACKET_CRYPTO_HS;
     memcpy(packet + 1 + QKD_PKT_DATA, cookie, COOKIE_LENGTH);
     
