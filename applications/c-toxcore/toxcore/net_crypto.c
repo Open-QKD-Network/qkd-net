@@ -686,6 +686,7 @@ static int handle_cookie_response(uint8_t *cookie, uint64_t *number, const uint8
 
 #ifdef QKD_KEYS
 #define QKD_KEY_SIZE 32
+#define QKD_KEY_INDEX_MAX 10240
 #define QKD_KEY_INDEX_SIZE 4
 #define QKD_SITE_ID_SIZE 4
 #define QKD_BLOCK_ID_SIZE 36
@@ -806,11 +807,13 @@ static int handle_crypto_handshake(Net_Crypto *c, uint8_t *nonce, uint8_t *sessi
                            packet + 1 + QKD_PKT_DATA + COOKIE_LENGTH + CRYPTO_NONCE_SIZE,
                            HANDSHAKE_PACKET_LENGTH - (1 + QKD_PKT_DATA + COOKIE_LENGTH + CRYPTO_NONCE_SIZE), plain);
 
-    
-    c->index =  packet[1];
-    c->index = (c->index << 8) | packet[2];
-    c->index = (c->index << 16) | packet[3];
-    c->index = (c->index << 24) | packet[4];
+    /*The following is used to encode index into packet[1-4]
+    packet[4] = c->index & 0xff;
+    packet[3] = (c->index >> 8) & 0xff;
+    packet[2] = (c->index >> 16) & 0xff;
+    packet[1] = (c->index >> 24) & 0xff;*/
+
+    c->index = (packet[1] << 24) | (packet[2] << 16) + (packet[3] << 8) | packet[4];
 
     memcpy(c->peer_site_id, packet + 1 + QKD_KEY_INDEX_SIZE, QKD_SITE_ID_SIZE);
     memcpy(c->block_id, packet + 1 + QKD_KEY_INDEX_SIZE + QKD_SITE_ID_SIZE, QKD_BLOCK_ID_SIZE);
@@ -1933,7 +1936,7 @@ static int handle_packet_connection(Net_Crypto *c, int crypt_connection_id, cons
                 return -1;
             }
 #ifdef QKD_KEYS
-            c->index = -1; 
+            c->index = QKD_KEY_INDEX_MAX;
             memset(c->block_id, 0, 36);
 #endif
             if (create_send_handshake(c, crypt_connection_id, cookie, conn->dht_public_key) != 0) {
