@@ -813,7 +813,7 @@ static int handle_crypto_handshake(Net_Crypto *c, uint8_t *nonce, uint8_t *sessi
     packet[2] = (c->index >> 16) & 0xff;
     packet[1] = (c->index >> 24) & 0xff;*/
 
-    c->index = (packet[1] << 24) | (packet[2] << 16) + (packet[3] << 8) | packet[4];
+    c->index = (packet[1] << 24) | (packet[2] << 16) | (packet[3] << 8) | packet[4];
 
     memcpy(c->peer_site_id, packet + 1 + QKD_KEY_INDEX_SIZE, QKD_SITE_ID_SIZE);
     memcpy(c->block_id, packet + 1 + QKD_KEY_INDEX_SIZE + QKD_SITE_ID_SIZE, QKD_BLOCK_ID_SIZE);
