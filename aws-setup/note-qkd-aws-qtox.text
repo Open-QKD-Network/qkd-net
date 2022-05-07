@@ -1,0 +1,42 @@
+Alice connects to OpenQKDNetwork A node, Bob connects to OpenQKDNetwork B node.
+
+1. Bob adds Alice to his buddy list 
+2. Alice accept
+3. Alice sends (10240 is the maximum index value, it is an invalid value)
+In create_crypto_handshake, sending index:10240, site_id:A, block_id:
+4. On Bob side
+Index received: 10240 (handle_crypto_handshake)
+Peer Site ID received: A (handle_crypto_handshake)
+Block ID received:  (handle_crypto_handshake)
+fetch_new_qkd_key in accept_crypto_connection
+new key post string : siteid=A
+{"index":1,"hexKey":"be4fb7aeace40733a3c608fbb585e3eb28c8b82b88285943e2c2602976191a66","blockId":"db4d17c2-e9fd-4368-a8ea-0d27d91c65b8"}
+index: 1
+key: be4fb7aeace40733a3c608fbb585e3eb28c8b82b88285943e2c2602976191a66 
+blockId: db4d17c2-e9fd-4368-a8ea-0d27d91c65b8 
+
+Then Bob sends index/site_id/block_id to Alice
+In create_crypto_handshake, sending index:1, site_id:B, block_id:db4d17c2-e9fd-4368-a8ea-0d27d91c65b8
+5. On Alice side
+
+Index received: 1 (handle_crypto_handshake)
+Peer Site ID received: B (handle_crypto_handshake)
+Block ID received: db4d17c2-e9fd-4368-a8ea-0d27d91c65b8 (handle_crypto_handshake)
+fetch_qkd_key in handle_packet_connection
+get key post String siteid=B&index=1&blockid=db4d17c2-e9fd-4368-a8ea-0d27d91c65b8
+{"index":1,"hexKey":"be4fb7aeace40733a3c608fbb585e3eb28c8b82b88285943e2c2602976191a66","blockId":"db4d17c2-e9fd-4368-a8ea-0d27d91c65b8"}
+index: 1
+
+6. ~/.qkd/kms.conf, ~/.qkd/kms/kms.conf on Alice
+http://localhost:9992/uaa/oauth/token
+http://3.84.128.28:8095/api/newkey
+http://3.84.128.28:8095/api/getkey
+A
+false
+
+7. ~/.qkd/kms.conf, ~/.qkd/kms/kms.conf on Bob
+http://localhost:9992/uaa/oauth/token
+http://54.159.53.158:8095/api/newkey
+http://54.159.53.158:8095/api/getkey
+B
+false
