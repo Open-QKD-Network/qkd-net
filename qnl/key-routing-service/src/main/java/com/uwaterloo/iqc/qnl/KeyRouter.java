@@ -44,6 +44,7 @@ public class KeyRouter {
 	    public void run() {
 		try {
                     Thread.sleep(60000); // sleep 60 seconds to make QKD-Network settle down.
+                    client.getSiteDetails("172.31.20.54", 9002);
 		} catch (Exception e) {
                 }
                 // Iterate over registered QKD links
