@@ -21,6 +21,7 @@ import java.util.TimerTask;
 import java.util.Timer;
 
 public class KeyRouter {
+    Timer timer = new Timer();
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
 
     public class WaitForConnect extends TimerTask {
@@ -28,6 +29,10 @@ public class KeyRouter {
       {
         System.out.println("10 seconds have passed");
       }
+    }
+
+    public static void callTimer(){
+      timer.schedule(new WaitForConnect(), 10000);
     }
 
     public static void main(String[] args) throws Exception {
@@ -52,7 +57,6 @@ public class KeyRouter {
 	    public void run() {
         boolean finished = false;
         boolean complete = false;
-        Timer timer = new Timer();
         while(true) {
 		  try {
             finished = true;
@@ -60,8 +64,7 @@ public class KeyRouter {
 		  } catch (Exception e) {
             finished = false;
             complete = false;
-            WaitForConnect w = new WaitForConnect();
-            timer.schedule(w, 10000);
+            callTimer();
                 }
             if(finished && !complete)
             {
