@@ -21,7 +21,7 @@ import java.util.TimerTask;
 import java.util.Timer;
 
 public class KeyRouter {
-    Timer timer = new Timer();
+    static Timer timer = new Timer();
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
 
     public class WaitForConnect extends TimerTask {
@@ -31,8 +31,11 @@ public class KeyRouter {
       }
     }
 
+    static KeyRouter k = new KeyRouter();
+    static WaitForConnect w = k.new WaitForConnect();
+
     public static void callTimer(){
-      timer.schedule(new WaitForConnect(), 10000);
+      timer.schedule(w, 10000);
     }
 
     public static void main(String[] args) throws Exception {
