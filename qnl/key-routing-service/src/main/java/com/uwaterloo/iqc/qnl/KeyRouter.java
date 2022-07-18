@@ -60,7 +60,8 @@ public class KeyRouter {
 		  } catch (Exception e) {
             finished = false;
             complete = false;
-            timer.schedule(new WaitForConnect(), 10000);
+            WaitForConnect w = new WaitForConnect();
+            timer.schedule(w, 10000);
                 }
             if(finished && !complete)
             {
