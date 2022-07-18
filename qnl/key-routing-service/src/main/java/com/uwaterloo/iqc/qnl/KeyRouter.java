@@ -10,6 +10,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
+import com.uwaterloo.iqc.qnl.WaitForConnect;
 import com.uwaterloo.iqc.qnl.lsrp.LSRPRouter;
 import com.uwaterloo.iqc.qnl.qll.cqptoolkit.client.GrpcClient;
 import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.ISiteAgentServer;
@@ -24,18 +25,8 @@ public class KeyRouter {
     static Timer timer = new Timer();
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
 
-    public class WaitForConnect extends TimerTask {
-      public void run()
-      {
-        LOGGER.info("10 seconds have passed");
-      }
-    }
-
-    static KeyRouter k = new KeyRouter();
-    static WaitForConnect w = k.new WaitForConnect();
-
     public static void callTimer(){
-      timer.schedule(w, 10000);
+      timer.schedule(new WaitForConnect(), 10000);
     }
 
     public static void main(String[] args) throws Exception {
@@ -117,3 +108,4 @@ public class KeyRouter {
         }
     }
 }
+
