@@ -62,7 +62,7 @@ public class KeyRouter {
         //while(!finished) {
           try {
             //finished = true;
-            Thread.sleep(60000) //let OpenQKD settle
+            Thread.sleep(60000); //let OpenQKD settle
             client.getSiteDetails("172.31.20.54", 9002);
 		  } catch (Exception e) {
             //finished = false;
