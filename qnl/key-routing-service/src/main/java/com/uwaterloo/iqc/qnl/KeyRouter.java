@@ -17,10 +17,18 @@ import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.KeyTransferServer;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.TimerTask;
+import java.util.Timer;
 
 public class KeyRouter {
-
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
+
+    public class WaitForConnect extends TimerTask {
+      public void run()
+      {
+        System.out.println("10 seconds have passed");
+      }
+    }
 
     public static void main(String[] args) throws Exception {
         final QNLConfiguration qConfig;
@@ -42,13 +50,22 @@ public class KeyRouter {
 	new Thread(new Runnable() {
 	    @Override
 	    public void run() {
-		try {
-                    Thread.sleep(60000); // sleep 60 seconds to make QKD-Network settle down.
-                    client.getSiteDetails("172.31.20.54", 9002);
-		} catch (Exception e) {
+        boolean finished = false;
+        boolean complete = false;
+        Timer timer = new Timer();
+        while(true) {
+		  try {
+            finished = true;
+            client.getSiteDetails("172.31.20.54", 9002);
+		  } catch (Exception e) {
+            finished = false;
+            complete = false;
+            timer.schedule(new WaitForConnect(), 10000);
                 }
-                // Iterate over registered QKD links
-                for (Map.Entry<String, QKDLinkConfig> cfgEntry:
+            if(finished && !complete)
+            {
+              // Iterate over registered QKD links
+              for (Map.Entry<String, QKDLinkConfig> cfgEntry:
                     qConfig.getQKDLinkConfigMap().entrySet()) {
                     String remoteSite = cfgEntry.getKey();
                     QKDLinkConfig cfg = cfgEntry.getValue();
@@ -61,6 +78,9 @@ public class KeyRouter {
                                     cfg.remoteSiteAgentUrl, cfg.remoteQKDDeviceId);
                    }
                 }
+                complete = true;
+            }
+        }
 	   }}).start();
 	
         //TODO: investigate auto-generating siteagent.json, and/or find a way to communicate requirement of having such a file
