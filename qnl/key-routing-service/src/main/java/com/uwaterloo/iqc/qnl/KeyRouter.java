@@ -59,15 +59,16 @@ public class KeyRouter {
 	    @Override
 	    public void run() {
         boolean finished = false;
-        while(!finished) {
+        //while(!finished) {
           try {
-            finished = true;
+            //finished = true;
+            Thread.sleep(60000) //let OpenQKD settle
             client.getSiteDetails("172.31.20.54", 9002);
 		  } catch (Exception e) {
-            finished = false;
-            callTimer();
+            //finished = false;
+            //callTimer();
                 }
-        }
+        //}
               // Iterate over registered QKD links
              for (Map.Entry<String, QKDLinkConfig> cfgEntry:
                     qConfig.getQKDLinkConfigMap().entrySet()) {
