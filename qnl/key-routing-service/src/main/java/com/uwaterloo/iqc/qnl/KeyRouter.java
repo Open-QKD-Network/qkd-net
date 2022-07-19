@@ -49,9 +49,18 @@ public class KeyRouter {
 	new Thread(new Runnable() {
 	    @Override
 	    public void run() {
+<<<<<<< HEAD
         boolean finished = false;
               // Iterate over registered QKD links
              for (Map.Entry<String, QKDLinkConfig> cfgEntry:
+=======
+		try {
+                    Thread.sleep(60000); // sleep 60 seconds to make QKD-Network settle down.
+		} catch (Exception e) {
+                }
+                // Iterate over registered QKD links
+                for (Map.Entry<String, QKDLinkConfig> cfgEntry:
+>>>>>>> parent of 0b839d9 (checking site details for site B)
                     qConfig.getQKDLinkConfigMap().entrySet()) {
                     String remoteSite = cfgEntry.getKey();
                     QKDLinkConfig cfg = cfgEntry.getValue();
