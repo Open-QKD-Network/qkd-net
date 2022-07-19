@@ -63,16 +63,6 @@ public class KeyRouter {
                     // smaller)
                    if (localSite.compareTo(remoteSite) < 0) { // i.e. we are alice
                        LOGGER.info("Starting node " + localSite + " --> " + remoteSite);
-                       while(!finished) {
-                        try {
-                          finished = true;
-                          //Thread.sleep(60000); //let OpenQKD settle
-                          client.getSiteDetails("172.31.20.54", 9002);
-                      } catch (Exception e) {
-                          finished = false;
-                          callTimer();
-                              }
-                      }
                        client.startNode(cfg.localSiteAgentUrl, cfg.localQKDDeviceId,
                                     cfg.remoteSiteAgentUrl, cfg.remoteQKDDeviceId);
                    }
