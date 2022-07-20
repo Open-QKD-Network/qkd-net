@@ -23,7 +23,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>1.8</java.version>
 		<spring-cloud.version>Dalston.SR4</spring-cloud.version>
-                <bouncycastle.version>1.70</bouncycastle.version>
+                <bouncycastle.version>172b05</bouncycastle.version>
 	</properties>
 
 	<dependencies>
@@ -99,17 +99,22 @@
 		</dependency>
                 <dependency>
                         <groupId>org.bouncycastle</groupId>
-                        <artifactId>bctls-jdk15on</artifactId>
+                        <artifactId>bctls-jdk18on</artifactId>
                         <version>${bouncycastle.version}</version>
                 </dependency>
                 <dependency>
                         <groupId>org.bouncycastle</groupId>
-                        <artifactId>bcprov-jdk15on</artifactId>
+                        <artifactId>bcprov-jdk18on</artifactId>
                         <version>${bouncycastle.version}</version>
                 </dependency>
                 <dependency>
                         <groupId>org.bouncycastle</groupId>
-                        <artifactId>bcpkix-jdk15on</artifactId>
+                        <artifactId>bcpkix-jdk18on</artifactId>
+                        <version>${bouncycastle.version}</version>
+                </dependency>
+                <dependency>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcutil-jdk18on</artifactId>
                         <version>${bouncycastle.version}</version>
                 </dependency>
 	</dependencies>

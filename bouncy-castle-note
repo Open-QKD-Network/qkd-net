@@ -1,0 +1,27 @@
+#OpenSSL with liboqs
+1. Set LD_LIBRARY_PATH export LD_LIBRARY_PATH=/home/kxie/open-quantum-safe/openssl-install/openssl/lib/
+2. set TLS_DEFAULT_GROUPS export TLS_DEFAULT_GROUPS=p256_frodo640aes
+3. Run curl -k --tlsv1.3 https://127.0.0.1:8095/api/newkey?siteid=A
+
+#OpenQKDNetwork
+1. install bouncycastle to ~/.m2
+mvn install:install-file -Dfile=bcpkix-jdk18on-172b05.jar -DgroupId=org.bouncycastle -DartifactId=bcpkix-jdk18on -Dversion=172b05 -Dpackaging=jar
+mvn install:install-file -Dfile=bcprov-jdk18on-172b05.jar -DgroupId=org.bouncycastle -DartifactId=bcprov-jdk18on -Dversion=172b05 -Dpackaging=jar
+mvn install:install-file -Dfile=bctls-jdk18on-172b05.jar -DgroupId=org.bouncycastle -DartifactId=bctls-jdk18on -Dversion=172b05 -Dpackaging=jar
+mvn install:install-file -Dfile=bcutil-jdk18on-172b05.jar -DgroupId=org.bouncycastle -DartifactId=bcutil-jdk18on -Dversion=172b05 -Dpackaging=jar
+
+2. Manipulate kms-api-gateway-0.0.1-SNAPSHOT.jar
+
+https://www.programmersought.com/article/48535890080/
+
+cd kms/kms-api-gateway
+mkdir test
+cd test
+jar xf ../target/kms-api-gateway-0.0.1-SNAPSHOT.jar
+rm BOOT-INF/lib/bcpkix-jdk15on-1.60.jar
+rm BOOT-INF/lib/bcprov-jdk15on-1.60.jar
+rm BOOT-INF/lib/logback-core-1.1.11.jar
+
+#Create new jar
+jar -cfM0 new.jar BOOT-INF/ META-INF/ org/
+cp new.jar ../target/kms-api-gateway-0.0.1-SNAPSHOT.jar
