@@ -78,7 +78,7 @@ public class WaitForConnect extends TimerTask {
       Site site = ConfigArgs.client.getSiteDetails(remoteAddress, remotePort);
 
       for(int index = 0; index < site.getDevicesCount(); ++index) { // for (ControlDetails cd : site.getDevices())
-        if(site.getDevices(index).getConfig().getID().equals(cfg.remoteQKDDeviceId)){
+        if(site.getDevices(index).getConfig().getId().equals(cfg.remoteQKDDeviceId)){
           ConfigArgs.registered = true;
         }
       }
