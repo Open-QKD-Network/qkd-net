@@ -14,31 +14,32 @@ import com.uwaterloo.iqc.qnl.lsrp.LSRPRouter;
 import com.uwaterloo.iqc.qnl.qll.cqptoolkit.client.GrpcClient;
 import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.ISiteAgentServer;
 import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.KeyTransferServer;
+import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.ISiteAgentServer.ISiteAgentServerListener;
+import com.cqp.remote.*;
 
 import java.io.IOException;
+import java.io.ObjectInputFilter.Config;
 import java.util.Map;
+import java.util.Timer;
 
-public class KeyRouter {
+public class KeyRouter implements ISiteAgentServerListener {
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
 
     public static void main(String[] args) throws Exception {
-        final QNLConfiguration qConfig;
         if (args.length == 0)
-          qConfig = new QNLConfiguration(null);
+          ConfigArgs.qConfig = new QNLConfiguration(null);
         else
-          qConfig = new QNLConfiguration(args[0]);
+          ConfigArgs.qConfig = new QNLConfiguration(args[0]);
 
-        final KeyTransferServer server = new KeyTransferServer(qConfig);
-        qConfig.createOTPKeys(server);
+        final KeyTransferServer server = new KeyTransferServer(ConfigArgs.qConfig);
+          ConfigArgs.qConfig.createOTPKeys(server);
         server.start();
 
-        final GrpcClient client = new GrpcClient();
+        ConfigArgs.client = new GrpcClient();
         //client.getSiteDetails("localhost", 8000);
         //client.startNode("localhost", 8000, "localhost", 8001);
 
-        final String localSite = qConfig.getConfig().getSiteId();
-
-	new Thread(new Runnable() {
+	/*new Thread(new Runnable() {
 	    @Override
 	    public void run() {
 		try {
@@ -51,7 +52,7 @@ public class KeyRouter {
                     String remoteSite = cfgEntry.getKey();
                     QKDLinkConfig cfg = cfgEntry.getValue();
 
-                    // Start node if we are alice (our site id is lexiographically
+                    // Start node if we are alice (our site id is lexicographically
                     // smaller)
                    if (localSite.compareTo(remoteSite) < 0) { // i.e. we are alice
                        LOGGER.info("Starting node " + localSite + " --> " + remoteSite);
@@ -59,12 +60,12 @@ public class KeyRouter {
                                     cfg.remoteSiteAgentUrl, cfg.remoteQKDDeviceId);
                    }
                 }
-	   }}).start();
+	   }}).start();*/
 	
         //TODO: investigate auto-generating siteagent.json, and/or find a way to communicate requirement of having such a file
 
         LOGGER.info("starting site agent a");
-        final ISiteAgentServer siteAgent = new ISiteAgentServer(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port);
+        final ISiteAgentServer siteAgent = new ISiteAgentServer(ConfigArgs.qConfig.getSiteAgentConfig().url, ConfigArgs.qConfig.getSiteAgentConfig().port);
         try {
           siteAgent.start();
         } catch(IOException e) {
@@ -72,9 +73,11 @@ public class KeyRouter {
         }
         LOGGER.info("finished starting site agent a");
 
+        siteAgent.setMySiteAgentListener(new KeyRouter());
+
         LOGGER.info("Key router started, args.length:" + args.length);
 
-        LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
+        LSRPRouter lsrpRouter = new LSRPRouter(ConfigArgs.qConfig);
         lsrpRouter.start();
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -84,13 +87,37 @@ public class KeyRouter {
             b.group(bossGroup, workerGroup)
             .channel(NioServerSocketChannel.class)
             .handler(new LoggingHandler(LogLevel.INFO))
-            .childHandler(new KeyServerRouterInitializer(qConfig))
+            .childHandler(new KeyServerRouterInitializer(ConfigArgs.qConfig))
             .childOption(ChannelOption.AUTO_READ, false)
-            .bind(qConfig.getConfig().getPort()).sync().channel().closeFuture().sync();
+            .bind(ConfigArgs.qConfig.getConfig().getPort()).sync().channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
+    }
+
+    @Override
+    public void onDeviceRegistered(String deviceID) {
+      //do not block this function
+
+      Timer timer = new Timer();
+      ConfigArgs.registered = false;
+
+      final String localSite = ConfigArgs.qConfig.getConfig().getSiteId();
+
+      for (Map.Entry<String, QKDLinkConfig> cfgEntry:
+                    ConfigArgs.qConfig.getQKDLinkConfigMap().entrySet()) {
+                    String remoteSite = cfgEntry.getKey();
+                    QKDLinkConfig cfg = cfgEntry.getValue();
+
+                    // Start node if we are alice (our site id is lexicographically
+                    // smaller)
+                   if (localSite.compareTo(remoteSite) < 0) { // i.e. we are alice
+                       while(!ConfigArgs.registered) {
+                          timer.schedule(new WaitForConnect(cfg), 10000);
+                       }
+                   }
+                }
     }
 }
 

@@ -36,6 +36,8 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 
+import com.uwaterloo.iqc.qnl.ConfigArgs;
+
 public class ISiteAgentServer { // wrapper class for start() stop() functionality
     private static Logger LOGGER = LoggerFactory.getLogger(ISiteAgentServer.class);
 
@@ -58,6 +60,16 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
         if (server != null) {
             server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
         }
+    }
+
+    public interface ISiteAgentServerListener {
+        public void onDeviceRegistered(String deviceID);
+    }
+
+    static ISiteAgentServerListener myListener_ = null; // this is static only because the registerDevice is in a nested class
+
+    public void setMySiteAgentListener(ISiteAgentServerListener listener) {
+        this.myListener_ = listener;
     }
 
     private static class ISiteAgent extends ISiteAgentImplBase {
@@ -226,6 +238,9 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
         public void registerDevice(ControlDetails details, StreamObserver<Empty> responseObserver) {
             LOGGER.info("Registering device with control address " + details.getControlAddress());
             devices.add(details);
+            if(ISiteAgentServer.myListener_ != null){
+                ISiteAgentServer.myListener_.onDeviceRegistered(details.getConfig().getId());
+            }
         }
 
         @Override
@@ -240,5 +255,5 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
             LOGGER.info("Could not find device with id " + deviceID.getId());
         }
     }
-
+    
 }
