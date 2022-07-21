@@ -74,7 +74,7 @@ public class WaitForConnect extends TimerTask {
        * ***/
       //LOGGER.info("10 seconds have passed");
       String remoteAddress = cfg.remoteSiteAgentUrl.split(":")[0];
-      String remotePort = cfg.remoteSiteAgentUrl.split(":")[1];
+      int remotePort = Integer.parseInt(cfg.remoteSiteAgentUrl.split(":")[1]);
       Site site = ConfigArgs.client.getSiteDetails(remoteAddress, remotePort);
 
       for(int index = 0; index < site.getDevicesCount(); ++index) { // for (ControlDetails cd : site.getDevices())
