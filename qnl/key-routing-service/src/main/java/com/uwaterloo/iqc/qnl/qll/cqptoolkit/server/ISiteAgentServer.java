@@ -249,6 +249,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
             for(ControlDetails cd : devices) {
                 if(cd.getConfig().getId().equals(deviceID)) {
                     devices.remove(cd);
+                    ConfigArgs.registered = false;
                     return;
                 }
             }

@@ -87,5 +87,8 @@ public class WaitForConnect extends TimerTask {
         LOGGER.info("Starting node " + cfg.localQKDDeviceId.charAt(4) + " --> " + cfg.remoteQKDDeviceId.charAt(4));
         ConfigArgs.client.startNode(cfg.localSiteAgentUrl, cfg.localQKDDeviceId, cfg.remoteSiteAgentUrl, cfg.remoteQKDDeviceId);
       }
+      else{
+        LOGGER.info("waiting for 10 seconds, remote site's dummy driver isn't registered on its site agent yet.");
+      }
     }
   }
