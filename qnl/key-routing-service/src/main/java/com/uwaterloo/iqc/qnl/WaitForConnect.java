@@ -32,8 +32,6 @@ public class WaitForConnect extends TimerTask {
        * this way after TimerTask.run() calls startNode and gets it running on the thread, we don't call timer.schedule again
        * since outside (!check2) becomes false. 
        * 
-       * okay, so the final thing we need to figure out is what the checks are.
-       * 
        * check1 requires us to compare the siteIDs.
        * since we have access to ConfigArgs, which has a static qConfig, we have access to both the localSite as well as
        * all remoteSites.
@@ -57,26 +55,21 @@ public class WaitForConnect extends TimerTask {
        *  }
        * }
        * 
-       * check2 is the main thing to figure out.
-       * 
        * simply do the following:
        * 
        * String remoteAddress = cfg.remoteSiteAgentUrl.split(":")[0];
        * String remotePort = cfg.remoteSiteAgentUrl.split(":")[1];
        * 
-       * Site site = client.getSiteDetails(remoteAddress, remotePort);
-       * 
-       * if(site.getDevicesCount() > 0) <---- check2 not enough, need to check if the devices registered on the site agent contains the
-       * dummy driver of the same site. 
+       * Site site = client.getSiteDetails(remoteAddress, remotePort); 
        * 
        * so, for localSite being A and remoteSite being B, we need to check if dummy_a_b_b is registered on B or not.
        * and so on.
        * ***/
-      //LOGGER.info("10 seconds have passed");
       String remoteAddress = cfg.remoteSiteAgentUrl.split(":")[0];
       int remotePort = Integer.parseInt(cfg.remoteSiteAgentUrl.split(":")[1]);
       Site site = ConfigArgs.client.getSiteDetails(remoteAddress, remotePort);
 
+      LOGGER.info("number of devices on remote site currently: " + site.getDevicesCount());
       for(int index = 0; index < site.getDevicesCount(); ++index) { // for (ControlDetails cd : site.getDevices())
         if(site.getDevices(index).getConfig().getId().equals(cfg.remoteQKDDeviceId)){
           ConfigArgs.registered = true;

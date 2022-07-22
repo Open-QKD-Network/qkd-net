@@ -38,29 +38,6 @@ public class KeyRouter implements ISiteAgentServerListener {
         ConfigArgs.client = new GrpcClient();
         //client.getSiteDetails("localhost", 8000);
         //client.startNode("localhost", 8000, "localhost", 8001);
-
-	/*new Thread(new Runnable() {
-	    @Override
-	    public void run() {
-		try {
-                    Thread.sleep(60000); // sleep 60 seconds to make QKD-Network settle down.
-		} catch (Exception e) {
-                }
-                // Iterate over registered QKD links
-                for (Map.Entry<String, QKDLinkConfig> cfgEntry:
-                    qConfig.getQKDLinkConfigMap().entrySet()) {
-                    String remoteSite = cfgEntry.getKey();
-                    QKDLinkConfig cfg = cfgEntry.getValue();
-
-                    // Start node if we are alice (our site id is lexicographically
-                    // smaller)
-                   if (localSite.compareTo(remoteSite) < 0) { // i.e. we are alice
-                       LOGGER.info("Starting node " + localSite + " --> " + remoteSite);
-                       client.startNode(cfg.localSiteAgentUrl, cfg.localQKDDeviceId,
-                                    cfg.remoteSiteAgentUrl, cfg.remoteQKDDeviceId);
-                   }
-                }
-	   }}).start();*/
 	
         //TODO: investigate auto-generating siteagent.json, and/or find a way to communicate requirement of having such a file
 
@@ -99,6 +76,8 @@ public class KeyRouter implements ISiteAgentServerListener {
     @Override
     public void onDeviceRegistered(String deviceID) {
       //do not block this function
+      //this function creates a timer object and thread which checks when peer dummy driver is registered on peer site agent
+      //and when the above condition is met, call startNode on alice site.
 
       Timer timer = new Timer();
       ConfigArgs.registered = false;
@@ -110,11 +89,11 @@ public class KeyRouter implements ISiteAgentServerListener {
                     String remoteSite = cfgEntry.getKey();
                     QKDLinkConfig cfg = cfgEntry.getValue();
 
-                    // Start node if we are alice (our site id is lexicographically
+                    // Start timer thread if we are alice (our site id is lexicographically
                     // smaller)
                    if (localSite.compareTo(remoteSite) < 0) { // i.e. we are alice
                        while(!ConfigArgs.registered) {
-                          timer.schedule(new WaitForConnect(cfg), 10000);
+                          timer.schedule(new WaitForConnect(cfg), 10000); // calling the TimerTask
                        }
                    }
                 }
