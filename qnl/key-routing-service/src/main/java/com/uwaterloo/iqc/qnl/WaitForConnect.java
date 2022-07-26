@@ -9,7 +9,7 @@ import com.cqp.remote.*;
 
 import java.util.TimerTask;
 
-public class WaitForConnect extends TimerTask {
+public class WaitForConnect extends TimerTask { // the purpose of this class is to run startNode
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
     private QKDLinkConfig cfg;
 
