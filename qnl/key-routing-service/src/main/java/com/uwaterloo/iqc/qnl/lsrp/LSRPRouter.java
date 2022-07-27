@@ -643,13 +643,13 @@ public class LSRPRouter {
 
       for (Map.Entry<Node, Integer> entry2 : adjacentNodes.entrySet()) {
           Node neighbour = entry2.getKey();
-          int distance = entry2.getValue();
+          Integer distance = entry2.getValue();
           JsonObject adjacentNodesJson = new JsonObject();
           if (distance < Integer.MAX_VALUE) {
-            adjacentNodesJson.addProperty(neighbour.getName(), "neighbour");
-            adjacentNodesJson.addProperty(distance, "distance");
+            adjacentNodesJson.addProperty("neighbour", neighbour.getName());
+            adjacentNodesJson.addProperty("distance", distance);
           }
-          lsrpJson.addProperty(adjacentNodesJson, node.getName());
+          lsrpJson.addProperty(node.getName(), adjacentNodesJson);
       }
     }
 
