@@ -646,10 +646,10 @@ public class LSRPRouter {
           int distance = entry2.getValue();
           JsonObject adjacentNodesJson = new JsonObject();
           if (distance < Integer.MAX_VALUE) {
-            adjacentNodesJson.put("neighbour", neighbour.getName());
-            adjacentNodesJson.put("distance", distance);
+            adjacentNodesJson.addProperty("neighbour", neighbour.getName());
+            adjacentNodesJson.addProperty("distance", distance);
           }
-          lsrpJson.put(node.getName(), adjacentNodesJson);
+          lsrpJson.addProperty(node.getName(), adjacentNodesJson);
       }
     }
 
