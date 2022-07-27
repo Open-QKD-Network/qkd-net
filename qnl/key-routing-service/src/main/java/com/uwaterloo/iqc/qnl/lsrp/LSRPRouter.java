@@ -640,22 +640,18 @@ public class LSRPRouter {
     for (Map.Entry<String, Node> entry : this.allNodes.entrySet()) {
       Node node = entry.getValue();
       Map<Node, Integer> adjacentNodes = node.getAdjacentNodes();
-      ArrayList<JsonObject> adjacentNodesJsonArray = new ArrayList<JsonObject>();
 
+      JsonObject adjacentNodesJson = new JsonObject();
 
       for (Map.Entry<Node, Integer> entry2 : adjacentNodes.entrySet()) {
-          JsonObject adjacentNodesJson = new JsonObject();
           Node neighbour = entry2.getKey();
           Integer distance = entry2.getValue();
           if (distance < Integer.MAX_VALUE) {
-            adjacentNodesJson.addProperty("neighbour", neighbour.getName());
-            adjacentNodesJson.addProperty("distance", distance);
-
-            adjacentNodesJsonArray.add(adjacentNodesJson);
+            adjacentNodesJson.addProperty(neighbour.getName(), distance);
          }
       }
 
-      lsrpJson.addProperty(node.getName(), adjacentNodesJsonArray.toString());
+      lsrpJson.add(node.getName(), adjacentNodesJson);
     }
 
     try {
