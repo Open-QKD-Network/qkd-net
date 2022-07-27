@@ -644,7 +644,7 @@ public class LSRPRouter {
 
 
       for (Map.Entry<Node, Integer> entry2 : adjacentNodes.entrySet()) {
-          JsonObject adjacentNodesJson = new JsonObject;
+          JsonObject adjacentNodesJson = new JsonObject();
           Node neighbour = entry2.getKey();
           Integer distance = entry2.getValue();
           if (distance < Integer.MAX_VALUE) {
