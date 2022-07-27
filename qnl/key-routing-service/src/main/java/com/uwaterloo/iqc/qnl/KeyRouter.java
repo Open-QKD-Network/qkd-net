@@ -21,11 +21,12 @@ import java.io.IOException;
 import java.io.ObjectInputFilter.Config;
 import java.util.Map;
 import java.util.Timer;
+import java.util.ArrayList;
 
 public class KeyRouter implements ISiteAgentServerListener {
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
     private static QNLConfiguration qConfig;
-    private Timer timer = new Timer();
+    private ArrayList<Timer> timers = new ArrayList<Timer>();
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
@@ -101,10 +102,11 @@ public class KeyRouter implements ISiteAgentServerListener {
 
       if(deviceID.charAt(4) < deviceID.charAt(2))
       {
+        timers.add(new Timer());
         LOGGER.info("pranshu :)");
         QKDLinkConfig cfg = qConfig.getQKDLinkConfig(remoteDeviceID.substring(4));
         LOGGER.info("some stuff: " + cfg.localQKDDeviceId + " and " + cfg.localSiteAgentUrl + " maybe " + cfg.remoteQKDDeviceId + " finally " + cfg.remoteSiteAgentUrl);
-        timer.schedule(new WaitForConnect(cfg, timer), 10000); // calling the TimerTask
+        timers.get(timers.size() - 1).schedule(new WaitForConnect(cfg, timer), 10000); // calling the TimerTask
       }
 
     }
