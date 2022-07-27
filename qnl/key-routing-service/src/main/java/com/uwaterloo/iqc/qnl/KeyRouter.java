@@ -80,14 +80,11 @@ public class KeyRouter implements ISiteAgentServerListener {
       //do not block this function
       //this function creates a timer object and thread which checks when peer dummy driver is registered on peer site agent
       //and when the above condition is met, call startNode on alice site.
+      LOGGER.info("This is the deviceID: " + deviceID);
+      String remoteDeviceID = deviceID.substring(0, 3);
+      remoteDeviceID += deviceID.charAt(2);
 
-      final String localSite = qConfig.getConfig().getSiteId();
-      int count = 1;
-
-      LOGGER.info("This is the id of the local site: " + localSite);
-      LOGGER.info("and this is the deviceID: " + deviceID);
-
-      for (Map.Entry<String, QKDLinkConfig> cfgEntry:
+      /*for (Map.Entry<String, QKDLinkConfig> cfgEntry:
                      qConfig.getQKDLinkConfigMap().entrySet()) {
                     String remoteSite = cfgEntry.getKey();
                     LOGGER.info("Remote site " + count + "'s id is: " + remoteSite);
@@ -99,7 +96,14 @@ public class KeyRouter implements ISiteAgentServerListener {
                    if (localSite.compareTo(remoteSite) < 0) { // i.e. we are alice
                       timer.schedule(new WaitForConnect(cfg, timer), 10000); // calling the TimerTask
                    }
-                }
+                }*/
+
+      if(deviceID.charAt(4) < deviceID.charAt(2))
+      {
+        QKDLinkConfig cfg = qConfig.getQKDLinkConfig(remoteDeviceID);
+        timer.schedule(new WaitForConnect(cfg, timer), 10000); // calling the TimerTask
+      }
+
     }
 }
 
