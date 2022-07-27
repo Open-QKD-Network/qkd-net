@@ -36,8 +36,6 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 
-import com.uwaterloo.iqc.qnl.ConfigArgs;
-
 public class ISiteAgentServer { // wrapper class for start() stop() functionality
     private static Logger LOGGER = LoggerFactory.getLogger(ISiteAgentServer.class);
 
@@ -249,7 +247,6 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
             for(ControlDetails cd : devices) {
                 if(cd.getConfig().getId().equals(deviceID)) {
                     devices.remove(cd);
-                    ConfigArgs.registered = false;
                     return;
                 }
             }

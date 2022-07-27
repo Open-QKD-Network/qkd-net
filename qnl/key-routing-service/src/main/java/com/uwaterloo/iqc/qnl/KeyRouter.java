@@ -24,25 +24,27 @@ import java.util.Timer;
 
 public class KeyRouter implements ISiteAgentServerListener {
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
+    private static QNLConfiguration qConfig;
+    private Timer timer = new Timer();
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
-          ConfigArgs.qConfig = new QNLConfiguration(null);
+          qConfig = new QNLConfiguration(null);
         else
-          ConfigArgs.qConfig = new QNLConfiguration(args[0]);
+          qConfig = new QNLConfiguration(args[0]);
 
-        final KeyTransferServer server = new KeyTransferServer(ConfigArgs.qConfig);
-          ConfigArgs.qConfig.createOTPKeys(server);
+        final KeyTransferServer server = new KeyTransferServer( qConfig);
+          qConfig.createOTPKeys(server);
         server.start();
 
-        ConfigArgs.client = new GrpcClient();
+        GrpcClient client = new GrpcClient();
         //client.getSiteDetails("localhost", 8000);
         //client.startNode("localhost", 8000, "localhost", 8001);
 	
         //TODO: investigate auto-generating siteagent.json, and/or find a way to communicate requirement of having such a file
 
         LOGGER.info("starting site agent a");
-        final ISiteAgentServer siteAgent = new ISiteAgentServer(ConfigArgs.qConfig.getSiteAgentConfig().url, ConfigArgs.qConfig.getSiteAgentConfig().port);
+        final ISiteAgentServer siteAgent = new ISiteAgentServer(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port);
         try {
           siteAgent.start();
         } catch(IOException e) {
@@ -54,7 +56,7 @@ public class KeyRouter implements ISiteAgentServerListener {
 
         LOGGER.info("Key router started, args.length:" + args.length);
 
-        LSRPRouter lsrpRouter = new LSRPRouter(ConfigArgs.qConfig);
+        LSRPRouter lsrpRouter = new LSRPRouter( qConfig);
         lsrpRouter.start();
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -64,9 +66,9 @@ public class KeyRouter implements ISiteAgentServerListener {
             b.group(bossGroup, workerGroup)
             .channel(NioServerSocketChannel.class)
             .handler(new LoggingHandler(LogLevel.INFO))
-            .childHandler(new KeyServerRouterInitializer(ConfigArgs.qConfig))
+            .childHandler(new KeyServerRouterInitializer( qConfig))
             .childOption(ChannelOption.AUTO_READ, false)
-            .bind(ConfigArgs.qConfig.getConfig().getPort()).sync().channel().closeFuture().sync();
+            .bind(qConfig.getConfig().getPort()).sync().channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
@@ -79,22 +81,17 @@ public class KeyRouter implements ISiteAgentServerListener {
       //this function creates a timer object and thread which checks when peer dummy driver is registered on peer site agent
       //and when the above condition is met, call startNode on alice site.
 
-      Timer timer = new Timer();
-      ConfigArgs.registered = false;
-
-      final String localSite = ConfigArgs.qConfig.getConfig().getSiteId();
+      final String localSite = qConfig.getConfig().getSiteId();
 
       for (Map.Entry<String, QKDLinkConfig> cfgEntry:
-                    ConfigArgs.qConfig.getQKDLinkConfigMap().entrySet()) {
+                     qConfig.getQKDLinkConfigMap().entrySet()) {
                     String remoteSite = cfgEntry.getKey();
                     QKDLinkConfig cfg = cfgEntry.getValue();
 
                     // Start timer thread if we are alice (our site id is lexicographically
                     // smaller)
                    if (localSite.compareTo(remoteSite) < 0) { // i.e. we are alice
-                       while(!ConfigArgs.registered) {
-                          timer.schedule(new WaitForConnect(cfg), 10000); // calling the TimerTask
-                       }
+                      timer.schedule(new WaitForConnect(cfg, timer), 10000); // calling the TimerTask
                    }
                 }
     }
