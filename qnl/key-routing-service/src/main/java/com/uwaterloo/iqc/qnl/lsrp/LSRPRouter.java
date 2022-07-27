@@ -270,6 +270,7 @@ public class LSRPRouter {
     // write toplogy to file
     createMapping();
     writeNetworkToFile();
+    writeNetworkToFileJson();
     // forward the msg to all neighbours except the one recevied from
     for (Map.Entry<String, Node> entry : this.adjacentNeighbours.entrySet()) {
       Node n = entry.getValue();
@@ -368,6 +369,7 @@ public class LSRPRouter {
     // write toplogy to file
     createMapping();
     writeNetworkToFile();
+    writeNetworkToFileJson();
   }
 
   private void startListening() throws Exception {
@@ -629,6 +631,35 @@ public class LSRPRouter {
       fw.close();
     } catch (Exception e) {
       LOGGER.info("Write routes to file exception:" + e);
+    }
+  }
+
+  private void writeNetworkToFileJson() {
+    JSONObject lsrpJson = new JSONObject();
+
+    for (Map.Entry<String, Node> entry : this.allNodes.entrySet()) {
+      Node node = entry.getValue();
+      Map<Node, Integer> adjacentNodes = node.getAdjacentNodes();
+
+      for (Map.Entry<Node, Integer> entry2 : adjacentNodes.entrySet()) {
+          Node neighbour = entry2.getKey();
+          int distance = entry2.getValue();
+          JSONObject adjacentNodesJson = new JSONObject();
+          if (distance < Integer.MAX_VALUE) {
+            adjacentNodesJson.put("neighbour", neighbour.getName());
+            adjacentNodesJson.put("distance", distance);
+          }
+          lsrpJson.put(node.getName(), adjacentNodesJson);
+      }
+    }
+
+    try {
+      String mappingRoute = System.getProperty("user.home") + "/qkd_logs/lsrp.json";
+      java.io.FileWriter fw = new java.io.FileWriter(mappingRoute);
+      fw.write(lsrpJson.toString());
+      fw.close();
+    } catch (Exception e) {
+      LOGGER.info("Write mapping to file exception:" + e);
     }
   }
 
