@@ -85,11 +85,13 @@ public class KeyRouter implements ISiteAgentServerListener {
       int count = 1;
 
       LOGGER.info("This is the id of the local site: " + localSite);
+      LOGGER.info("and this is the deviceID: " + deviceID);
 
       for (Map.Entry<String, QKDLinkConfig> cfgEntry:
                      qConfig.getQKDLinkConfigMap().entrySet()) {
                     String remoteSite = cfgEntry.getKey();
                     LOGGER.info("Remote site " + count + "'s id is: " + remoteSite);
+                    count++;
                     QKDLinkConfig cfg = cfgEntry.getValue();
 
                     // Start timer thread if we are alice (our site id is lexicographically
