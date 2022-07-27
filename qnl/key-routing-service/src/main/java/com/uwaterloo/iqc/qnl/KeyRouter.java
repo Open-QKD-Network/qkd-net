@@ -83,6 +83,7 @@ public class KeyRouter implements ISiteAgentServerListener {
       LOGGER.info("This is the deviceID: " + deviceID);
       String remoteDeviceID = deviceID.substring(0, 3);
       remoteDeviceID += deviceID.charAt(2);
+      LOGGER.info("and this is the remoteSiteID: " + remoteDeviceID);
 
       /*for (Map.Entry<String, QKDLinkConfig> cfgEntry:
                      qConfig.getQKDLinkConfigMap().entrySet()) {
@@ -100,7 +101,9 @@ public class KeyRouter implements ISiteAgentServerListener {
 
       if(deviceID.charAt(4) < deviceID.charAt(2))
       {
+        LOGGER.info("pranshu :)");
         QKDLinkConfig cfg = qConfig.getQKDLinkConfig(remoteDeviceID);
+        LOGGER.info("some stuff: " + cfg.localQKDDeviceId + " and " + cfg.localSiteAgentUrl + " maybe " + cfg.remoteQKDDeviceId + " finally " + cfg.remoteSiteAgentUrl);
         timer.schedule(new WaitForConnect(cfg, timer), 10000); // calling the TimerTask
       }
 
