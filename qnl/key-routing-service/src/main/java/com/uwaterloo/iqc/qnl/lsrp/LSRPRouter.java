@@ -655,7 +655,7 @@ public class LSRPRouter {
          }
       }
 
-      lsrpJson.addProperty(node.getName(), adjacentNodesJsonArray);
+      lsrpJson.addProperty(node.getName(), adjacentNodesJsonArray.toString());
     }
 
     try {
