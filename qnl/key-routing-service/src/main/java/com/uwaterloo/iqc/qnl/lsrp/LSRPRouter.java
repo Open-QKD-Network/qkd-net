@@ -635,7 +635,7 @@ public class LSRPRouter {
   }
 
   private void writeNetworkToFileJson() {
-    JSONObject lsrpJson = new JSONObject();
+    JsonObject lsrpJson = new JSONObject();
 
     for (Map.Entry<String, Node> entry : this.allNodes.entrySet()) {
       Node node = entry.getValue();
@@ -644,7 +644,7 @@ public class LSRPRouter {
       for (Map.Entry<Node, Integer> entry2 : adjacentNodes.entrySet()) {
           Node neighbour = entry2.getKey();
           int distance = entry2.getValue();
-          JSONObject adjacentNodesJson = new JSONObject();
+          JsonObject adjacentNodesJson = new JSONObject();
           if (distance < Integer.MAX_VALUE) {
             adjacentNodesJson.put("neighbour", neighbour.getName());
             adjacentNodesJson.put("distance", distance);
