@@ -640,7 +640,7 @@ public class LSRPRouter {
     for (Map.Entry<String, Node> entry : this.allNodes.entrySet()) {
       Node node = entry.getValue();
       Map<Node, Integer> adjacentNodes = node.getAdjacentNodes();
-      ArrayList<JsonObaject> adjacentNodesJsonArray = new ArrayList<JsonObaject>();
+      ArrayList<JsonObject> adjacentNodesJsonArray = new ArrayList<JsonObject>();
 
 
       for (Map.Entry<Node, Integer> entry2 : adjacentNodes.entrySet()) {
