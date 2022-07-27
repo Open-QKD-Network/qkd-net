@@ -106,7 +106,7 @@ public class KeyRouter implements ISiteAgentServerListener {
         LOGGER.info("pranshu :)");
         QKDLinkConfig cfg = qConfig.getQKDLinkConfig(remoteDeviceID.substring(4));
         LOGGER.info("some stuff: " + cfg.localQKDDeviceId + " and " + cfg.localSiteAgentUrl + " maybe " + cfg.remoteQKDDeviceId + " finally " + cfg.remoteSiteAgentUrl);
-        timers.get(timers.size() - 1).schedule(new WaitForConnect(cfg, timer), 10000); // calling the TimerTask
+        timers.get(timers.size() - 1).schedule(new WaitForConnect(cfg, timers.get(timers.size() - 1)), 10000); // calling the TimerTask
       }
 
     }
