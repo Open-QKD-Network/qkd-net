@@ -82,10 +82,14 @@ public class KeyRouter implements ISiteAgentServerListener {
       //and when the above condition is met, call startNode on alice site.
 
       final String localSite = qConfig.getConfig().getSiteId();
+      int count = 1;
+
+      LOGGER.info("This is the id of the local site: " + localSite);
 
       for (Map.Entry<String, QKDLinkConfig> cfgEntry:
                      qConfig.getQKDLinkConfigMap().entrySet()) {
                     String remoteSite = cfgEntry.getKey();
+                    LOGGER.info("Remote site " + count + "'s id is: " + remoteSite);
                     QKDLinkConfig cfg = cfgEntry.getValue();
 
                     // Start timer thread if we are alice (our site id is lexicographically
