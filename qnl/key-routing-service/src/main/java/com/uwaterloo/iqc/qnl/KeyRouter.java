@@ -102,7 +102,7 @@ public class KeyRouter implements ISiteAgentServerListener {
       if(deviceID.charAt(4) < deviceID.charAt(2))
       {
         LOGGER.info("pranshu :)");
-        QKDLinkConfig cfg = qConfig.getQKDLinkConfig(remoteDeviceID);
+        QKDLinkConfig cfg = qConfig.getQKDLinkConfig(remoteDeviceID.substring(4));
         LOGGER.info("some stuff: " + cfg.localQKDDeviceId + " and " + cfg.localSiteAgentUrl + " maybe " + cfg.remoteQKDDeviceId + " finally " + cfg.remoteSiteAgentUrl);
         timer.schedule(new WaitForConnect(cfg, timer), 10000); // calling the TimerTask
       }
