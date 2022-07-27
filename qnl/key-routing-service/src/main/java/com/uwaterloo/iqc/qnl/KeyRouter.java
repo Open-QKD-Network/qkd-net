@@ -81,7 +81,7 @@ public class KeyRouter implements ISiteAgentServerListener {
       //this function creates a timer object and thread which checks when peer dummy driver is registered on peer site agent
       //and when the above condition is met, call startNode on alice site.
       LOGGER.info("This is the deviceID: " + deviceID);
-      String remoteDeviceID = deviceID.substring(0, 3);
+      String remoteDeviceID = deviceID.substring(0, 4);
       remoteDeviceID += deviceID.charAt(2);
       LOGGER.info("and this is the remoteSiteID: " + remoteDeviceID);
 
