@@ -649,7 +649,7 @@ public class LSRPRouter {
             adjacentNodesJson.addProperty("neighbour", neighbour.getName());
             adjacentNodesJson.addProperty("distance", distance);
           }
-          lsrpJson.addProperty(node.getName(), adjacentNodesJson);
+          lsrpJson.addProperty(node.getName(), adjacentNodesJson.toString());
       }
     }
 
