@@ -85,6 +85,7 @@ public class KeyRouter implements ISiteAgentServerListener {
       String remoteDeviceID = deviceID.substring(0, 4);
       remoteDeviceID += deviceID.charAt(2);
       LOGGER.info("and this is the remoteSiteID: " + remoteDeviceID);
+      LOGGER.info("Current number of timers: " + timers.size());
 
       /*for (Map.Entry<String, QKDLinkConfig> cfgEntry:
                      qConfig.getQKDLinkConfigMap().entrySet()) {
