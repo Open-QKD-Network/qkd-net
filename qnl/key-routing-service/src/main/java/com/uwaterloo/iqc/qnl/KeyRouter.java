@@ -60,7 +60,7 @@ public class KeyRouter implements ISiteAgentServerListener {
 
         chilling.schedule(new DummyCheck(qConfig.getQKDLinkConfig("A")), 5000, 5000);
 
-        LSRPRouter lsrpRouter = new LSRPRouter( qConfig);
+        LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
         lsrpRouter.start();
 
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -101,7 +101,7 @@ public class KeyRouter implements ISiteAgentServerListener {
           startNodeTimers.get(remoteDeviceID).schedule(new WaitForConnect(cfg, startNodeTimers.get(remoteDeviceID)), 10000);
         }
       }*/
-      if(deviceID.charAt(4) > deviceID.charAt(2))
+      if(deviceID.charAt(4) < deviceID.charAt(2))
       {
         remoteDeviceID = deviceID.substring(0, 4);
         remoteDeviceID += deviceID.charAt(2); // A_B_B for example
