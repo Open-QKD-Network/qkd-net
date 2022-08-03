@@ -89,8 +89,10 @@ public class KeyRouter implements ISiteAgentServerListener {
       {
         remoteDeviceID = deviceID.substring(0, 4);
         remoteDeviceID += deviceID.charAt(0); // if A_B_B is calling, this is A_B_A
+        LOGGER.info("The remote device ID for this site is: " + remoteDeviceID);
         if(startNodeTimers.containsKey(remoteDeviceID))
         {
+          LOGGER.info("I actually made it here, but stuff went wrong from here.");
           startNodeTimers.get(remoteDeviceID).cancel();
           startNodeTimers.put(remoteDeviceID, new Timer());
           QKDLinkConfig cfg = qConfig.getQKDLinkConfig(deviceID.substring(4));
