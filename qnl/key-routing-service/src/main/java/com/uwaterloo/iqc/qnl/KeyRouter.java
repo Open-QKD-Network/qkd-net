@@ -22,11 +22,12 @@ import java.io.ObjectInputFilter.Config;
 import java.util.Map;
 import java.util.Timer;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class KeyRouter implements ISiteAgentServerListener {
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
     private static QNLConfiguration qConfig;
-    private ArrayList<Timer> timers = new ArrayList<Timer>();
+    private HashMap<String, Timer> startNodeTimers = new HashMap<String,Timer>();
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
@@ -81,11 +82,10 @@ public class KeyRouter implements ISiteAgentServerListener {
       //do not block this function
       //this function creates a timer object and thread which checks when peer dummy driver is registered on peer site agent
       //and when the above condition is met, call startNode on alice site.
-      LOGGER.info("This is the deviceID: " + deviceID);
+      LOGGER.info("This is the deviceID: " + deviceID); // A_B_A for example
       String remoteDeviceID = deviceID.substring(0, 4);
-      remoteDeviceID += deviceID.charAt(2);
+      remoteDeviceID += deviceID.charAt(2); // A_B_B for example
       LOGGER.info("and this is the remoteSiteID: " + remoteDeviceID);
-      LOGGER.info("Current number of timers: " + timers.size());
 
       /*for (Map.Entry<String, QKDLinkConfig> cfgEntry:
                      qConfig.getQKDLinkConfigMap().entrySet()) {
@@ -103,11 +103,12 @@ public class KeyRouter implements ISiteAgentServerListener {
 
       if(deviceID.charAt(4) < deviceID.charAt(2))
       {
-        timers.add(new Timer());
-        LOGGER.info("pranshu :)");
+        if(!startNodeTimers.containsKey(deviceID))
+          startNodeTimers.put(deviceID, new Timer());
+        LOGGER.info("Current number of timers: " + startNodeTimers.size());
         QKDLinkConfig cfg = qConfig.getQKDLinkConfig(remoteDeviceID.substring(4));
-        LOGGER.info("some stuff: " + cfg.localQKDDeviceId + " and " + cfg.localSiteAgentUrl + " maybe " + cfg.remoteQKDDeviceId + " finally " + cfg.remoteSiteAgentUrl);
-        timers.get(timers.size() - 1).schedule(new WaitForConnect(cfg, timers.get(timers.size() - 1)), 10000); // calling the TimerTask
+        LOGGER.info("The timer being called right now is: " + deviceID);
+        startNodeTimers.get(deviceID).schedule(new WaitForConnect(cfg, startNodeTimers.get(deviceID)), 10000); // calling the TimerTask
       }
 
     }
