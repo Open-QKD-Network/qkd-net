@@ -55,11 +55,10 @@ public class KeyRouter implements ISiteAgentServerListener {
         }
         LOGGER.info("finished starting site agent a");
 
-        chilling.schedule(new DummyCheck(qConfig.getQKDLinkConfig("A")), 5000, 5000);
-
         siteAgent.setMySiteAgentListener(new KeyRouter());
-
         LOGGER.info("Key router started, args.length:" + args.length);
+
+        chilling.schedule(new DummyCheck(qConfig.getQKDLinkConfig("A")), 5000, 5000);
 
         LSRPRouter lsrpRouter = new LSRPRouter( qConfig);
         lsrpRouter.start();
