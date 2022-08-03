@@ -28,7 +28,7 @@ public class KeyRouter implements ISiteAgentServerListener {
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
     private static QNLConfiguration qConfig;
     private HashMap<String, Timer> startNodeTimers = new HashMap<String,Timer>();
-    private static Timer chilling = new Timer(true);
+    //private static Timer chilling = new Timer(true);
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
@@ -58,7 +58,7 @@ public class KeyRouter implements ISiteAgentServerListener {
         siteAgent.setMySiteAgentListener(new KeyRouter());
         LOGGER.info("Key router started, args.length:" + args.length);
 
-        chilling.schedule(new DummyCheck(qConfig.getQKDLinkConfig("A")), 5000, 5000);
+        //chilling.schedule(new DummyCheck(qConfig.getQKDLinkConfig("A")), 5000, 5000);
 
         LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
         lsrpRouter.start();
@@ -106,13 +106,7 @@ public class KeyRouter implements ISiteAgentServerListener {
         remoteDeviceID = deviceID.substring(0, 4);
         remoteDeviceID += deviceID.charAt(2); // A_B_B for example
         LOGGER.info("and this is the remoteSiteID: " + remoteDeviceID);
-        if(!startNodeTimers.containsKey(deviceID))
-          startNodeTimers.put(deviceID, new Timer());
-        else // alice re-registering
-        {
-          startNodeTimers.get(deviceID).cancel();
-          startNodeTimers.put(deviceID, new Timer());
-        }
+        startNodeTimers.put(deviceID, new Timer());
         LOGGER.info("Current number of timers: " + startNodeTimers.size());
         QKDLinkConfig cfg = qConfig.getQKDLinkConfig(remoteDeviceID.substring(4));
         LOGGER.info("The timer being called right now is: " + deviceID);
