@@ -27,9 +27,9 @@ public class DummyCheck extends TimerTask{
         int remotePort = Integer.parseInt(cfg.remoteSiteAgentUrl.split(":")[1]);
         Site localSite = client.getSiteDetails(localAddress, localPort);
         Site remoteSite = client.getSiteDetails(remoteAddress, remotePort);
-        if(localSite.getDevicesCount() == 0)
-            LOGGER.info("local dummy driver isn't there on the local site agent right now. The local device ID is: " + cfg.localQKDDeviceId);
-        if(remoteSite.getDevicesCount() == 0)
-            LOGGER.info("remote dummy driver isn't there on the remote site agent right now. The remote device ID is: " + cfg.remoteQKDDeviceId);
+        //if(localSite.getDevicesCount() == 0)
+        LOGGER.info("The local device ID is: " + cfg.localQKDDeviceId + " number of devices on this site agent: " + localSite.getDevicesCount());
+        //if(remoteSite.getDevicesCount() == 0)
+        LOGGER.info("The remote device ID is: " + cfg.remoteQKDDeviceId + " number of devices on this site agent: " + remoteSite.getDevicesCount());
     }
 }
