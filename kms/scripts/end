@@ -1,0 +1,16 @@
+screen -S kms-svc -X quit
+screen -S kms-gw -X quit
+screen -S auth-svc -X quit
+screen -S reg-svc -X quit
+screen -S config-svc -X quit
+screen -S kms-qnl-svc -X quit
+screen -S kms-routing-svc -X quit
+rm -rf ~/.qkd/kms/pools
+rm -rf ~/.qkd/qnl/otp/keys
+rm -rf ~/.qkd/mapping.log
+rm -rf ~/qkd_logs/*.*
+rm -rf ~/.qkd/qnl/qll/keys/A/A_*
+rm -rf ~/.qkd/qnl/qll/keys/C/C_*
+rm -rf ~/.qkd/qnl/qll/keys/B/B_*
+rm -rf ~/.qkd/qnl/qll/keys/D/D_*
+rm -rf ~/.qkd/qnl/qll/keys/E/E_*
