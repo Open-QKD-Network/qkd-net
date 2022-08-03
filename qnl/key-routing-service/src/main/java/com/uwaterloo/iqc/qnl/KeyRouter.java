@@ -28,6 +28,7 @@ public class KeyRouter implements ISiteAgentServerListener {
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
     private static QNLConfiguration qConfig;
     private HashMap<String, Timer> startNodeTimers = new HashMap<String,Timer>();
+    private static Timer chilling = new Timer(true);
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
@@ -53,6 +54,8 @@ public class KeyRouter implements ISiteAgentServerListener {
           LOGGER.error("Unable to start site agent", e);
         }
         LOGGER.info("finished starting site agent a");
+
+        chilling.schedule(new DummyCheck(qConfig.getQKDLinkConfig("A")), 5000, 5000);
 
         siteAgent.setMySiteAgentListener(new KeyRouter());
 
@@ -85,7 +88,7 @@ public class KeyRouter implements ISiteAgentServerListener {
       LOGGER.info("This is the deviceID: " + deviceID); // A_B_A for example
       String remoteDeviceID;
 
-      if(deviceID.charAt(4) == deviceID.charAt(2)) // bob moment
+      /*if(deviceID.charAt(4) == deviceID.charAt(2)) // bob moment
       {
         remoteDeviceID = deviceID.substring(0, 4);
         remoteDeviceID += deviceID.charAt(0); // if A_B_B is calling, this is A_B_A
@@ -98,8 +101,8 @@ public class KeyRouter implements ISiteAgentServerListener {
           QKDLinkConfig cfg = qConfig.getQKDLinkConfig(deviceID.substring(4));
           startNodeTimers.get(remoteDeviceID).schedule(new WaitForConnect(cfg, startNodeTimers.get(remoteDeviceID)), 10000);
         }
-      }
-      else
+      }*/
+      if(deviceID.charAt(4) > deviceID.charAt(2))
       {
         remoteDeviceID = deviceID.substring(0, 4);
         remoteDeviceID += deviceID.charAt(2); // A_B_B for example
