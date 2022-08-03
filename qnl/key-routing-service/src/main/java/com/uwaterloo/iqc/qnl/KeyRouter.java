@@ -83,28 +83,32 @@ public class KeyRouter implements ISiteAgentServerListener {
       //this function creates a timer object and thread which checks when peer dummy driver is registered on peer site agent
       //and when the above condition is met, call startNode on alice site.
       LOGGER.info("This is the deviceID: " + deviceID); // A_B_A for example
-      String remoteDeviceID = deviceID.substring(0, 4);
-      remoteDeviceID += deviceID.charAt(2); // A_B_B for example
-      LOGGER.info("and this is the remoteSiteID: " + remoteDeviceID);
+      String remoteDeviceID;
 
-      /*for (Map.Entry<String, QKDLinkConfig> cfgEntry:
-                     qConfig.getQKDLinkConfigMap().entrySet()) {
-                    String remoteSite = cfgEntry.getKey();
-                    LOGGER.info("Remote site " + count + "'s id is: " + remoteSite);
-                    count++;
-                    QKDLinkConfig cfg = cfgEntry.getValue();
-
-                    // Start timer thread if we are alice (our site id is lexicographically
-                    // smaller)
-                   if (localSite.compareTo(remoteSite) < 0) { // i.e. we are alice
-                      timer.schedule(new WaitForConnect(cfg, timer), 10000); // calling the TimerTask
-                   }
-                }*/
-
-      if(deviceID.charAt(4) < deviceID.charAt(2))
+      if(deviceID.charAt(4) == deviceID.charAt(2)) // bob moment
       {
+        remoteDeviceID = deviceID.substring(0, 4);
+        remoteDeviceID += deviceID.charAt(0); // if A_B_B is calling, this is A_B_A
+        if(startNodeTimers.containsKey(remoteDeviceID))
+        {
+          startNodeTimers.get(remoteDeviceID).cancel();
+          startNodeTimers.put(remoteDeviceID, new Timer());
+          QKDLinkConfig cfg = qConfig.getQKDLinkConfig(deviceID.substring(4));
+          startNodeTimers.get(remoteDeviceID).schedule(new WaitForConnect(cfg, startNodeTimers.get(remoteDeviceID)), 10000);
+        }
+      }
+      else
+      {
+        remoteDeviceID = deviceID.substring(0, 4);
+        remoteDeviceID += deviceID.charAt(2); // A_B_B for example
+        LOGGER.info("and this is the remoteSiteID: " + remoteDeviceID);
         if(!startNodeTimers.containsKey(deviceID))
           startNodeTimers.put(deviceID, new Timer());
+        else // alice re-registering
+        {
+          startNodeTimers.get(deviceID).cancel();
+          startNodeTimers.put(deviceID, new Timer());
+        }
         LOGGER.info("Current number of timers: " + startNodeTimers.size());
         QKDLinkConfig cfg = qConfig.getQKDLinkConfig(remoteDeviceID.substring(4));
         LOGGER.info("The timer being called right now is: " + deviceID);
