@@ -28,7 +28,8 @@ public class KeyRouter implements ISiteAgentServerListener {
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
     private static QNLConfiguration qConfig;
     private HashMap<String, Timer> startNodeTimers = new HashMap<String,Timer>();
-    //private static Timer chilling = new Timer(true);
+    private static Timer chillingB = new Timer(true);
+    private static Timer chillingA = new Timer(true);
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
@@ -58,7 +59,8 @@ public class KeyRouter implements ISiteAgentServerListener {
         siteAgent.setMySiteAgentListener(new KeyRouter());
         LOGGER.info("Key router started, args.length:" + args.length);
 
-        //chilling.schedule(new DummyCheck(qConfig.getQKDLinkConfig("A")), 5000, 5000);
+        chillingB.schedule(new DummyCheck(qConfig.getQKDLinkConfig("A")), 5000, 5000);
+        chillingA.schedule(new DummyCheck(qConfig.getQKDLinkConfig("B")), 5000, 5000);
 
         LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
         lsrpRouter.start();
