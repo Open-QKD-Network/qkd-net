@@ -109,6 +109,29 @@ message DeviceID {
     string id = 1;
 }
 
+/// The condition of a link
+message LinkStatus {
+    /// The condition of the link
+    enum State {
+        /// There is no connection to the site specified
+        Inactive = 0;
+        /// The session controller can be connected to
+        Listening = 1;
+        /// Connected to the remote system
+        Connected = 2;
+        /// The are connected and waiting for the session to start
+        Ready = 3;
+        /// The two nodes are exchanging raw key
+        SessionStarted = 4;
+    };
+    /// The current state of the link
+    State state = 1;
+
+    /// An error code associated with the change in state
+    /// this is mapped from grpc::StatusCode
+    int64 errorCode = 2;
+}
+
 service ISiteAgent
 {
     rpc StartNode(PhysicalPath) returns (google.protobuf.Empty);
