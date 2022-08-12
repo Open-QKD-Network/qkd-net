@@ -67,7 +67,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
     static ISiteAgentServerListener myListener_ = null; // this is static only because the registerDevice is in a nested class
 
     public void setMySiteAgentListener(ISiteAgentServerListener listener) {
-        this.myListener_ = listener;
+        ISiteAgentServer.myListener_ = listener;
     }
 
     private static class ISiteAgent extends ISiteAgentImplBase {

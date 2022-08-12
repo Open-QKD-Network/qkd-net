@@ -1,9 +1,22 @@
+/*!
+* @file
+* @brief IDevice
+*
+* @copyright Copyright (C) University of Bristol 2019
+*    This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+*    If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+*    See LICENSE file for details.
+* @date 06/04/2019
+* @author Richard Collins <richard.collins@bristol.ac.uk>
+*/
+
 syntax = "proto3";
-option java_multiple_files = true;
+
+import public "google/protobuf/empty.proto";
+import public "Device.proto";
+
 package cqp.remote;
 option java_package = "com.cqp.remote";
-import public "google/protobuf/empty.proto";
-import "CQPToolKit.proto";
 
 /// A message containing only key bytes
 message RawKeys {
@@ -140,4 +153,18 @@ service IDevice
      */
     rpc EndSession(google.protobuf.Empty) returns (google.protobuf.Empty);
 
+    /**
+    * Receive updates on the state of key generation between this site and site
+    * specified in SiteList
+    * @param writer Each state change on a link between sites will generate a message detailing the change.
+    * @return status
+    */
+    rpc GetLinkStatus(google.protobuf.Empty) returns (stream LinkStatus);
+
+    /**
+     * Get the device details
+     * @param response The details
+     * @return status
+     */
+    rpc GetDetails(google.protobuf.Empty) returns (ControlDetails);
 }
