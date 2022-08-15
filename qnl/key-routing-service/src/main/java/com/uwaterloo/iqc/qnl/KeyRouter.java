@@ -28,8 +28,8 @@ public class KeyRouter implements ISiteAgentServerListener {
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
     private static QNLConfiguration qConfig;
     private HashMap<String, Timer> startNodeTimers = new HashMap<String,Timer>();
-    private static Timer chillingB = new Timer(true);
-    private static Timer chillingA = new Timer(true);
+    //private static Timer chillingB = new Timer(true);
+    //private static Timer chillingA = new Timer(true);
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
@@ -59,8 +59,16 @@ public class KeyRouter implements ISiteAgentServerListener {
         siteAgent.setMySiteAgentListener(new KeyRouter());
         LOGGER.info("Key router started, args.length:" + args.length);
 
-        chillingB.schedule(new DummyCheck(qConfig.getQKDLinkConfig("A")), 5000, 5000);
-        chillingA.schedule(new DummyCheck(qConfig.getQKDLinkConfig("B")), 5000, 5000);
+        //chillingB.schedule(new DummyCheck(qConfig.getQKDLinkConfig("A")), 5000, 5000);
+        //chillingA.schedule(new DummyCheck(qConfig.getQKDLinkConfig("B")), 5000, 5000);
+
+        String alphaAddress = qConfig.getQKDLinkConfig("A").localSiteAgentUrl.split(":")[0];
+        int alphaPort = Integer.parseInt(qConfig.getQKDLinkConfig("A").localSiteAgentUrl.split(":")[1]);
+        String betaAddress = qConfig.getQKDLinkConfig("A").remoteSiteAgentUrl.split(":")[0];
+        int betaPort = Integer.parseInt(qConfig.getQKDLinkConfig("A").remoteSiteAgentUrl.split(":")[1]);
+
+        client.getLinkStatus(alphaAddress, alphaPort);
+        client.getLinkStatus(betaAddress, betaPort);
 
         LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
         lsrpRouter.start();
