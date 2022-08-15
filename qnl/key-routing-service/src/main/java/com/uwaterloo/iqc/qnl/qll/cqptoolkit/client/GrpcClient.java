@@ -1,5 +1,7 @@
 package com.uwaterloo.iqc.qnl.qll.cqptoolkit.client;
 
+import java.util.Iterator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +14,24 @@ public class GrpcClient {
     private static Logger LOGGER = LoggerFactory.getLogger(GrpcClient.class);
 
     public GrpcClient() {
+    }
+
+    public void getLinkStatus(String address, int port)
+    {
+        try{
+            LOGGER.info("getLinkStatus " + address + ":" + port);
+            ManagedChannel channel = ManagedChannelBuilder.forAddress(address, port)
+                .usePlaintext()
+                .build();
+            ISiteAgentGrpc.ISiteAgentBlockingStub stub = ISiteAgentGrpc.newBlockingStub(channel);
+            Iterator<LinkStatus> status = stub.getLinkStatus(com.google.protobuf.Empty.getDefaultInstance());
+            while(status.hasNext()){
+                LinkStatus currentStatus = status.next();
+                LOGGER.info("This is vital information. The current state of the link is: " + currentStatus.getStateValue());
+            }
+        } catch (Exception e) {
+            LOGGER.info("getLinkStatus throws exception " + e);
+        }
     }
 
     public Site getSiteDetails(String address, int port) {
