@@ -23,7 +23,7 @@ public class GrpcClient {
             ManagedChannel channel = ManagedChannelBuilder.forAddress(address, port)
                 .usePlaintext()
                 .build();
-            ISiteAgentGrpc.ISiteAgentBlockingStub stub = ISiteAgentGrpc.newBlockingStub(channel);
+            IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
             Iterator<LinkStatus> status = stub.getLinkStatus(com.google.protobuf.Empty.getDefaultInstance());
             while(status.hasNext()){
                 LinkStatus currentStatus = status.next();
