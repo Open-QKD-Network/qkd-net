@@ -62,13 +62,7 @@ public class KeyRouter implements ISiteAgentServerListener {
         //chillingB.schedule(new DummyCheck(qConfig.getQKDLinkConfig("A")), 5000, 5000);
         //chillingA.schedule(new DummyCheck(qConfig.getQKDLinkConfig("B")), 5000, 5000);
 
-        /*String alphaAddress = qConfig.getQKDLinkConfig("A").localSiteAgentUrl.split(":")[0];
-        int alphaPort = Integer.parseInt(qConfig.getQKDLinkConfig("A").localSiteAgentUrl.split(":")[1]);
-        String betaAddress = qConfig.getQKDLinkConfig("A").remoteSiteAgentUrl.split(":")[0];
-        int betaPort = Integer.parseInt(qConfig.getQKDLinkConfig("A").remoteSiteAgentUrl.split(":")[1]);
-
-        client.getLinkStatus(alphaAddress, alphaPort);
-        client.getLinkStatus(betaAddress, betaPort);*/
+        client.getLinkStatus("172.31.20.54", 9000);
 
         LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
         lsrpRouter.start();
