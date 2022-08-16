@@ -3,8 +3,6 @@ package com.uwaterloo.iqc.qnl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.uwaterloo.iqc.qnl.qll.cqptoolkit.client.GrpcClient;
-
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
@@ -33,7 +31,8 @@ public class LinkCheck extends TimerTask{
             .build();
             IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
             Iterator<LinkStatus> status = stub.getLinkStatus(com.google.protobuf.Empty.getDefaultInstance());
-            LOGGER.info("This is vital information. The current state of the link is: " + status.next().getStateValue());
+            if(status.hasNext())
+                LOGGER.info("This is vital information. The current state of the link is: " + status.next().getStateValue());
             channel.shutdown();
         } catch (Exception e) {
             LOGGER.info("getLinkStatus throws exception " + e);
