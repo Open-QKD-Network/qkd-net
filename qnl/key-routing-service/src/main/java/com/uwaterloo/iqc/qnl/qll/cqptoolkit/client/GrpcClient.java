@@ -20,7 +20,7 @@ public class GrpcClient {
     {
         try{
             LOGGER.info("getLinkStatus " + address + ":" + port);
-            ManagedChannel channel = ManagedChannelBuilder.forAddress(address, port)
+            ManagedChannel channel = ManagedChannelBuilder.forAddress(address, 9000)
                 .usePlaintext()
                 .build();
             IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
@@ -29,6 +29,7 @@ public class GrpcClient {
                 LinkStatus currentStatus = status.next();
                 LOGGER.info("This is vital information. The current state of the link is: " + currentStatus.getStateValue());
             }
+            channel.shutdown();
         } catch (Exception e) {
             LOGGER.info("getLinkStatus throws exception " + e);
         }
