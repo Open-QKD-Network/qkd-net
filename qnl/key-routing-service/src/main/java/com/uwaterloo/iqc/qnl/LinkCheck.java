@@ -26,14 +26,19 @@ public class LinkCheck extends TimerTask{
     public void run()
     {
         try{
+            LOGGER.info("good 1");
             ManagedChannel channel = ManagedChannelBuilder.forAddress(address, port)
             .usePlaintext()
             .build();
+            LOGGER.info("good 2");
             IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
+            LOGGER.info("good 3");
             Iterator<LinkStatus> status = stub.getLinkStatus(com.google.protobuf.Empty.getDefaultInstance());
+            LOGGER.info("good 4");
             if(status.hasNext())
                 LOGGER.info("This is vital information. The current state of the link is: " + status.next().getStateValue());
             channel.shutdown();
+            LOGGER.info("good 5");
         } catch (Exception e) {
             LOGGER.info("getLinkStatus throws exception " + e);
         }
