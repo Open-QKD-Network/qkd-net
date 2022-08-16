@@ -1,6 +1,10 @@
 package com.uwaterloo.iqc.qnl.qll.cqptoolkit.client;
 
 import java.util.Iterator;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import com.uwaterloo.iqc.qnl.LinkCheck;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,27 +16,15 @@ import com.cqp.remote.*;
 
 public class GrpcClient {
     private static Logger LOGGER = LoggerFactory.getLogger(GrpcClient.class);
+    private Timer timer;
 
     public GrpcClient() {
     }
 
     public void getLinkStatus(String address, int port)
     {
-        try{
-            LOGGER.info("getLinkStatus " + address + ":" + port);
-            ManagedChannel channel = ManagedChannelBuilder.forAddress(address, 9000)
-                .usePlaintext()
-                .build();
-            IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
-            Iterator<LinkStatus> status = stub.getLinkStatus(com.google.protobuf.Empty.getDefaultInstance());
-            while(status.hasNext()){
-                LinkStatus currentStatus = status.next();
-                LOGGER.info("This is vital information. The current state of the link is: " + currentStatus.getStateValue());
-            }
-            channel.shutdown();
-        } catch (Exception e) {
-            LOGGER.info("getLinkStatus throws exception " + e);
-        }
+       timer = new Timer(); 
+       timer.schedule(new LinkCheck(address, 9000), 5000, 5000);
     }
 
     public Site getSiteDetails(String address, int port) {
