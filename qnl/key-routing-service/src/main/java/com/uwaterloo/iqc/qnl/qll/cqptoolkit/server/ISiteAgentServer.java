@@ -42,11 +42,12 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
     private final int port;
     private final Server server;
 
-    public ISiteAgent siteAgent;
+    private ISiteAgent siteAgent;
 
     public ISiteAgentServer(String address, int port) throws IOException {
         this.port = port;
         this.server = ServerBuilder.forPort(this.port).addService(new ISiteAgent(address + ":" + port)).build();
+        this.siteAgent = new ISiteAgent(address + ":" + port);
     }
 
     public void removeDevice(String deviceID){
