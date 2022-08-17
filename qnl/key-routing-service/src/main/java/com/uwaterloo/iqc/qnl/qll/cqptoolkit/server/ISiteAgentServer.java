@@ -46,8 +46,8 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
 
     public ISiteAgentServer(String address, int port) throws IOException {
         this.port = port;
-        this.server = ServerBuilder.forPort(this.port).addService(new ISiteAgent(address + ":" + port)).build();
         this.siteAgent = new ISiteAgent(address + ":" + port);
+        this.server = ServerBuilder.forPort(this.port).addService(this.siteAgent).build();
     }
 
     public void removeDevice(String deviceID){
