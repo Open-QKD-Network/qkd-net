@@ -239,7 +239,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
         
         @Override
         public void registerDevice(ControlDetails details, StreamObserver<Empty> responseObserver) {
-            LOGGER.info("Registering device with control address " + details.getControlAddress());
+            LOGGER.info("Registering device with control address " + details.getControlAddress() + " and the device id is: " + details.getConfig().getId());
             devices.add(details);
             if(ISiteAgentServer.myListener_ != null){
                 ISiteAgentServer.myListener_.onDeviceRegistered(details.getConfig().getId());
@@ -260,6 +260,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
 
         public void removeDevice(String deviceID){
             for(ControlDetails cd : devices) {
+                LOGGER.info("current device has ID: " + cd.getConfig().getId());
                 if(cd.getConfig().getId().equals(deviceID)) {
                     devices.remove(cd);
                     LOGGER.info("Unregistering device with id " + deviceID);
