@@ -36,8 +36,8 @@ public class LinkCheck extends TimerTask{
                 dummyDriverAddress = site.getDevices(index).getControlAddress().split(":")[0];
                 dummyDriverPort = Integer.parseInt(site.getDevices(index).getControlAddress().split(":")[1]);
                 if(!client.getLinkStatus(dummyDriverAddress, dummyDriverPort)){ // unregistering time
-                    siteAgentServer.removeDevice(site.getDevices(index).getConfig().getId());
                     LOGGER.info("Inside the if condition, device should have been removed from devices.");
+                    siteAgentServer.removeDevice(site.getDevices(index).getConfig().getId());
                 }
             }
         }
