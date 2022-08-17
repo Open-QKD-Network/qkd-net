@@ -3,10 +3,10 @@ package com.uwaterloo.iqc.qnl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-
 import com.cqp.remote.*;
+
+import com.uwaterloo.iqc.qnl.qll.cqptoolkit.client.GrpcClient;
+import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.ISiteAgentServer;
 
 import java.util.Iterator;
 import java.util.Timer;
@@ -14,33 +14,31 @@ import java.util.TimerTask;
 
 public class LinkCheck extends TimerTask{
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
-    private String address;
-    private int port;
+    private ISiteAgentServer siteAgentServer;
+    private GrpcClient client = new GrpcClient();
+    private String siteAgentAddress;
+    private int siteAgentPort;
 
-    public LinkCheck(String address, int port)
+    public LinkCheck(String siteAgentAddress, int siteAgentPort, ISiteAgentServer siteAgentServer)
     {
-        this.address = address;
-        this.port = port;
+        this.siteAgentAddress = siteAgentAddress;
+        this.siteAgentPort = siteAgentPort;
+        this.siteAgentServer = siteAgentServer;
     }
 
     public void run()
     {
-        try{
-            LOGGER.info("good 1");
-            ManagedChannel channel = ManagedChannelBuilder.forAddress(address, port)
-            .usePlaintext()
-            .build();
-            LOGGER.info("good 2");
-            IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
-            LOGGER.info("good 3");
-            Iterator<LinkStatus> status = stub.getLinkStatus(com.google.protobuf.Empty.getDefaultInstance());
-            LOGGER.info("good 4");
-            if(status.hasNext())
-                LOGGER.info("This is vital information. The current state of the link is: " + status.next().getStateValue());
-            channel.shutdown();
-            LOGGER.info("good 5");
-        } catch (Exception e) {
-            LOGGER.info("getLinkStatus throws exception " + e);
+        String dummyDriverAddress;
+        int dummyDriverPort;
+        Site site = client.getSiteDetails(siteAgentAddress, siteAgentPort);
+        if(site.getDevicesCount() > 0){
+            for(int index = 0; index < site.getDevicesCount(); ++index){
+                dummyDriverAddress = site.getDevices(index).getControlAddress().split(":")[0];
+                dummyDriverPort = Integer.parseInt(site.getDevices(index).getControlAddress().split(":")[1]);
+                if(!client.getLinkStatus(dummyDriverAddress, dummyDriverPort)){ // unregistering time
+                    siteAgentServer.removeDevice(site.getDevices(index).getConfig().getId());
+                }
+            }
         }
     }
 }

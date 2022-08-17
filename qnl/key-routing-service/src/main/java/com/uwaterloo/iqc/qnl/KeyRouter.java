@@ -28,8 +28,7 @@ public class KeyRouter implements ISiteAgentServerListener {
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
     private static QNLConfiguration qConfig;
     private HashMap<String, Timer> startNodeTimers = new HashMap<String,Timer>();
-    //private static Timer chillingB = new Timer(true);
-    //private static Timer chillingA = new Timer(true);
+    private static Timer timer = new Timer();
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
@@ -37,7 +36,7 @@ public class KeyRouter implements ISiteAgentServerListener {
         else
           qConfig = new QNLConfiguration(args[0]);
 
-        final KeyTransferServer server = new KeyTransferServer( qConfig);
+        final KeyTransferServer server = new KeyTransferServer(qConfig);
           qConfig.createOTPKeys(server);
         server.start();
 
@@ -57,12 +56,12 @@ public class KeyRouter implements ISiteAgentServerListener {
         LOGGER.info("finished starting site agent a");
 
         siteAgent.setMySiteAgentListener(new KeyRouter());
+
+        //add timers to check registry of dummy drivers here.
+        timer.schedule(new LinkCheck("172.31.20.54", 9002, siteAgent), 5000, 5000); //temporary
+
+
         LOGGER.info("Key router started, args.length:" + args.length);
-
-        //chillingB.schedule(new DummyCheck(qConfig.getQKDLinkConfig("A")), 5000, 5000);
-        //chillingA.schedule(new DummyCheck(qConfig.getQKDLinkConfig("B")), 5000, 5000);
-
-        client.getLinkStatus("172.31.20.54", 9000);
 
         LSRPRouter lsrpRouter = new LSRPRouter(qConfig);
         lsrpRouter.start();

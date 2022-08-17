@@ -49,6 +49,10 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
         this.server = ServerBuilder.forPort(this.port).addService(new ISiteAgent(address + ":" + port)).build();
     }
 
+    public void removeDevice(String deviceID){
+        siteAgent.removeDevice(deviceID);
+    }
+
     public void start() throws IOException {
         this.server.start();
         LOGGER.info("start() success");
@@ -251,6 +255,17 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                 }
             }
             LOGGER.info("Could not find device with id " + deviceID.getId());
+        }
+
+        public void removeDevice(String deviceID){
+            for(ControlDetails cd : devices) {
+                if(cd.getConfig().getId().equals(deviceID)) {
+                    devices.remove(cd);
+                    LOGGER.info("Unregistering device with id " + deviceID);
+                    return;
+                }
+            }
+            LOGGER.info("Could not find device with id " + deviceID);
         }
     }
     
