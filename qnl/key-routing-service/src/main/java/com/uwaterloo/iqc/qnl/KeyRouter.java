@@ -59,7 +59,7 @@ public class KeyRouter{
         LinkCheck l = new LinkCheck(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port, siteAgent, timers, qConfig);
 
         //add timers to check registry of dummy drivers here.
-        timer.schedule(l, 5000, 5000); //temporary
+        timer.schedule(l, 5000, 5000);
 
 
         LOGGER.info("Key router started, args.length:" + args.length);

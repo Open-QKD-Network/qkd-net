@@ -20,19 +20,22 @@ public class GrpcClient {
 
     public int getLinkStatus(String dummyAddress, int dummyPort)
     {
+        int returnValue = -1;
         try{
             ManagedChannel channel = ManagedChannelBuilder.forAddress(dummyAddress, dummyPort)
             .usePlaintext()
             .build();
             IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
             Iterator<LinkStatus> status = stub.getLinkStatus(com.google.protobuf.Empty.getDefaultInstance());
-            if(status.hasNext())
-                LOGGER.info("The link is currently up. The current state of the link is: " + status.next().getStateValue());
+            if(status.hasNext()){
+                returnValue = status.next().getStateValue();
+                LOGGER.info("The link is currently up. The current state of the link is: " + returnValue);
+            }   
             channel.shutdown();
-            return status.next().getStateValue();
+            return returnValue;
         } catch (Exception e) {
             LOGGER.info("The link is currently down, unregister device if its registered on the siteagent.");
-            return -1;
+            return returnValue;
         }
     }
 
