@@ -34,34 +34,62 @@ public class LinkCheck extends TimerTask{
         this.qConfig = qConfig;
     }
 
+    private int findIndex(Site site, String deviceID){
+        for(int i = 0; i < site.getDevicesCount(); ++i){
+            if(site.getDevices(i).getConfig().getId().equals(deviceID)){
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public void run()
     {
         String deviceID;
         String dummyDriverAddress;
         int dummyDriverPort;
+        String remoteDeviceID;
         String remoteSiteAgentAddress;
         int remoteSiteAgentPort;
         String remoteDummyDriverAddress;
         int remoteDummyDriverPort;
+        int remoteIndex;
         Site localSite = client.getSiteDetails(siteAgentAddress, siteAgentPort);
         Site remoteSite;
+
         if(localSite.getDevicesCount() > 0){
             LOGGER.info("the amount of devices on our site is: " + localSite.getDevicesCount());
             for(int index = 0; index < localSite.getDevicesCount(); ++index){
+                
                 dummyDriverAddress = localSite.getDevices(index).getControlAddress().split(":")[0];
                 dummyDriverPort = Integer.parseInt(localSite.getDevices(index).getControlAddress().split(":")[1]);
                 deviceID = localSite.getDevices(index).getConfig().getId();
+                remoteDeviceID = deviceID.substring(0, 3);
+
                 if(deviceID.charAt(4) < deviceID.charAt(2)){  // alice moment
+
+                    remoteDeviceID += deviceID.charAt(2);
                     QKDLinkConfig cfg = qConfig.getQKDLinkConfig(Character.toString(deviceID.charAt(2))); // for example, "B"
                     remoteSiteAgentAddress = cfg.remoteSiteAgentUrl.split(":")[0];
                     remoteSiteAgentPort = Integer.parseInt(cfg.remoteSiteAgentUrl.split(":")[1]);
                     remoteSite = client.getSiteDetails(remoteSiteAgentAddress, remoteSiteAgentPort);
-                    remoteDummyDriverAddress = remoteSite.getDevices(index).getControlAddress().split(":")[0];
-                    remoteDummyDriverPort = Integer.parseInt(remoteSite.getDevices(index).getControlAddress().split(":")[1]);
+
+                    if(remoteSite.getDevicesCount() > 0){
+                        remoteIndex = findIndex(remoteSite, remoteDeviceID);
+                        if(remoteIndex == -1){
+                            LOGGER.info("this remote dummy driver was not registered yet.");
+                            return;
+                        }
+                        remoteDummyDriverAddress = remoteSite.getDevices(remoteIndex).getControlAddress().split(":")[0];
+                        remoteDummyDriverPort = Integer.parseInt(remoteSite.getDevices(remoteIndex).getControlAddress().split(":")[1]);
+                    }
+
+                    LOGGER.info("mmkay, remote info: " + remoteDummyDriverAddress + " and port " + remoteDummyDriverPort);
+
                     if(client.getLinkStatus(dummyDriverAddress, dummyDriverPort)){ // alice is up
                         if(client.getLinkStatus(remoteDummyDriverAddress, remoteDummyDriverPort) && !nodeStarted){
                             //startNode here.
-                            LOGGER.info("we're going to start again!");
+                            LOGGER.info("we're going to start!");
                             timers.addTimer(deviceID); // this is because even if there was a timer for this connection earlier, it has been removed by now.
                             timers.getTimer(deviceID).schedule(new WaitForConnect(cfg, timers.getTimer(deviceID)), 0);
                             nodeStarted = true;  
@@ -74,12 +102,16 @@ public class LinkCheck extends TimerTask{
                         timers.removeTimer(deviceID);
                         siteAgentServer.removeDevice(deviceID);
                     }
+
                     if(!client.getLinkStatus(remoteDummyDriverAddress, remoteDummyDriverPort)){ // bob is down
                         // since bob is down, we still need to kill the startNode associated with us.
                         // we will not remove the device, since bob's dummy driver is not registered on our site (doesn't exist in our set)
                         LOGGER.info("bye bye bob, from alice!");
                         timers.removeTimer(deviceID);
                         nodeStarted = false;
+                    }
+                    else{
+                        LOGGER.info("bob is currently up for alice.");
                     }
                 }
                 else{ //bob moment

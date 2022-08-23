@@ -24,7 +24,7 @@ import java.util.Timer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class KeyRouter implements ISiteAgentServerListener {
+public class KeyRouter{
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
     private static QNLConfiguration qConfig;
     private static TimerWrapper timers = new TimerWrapper();
@@ -84,7 +84,7 @@ public class KeyRouter implements ISiteAgentServerListener {
         }
     }
 
-    @Override
+    /*@Override
     public void onDeviceRegistered(String deviceID) {
       //do not block this function
       //this function creates a timer object and thread which checks when peer dummy driver is registered on peer site agent
@@ -105,7 +105,7 @@ public class KeyRouter implements ISiteAgentServerListener {
           QKDLinkConfig cfg = qConfig.getQKDLinkConfig(deviceID.substring(4));
           startNodeTimers.get(remoteDeviceID).schedule(new WaitForConnect(cfg, startNodeTimers.get(remoteDeviceID)), 10000);
         }
-      }*/
+      }
       if(deviceID.charAt(4) < deviceID.charAt(2))
       {
         remoteDeviceID = deviceID.substring(0, 4);
@@ -118,6 +118,6 @@ public class KeyRouter implements ISiteAgentServerListener {
         timers.getTimer(deviceID).schedule(new WaitForConnect(cfg, timers.getTimer(deviceID)), 0); // calling the TimerTask
       }
 
-    }
+    }*/
 }
 
