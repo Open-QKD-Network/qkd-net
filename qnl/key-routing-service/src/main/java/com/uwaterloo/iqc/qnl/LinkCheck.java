@@ -116,7 +116,7 @@ public class LinkCheck extends TimerTask{
                     }
                 }
                 else{ //bob moment
-                    if(localStatus != -1){ // bob is down
+                    if(localStatus == -1){ // bob is down
                         LOGGER.info("bye bye bob, from bob!");
                         siteAgentServer.removeDevice(deviceID);
                     }
