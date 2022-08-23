@@ -73,16 +73,14 @@ public class LinkCheck extends TimerTask{
                     remoteSiteAgentAddress = cfg.remoteSiteAgentUrl.split(":")[0];
                     remoteSiteAgentPort = Integer.parseInt(cfg.remoteSiteAgentUrl.split(":")[1]);
                     remoteSite = client.getSiteDetails(remoteSiteAgentAddress, remoteSiteAgentPort);
-
-                    if(remoteSite.getDevicesCount() > 0){
-                        remoteIndex = findIndex(remoteSite, remoteDeviceID);
-                        if(remoteIndex == -1){
-                            LOGGER.info("this remote dummy driver was not registered yet.");
-                            return;
-                        }
-                        remoteDummyDriverAddress = remoteSite.getDevices(remoteIndex).getControlAddress().split(":")[0];
-                        remoteDummyDriverPort = Integer.parseInt(remoteSite.getDevices(remoteIndex).getControlAddress().split(":")[1]);
+              
+                    remoteIndex = findIndex(remoteSite, remoteDeviceID);
+                    if(remoteIndex == -1){
+                         LOGGER.info("this remote dummy driver was not registered yet.");
+                        return;
                     }
+                    remoteDummyDriverAddress = remoteSite.getDevices(remoteIndex).getControlAddress().split(":")[0];
+                    remoteDummyDriverPort = Integer.parseInt(remoteSite.getDevices(remoteIndex).getControlAddress().split(":")[1]);
 
                     LOGGER.info("mmkay, remote info: " + remoteDummyDriverAddress + " and port " + remoteDummyDriverPort);
 
