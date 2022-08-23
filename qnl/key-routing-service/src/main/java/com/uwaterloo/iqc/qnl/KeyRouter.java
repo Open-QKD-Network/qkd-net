@@ -27,7 +27,7 @@ import java.util.HashMap;
 public class KeyRouter implements ISiteAgentServerListener {
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
     private static QNLConfiguration qConfig;
-    private HashMap<String, Timer> startNodeTimers = new HashMap<String,Timer>();
+    private static TimerWrapper timers = new TimerWrapper();
     private static Timer timer = new Timer();
 
     public static void main(String[] args) throws Exception {
@@ -57,8 +57,10 @@ public class KeyRouter implements ISiteAgentServerListener {
 
         siteAgent.setMySiteAgentListener(new KeyRouter());
 
+        LinkCheck l = new LinkCheck("172.31.20.54", 9002, siteAgent, startNodeTimers, false, qConfig);
+
         //add timers to check registry of dummy drivers here.
-        timer.schedule(new LinkCheck("172.31.20.54", 9002, siteAgent), 5000, 5000); //temporary
+        timer.schedule(l, 5000, 5000); //temporary
 
 
         LOGGER.info("Key router started, args.length:" + args.length);
@@ -109,11 +111,11 @@ public class KeyRouter implements ISiteAgentServerListener {
         remoteDeviceID = deviceID.substring(0, 4);
         remoteDeviceID += deviceID.charAt(2); // A_B_B for example
         LOGGER.info("and this is the remoteSiteID: " + remoteDeviceID);
-        startNodeTimers.put(deviceID, new Timer());
-        LOGGER.info("Current number of timers: " + startNodeTimers.size());
+        timers.addTimer(deviceID);
+        LOGGER.info("Current number of timers: " + timers.getSize());
         QKDLinkConfig cfg = qConfig.getQKDLinkConfig(remoteDeviceID.substring(4));
         LOGGER.info("The timer being called right now is: " + deviceID);
-        startNodeTimers.get(deviceID).schedule(new WaitForConnect(cfg, startNodeTimers.get(deviceID)), 10000); // calling the TimerTask
+        timers.getTimer(deviceID).schedule(new WaitForConnect(cfg, timers.getTimer(deviceID)), 0); // calling the TimerTask
       }
 
     }

@@ -54,6 +54,10 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
         siteAgent.removeDevice(deviceID);
     }
 
+    public boolean deviceExists(String deviceID){
+        return siteAgent.deviceExists(deviceID);
+    }
+
     public void start() throws IOException {
         this.server.start();
         LOGGER.info("start() success");
@@ -256,6 +260,15 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                 }
             }
             LOGGER.info("Could not find device with id " + deviceID.getId());
+        }
+
+        public boolean deviceExists(String deviceID){
+            for(ControlDetails cd : devices){
+                if(cd.getConfig().getId().equals(deviceID)){
+                    return true;
+                }
+            }
+            return false;
         }
 
         public void removeDevice(String deviceID){
