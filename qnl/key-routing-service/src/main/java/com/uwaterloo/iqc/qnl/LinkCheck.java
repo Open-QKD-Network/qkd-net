@@ -64,7 +64,7 @@ public class LinkCheck extends TimerTask{
                 dummyDriverAddress = localSite.getDevices(index).getControlAddress().split(":")[0];
                 dummyDriverPort = Integer.parseInt(localSite.getDevices(index).getControlAddress().split(":")[1]);
                 deviceID = localSite.getDevices(index).getConfig().getId();
-                remoteDeviceID = deviceID.substring(0, 3);
+                remoteDeviceID = deviceID.substring(0, 4);
 
                 if(deviceID.charAt(4) < deviceID.charAt(2)){  // alice moment
 
