@@ -96,6 +96,9 @@ public class LinkCheck extends TimerTask{
                                 timers.getTimer(deviceID).schedule(new WaitForConnect(cfg, timers.getTimer(deviceID)), 0);
                             }
                         }
+                        else{
+                            LOGGER.info("fyi, bob down for alice.");
+                        }
                     }
                     else if(siteAgentServer.deviceExists(deviceID)){ // alice is down
                         // this means that the link is down, but the dummy driver hasn't been removed yet from our set of devices

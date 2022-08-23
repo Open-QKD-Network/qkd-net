@@ -37,6 +37,8 @@ public class TimerWrapper{
 
     public void removeTimer(String deviceID){
         Timer t = startNodeTimers.remove(deviceID);
-        t.cancel();
+        if(t != null){
+            t.cancel();
+        }
     }
 }
