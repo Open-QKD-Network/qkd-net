@@ -55,7 +55,7 @@ public class KeyRouter{
         }
         LOGGER.info("finished starting site agent a");
 
-        siteAgent.setMySiteAgentListener(new KeyRouter());
+        //siteAgent.setMySiteAgentListener(new KeyRouter());
 
         LinkCheck l = new LinkCheck(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port, siteAgent, timers, false, qConfig);
 
