@@ -14,7 +14,6 @@ import com.uwaterloo.iqc.qnl.lsrp.LSRPRouter;
 import com.uwaterloo.iqc.qnl.qll.cqptoolkit.client.GrpcClient;
 import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.ISiteAgentServer;
 import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.KeyTransferServer;
-import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.ISiteAgentServer.ISiteAgentServerListener;
 import com.cqp.remote.*;
 
 import java.io.IOException;
@@ -40,7 +39,7 @@ public class KeyRouter{
           qConfig.createOTPKeys(server);
         server.start();
 
-        GrpcClient client = new GrpcClient();
+        //GrpcClient client = new GrpcClient();
         //client.getSiteDetails("localhost", 8000);
         //client.startNode("localhost", 8000, "localhost", 8001);
 	
