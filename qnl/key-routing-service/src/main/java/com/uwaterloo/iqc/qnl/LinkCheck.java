@@ -14,7 +14,7 @@ import java.util.TimerTask;
 import java.util.HashMap;
 
 public class LinkCheck extends TimerTask{
-    private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(LinkCheck.class);
     private ISiteAgentServer siteAgentServer;
     private GrpcClient client = new GrpcClient();
     private String siteAgentAddress;
@@ -99,6 +99,7 @@ public class LinkCheck extends TimerTask{
                         LOGGER.info("bye bye alice, from alice!");
                         timers.removeTimer(deviceID);
                         siteAgentServer.removeDevice(deviceID);
+                        nodeStarted = false;
                     }
 
                     if(!client.getLinkStatus(remoteDummyDriverAddress, remoteDummyDriverPort)){ // bob is down
