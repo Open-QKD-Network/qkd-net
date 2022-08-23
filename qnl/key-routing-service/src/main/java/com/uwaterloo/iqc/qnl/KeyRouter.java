@@ -57,8 +57,7 @@ public class KeyRouter implements ISiteAgentServerListener {
 
         siteAgent.setMySiteAgentListener(new KeyRouter());
 
-        LOGGER.info("yo, the siteagent url is: " + qConfig.getSiteAgentConfig().url);
-        LinkCheck l = new LinkCheck("172.31.20.54", 9002, siteAgent, timers, false, qConfig);
+        LinkCheck l = new LinkCheck(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port, siteAgent, timers, false, qConfig);
 
         //add timers to check registry of dummy drivers here.
         timer.schedule(l, 5000, 5000); //temporary
