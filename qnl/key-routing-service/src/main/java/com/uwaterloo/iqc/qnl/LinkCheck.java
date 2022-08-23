@@ -105,7 +105,7 @@ public class LinkCheck extends TimerTask{
                         siteAgentServer.removeDevice(deviceID);
                     }
 
-                    if(localStatus == -1){ // bob is down
+                    if(remoteStatus == -1){ // bob is down
                         // since bob is down, we still need to kill the startNode associated with us.
                         // we will not remove the device, since bob's dummy driver is not registered on our site (doesn't exist in our set)
                         LOGGER.info("bye bye bob, from alice!");
@@ -116,7 +116,7 @@ public class LinkCheck extends TimerTask{
                     }
                 }
                 else{ //bob moment
-                    if(client.getLinkStatus(dummyDriverAddress, dummyDriverPort) != -1){ // bob is down
+                    if(localStatus != -1){ // bob is down
                         LOGGER.info("bye bye bob, from bob!");
                         siteAgentServer.removeDevice(deviceID);
                     }
