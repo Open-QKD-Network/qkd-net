@@ -20,17 +20,17 @@ public class LinkCheck extends TimerTask{
     private String siteAgentAddress;
     private int siteAgentPort;
     private TimerWrapper timers;
-    private boolean nodeStarted;
     private QNLConfiguration qConfig;
+    private int localStatus;
+    private int remoteStatus;
 
 
-    public LinkCheck(String siteAgentAddress, int siteAgentPort, ISiteAgentServer siteAgentServer, TimerWrapper timers, boolean nodeStarted, QNLConfiguration qConfig)
+    public LinkCheck(String siteAgentAddress, int siteAgentPort, ISiteAgentServer siteAgentServer, TimerWrapper timers, QNLConfiguration qConfig)
     {
         this.siteAgentAddress = siteAgentAddress;
         this.siteAgentPort = siteAgentPort;
         this.siteAgentServer = siteAgentServer;
         this.timers = timers;
-        this.nodeStarted = nodeStarted;
         this.qConfig = qConfig;
     }
 
@@ -65,6 +65,7 @@ public class LinkCheck extends TimerTask{
                 dummyDriverPort = Integer.parseInt(localSite.getDevices(index).getControlAddress().split(":")[1]);
                 deviceID = localSite.getDevices(index).getConfig().getId();
                 remoteDeviceID = deviceID.substring(0, 4);
+                localStatus = client.getLinkStatus(dummyDriverAddress, dummyDriverPort);
 
                 if(deviceID.charAt(4) < deviceID.charAt(2)){  // alice moment
 
@@ -84,37 +85,38 @@ public class LinkCheck extends TimerTask{
 
                     LOGGER.info("mmkay, remote info: " + remoteDummyDriverAddress + " and port " + remoteDummyDriverPort);
 
-                    if(client.getLinkStatus(dummyDriverAddress, dummyDriverPort)){ // alice is up
-                        if(client.getLinkStatus(remoteDummyDriverAddress, remoteDummyDriverPort) && !nodeStarted){
+                    remoteStatus = client.getLinkStatus(remoteDummyDriverAddress, remoteDummyDriverPort);
+
+                    if(localStatus != -1){ // alice is up
+                        if(remoteStatus != -1){ //bob is up
                             //startNode here.
-                            LOGGER.info("we're going to start!");
-                            timers.addTimer(deviceID); // this is because even if there was a timer for this connection earlier, it has been removed by now.
-                            timers.getTimer(deviceID).schedule(new WaitForConnect(cfg, timers.getTimer(deviceID)), 0);
-                            nodeStarted = true;  
+                            if(localStatus == 0 && remoteStatus == 0){
+                                LOGGER.info("we're going to start!");
+                                timers.addTimer(deviceID); // this is because even if there was a timer for this connection earlier, it has been removed by now.
+                                timers.getTimer(deviceID).schedule(new WaitForConnect(cfg, timers.getTimer(deviceID)), 0);
+                            }
                         }
                     }
-                    else if(siteAgentServer.deviceExists(deviceID)){
+                    else if(siteAgentServer.deviceExists(deviceID)){ // alice is down
                         // this means that the link is down, but the dummy driver hasn't been removed yet from our set of devices
                         // also since we are alice, we will kill the startNode associated with us.
                         LOGGER.info("bye bye alice, from alice!");
                         timers.removeTimer(deviceID);
                         siteAgentServer.removeDevice(deviceID);
-                        nodeStarted = false;
                     }
 
-                    if(!client.getLinkStatus(remoteDummyDriverAddress, remoteDummyDriverPort)){ // bob is down
+                    if(localStatus == -1){ // bob is down
                         // since bob is down, we still need to kill the startNode associated with us.
                         // we will not remove the device, since bob's dummy driver is not registered on our site (doesn't exist in our set)
                         LOGGER.info("bye bye bob, from alice!");
                         timers.removeTimer(deviceID);
-                        nodeStarted = false;
                     }
                     else{
                         LOGGER.info("bob is currently up for alice.");
                     }
                 }
                 else{ //bob moment
-                    if(!client.getLinkStatus(dummyDriverAddress, dummyDriverPort)){ // bob is down
+                    if(client.getLinkStatus(dummyDriverAddress, dummyDriverPort) != -1){ // bob is down
                         LOGGER.info("bye bye bob, from bob!");
                         siteAgentServer.removeDevice(deviceID);
                     }

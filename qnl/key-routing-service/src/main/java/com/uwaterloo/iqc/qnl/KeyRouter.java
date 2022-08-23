@@ -56,7 +56,7 @@ public class KeyRouter{
 
         //siteAgent.setMySiteAgentListener(new KeyRouter());
 
-        LinkCheck l = new LinkCheck(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port, siteAgent, timers, false, qConfig);
+        LinkCheck l = new LinkCheck(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port, siteAgent, timers, qConfig);
 
         //add timers to check registry of dummy drivers here.
         timer.schedule(l, 5000, 5000); //temporary

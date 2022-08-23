@@ -18,7 +18,7 @@ public class GrpcClient {
     public GrpcClient() {
     }
 
-    public boolean getLinkStatus(String dummyAddress, int dummyPort)
+    public int getLinkStatus(String dummyAddress, int dummyPort)
     {
         try{
             ManagedChannel channel = ManagedChannelBuilder.forAddress(dummyAddress, dummyPort)
@@ -29,10 +29,10 @@ public class GrpcClient {
             if(status.hasNext())
                 LOGGER.info("The link is currently up. The current state of the link is: " + status.next().getStateValue());
             channel.shutdown();
-            return true;
+            return status.next().getStateValue();
         } catch (Exception e) {
             LOGGER.info("The link is currently down, unregister device if its registered on the siteagent.");
-            return false;
+            return -1;
         }
     }
 
