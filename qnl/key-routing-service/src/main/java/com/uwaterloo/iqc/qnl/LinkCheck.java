@@ -46,6 +46,7 @@ public class LinkCheck extends TimerTask{
         Site localSite = client.getSiteDetails(siteAgentAddress, siteAgentPort);
         Site remoteSite;
         if(localSite.getDevicesCount() > 0){
+            LOGGER.info("the amount of devices on our site is: " + localSite.getDevicesCount());
             for(int index = 0; index < localSite.getDevicesCount(); ++index){
                 dummyDriverAddress = localSite.getDevices(index).getControlAddress().split(":")[0];
                 dummyDriverPort = Integer.parseInt(localSite.getDevices(index).getControlAddress().split(":")[1]);
@@ -60,6 +61,7 @@ public class LinkCheck extends TimerTask{
                     if(client.getLinkStatus(dummyDriverAddress, dummyDriverPort)){ // alice is up
                         if(client.getLinkStatus(remoteDummyDriverAddress, remoteDummyDriverPort) && !nodeStarted){
                             //startNode here.
+                            LOGGER.info("we're going to start again!");
                             timers.addTimer(deviceID); // this is because even if there was a timer for this connection earlier, it has been removed by now.
                             timers.getTimer(deviceID).schedule(new WaitForConnect(cfg, timers.getTimer(deviceID)), 0);
                             nodeStarted = true;  
@@ -68,18 +70,21 @@ public class LinkCheck extends TimerTask{
                     else if(siteAgentServer.deviceExists(deviceID)){
                         // this means that the link is down, but the dummy driver hasn't been removed yet from our set of devices
                         // also since we are alice, we will kill the startNode associated with us.
+                        LOGGER.info("bye bye alice, from alice!");
                         timers.removeTimer(deviceID);
                         siteAgentServer.removeDevice(deviceID);
                     }
                     if(!client.getLinkStatus(remoteDummyDriverAddress, remoteDummyDriverPort)){ // bob is down
                         // since bob is down, we still need to kill the startNode associated with us.
                         // we will not remove the device, since bob's dummy driver is not registered on our site (doesn't exist in our set)
+                        LOGGER.info("bye bye bob, from alice!");
                         timers.removeTimer(deviceID);
                         nodeStarted = false;
                     }
                 }
                 else{ //bob moment
                     if(!client.getLinkStatus(dummyDriverAddress, dummyDriverPort)){ // bob is down
+                        LOGGER.info("bye bye bob, from bob!");
                         siteAgentServer.removeDevice(deviceID);
                     }
                 }
