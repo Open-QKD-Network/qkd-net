@@ -27,7 +27,7 @@ public class TimerWrapper{
     }
 
     public void addTimer(String deviceID){
-        LOGGER.info("creation of a new timer!");
+        LOGGER.info("creation of a new timer for" + deviceID + "!");
         startNodeTimers.put(deviceID, new Timer());
     }
 
@@ -39,6 +39,7 @@ public class TimerWrapper{
         Timer t = startNodeTimers.remove(deviceID);
         if(t != null){
             t.cancel();
+            LOGGER.info("timer for " + deviceID + " has been successfully killed.");
         }
     }
 }
