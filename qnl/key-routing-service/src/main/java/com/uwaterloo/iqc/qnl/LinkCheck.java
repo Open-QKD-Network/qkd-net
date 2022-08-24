@@ -70,6 +70,7 @@ public class LinkCheck extends TimerTask{
                 if(deviceID.charAt(4) < deviceID.charAt(2)){  // alice moment
 
                     remoteDeviceID += deviceID.charAt(2);
+                    LOGGER.info("ah, remote id is: " + remoteDeviceID);
                     QKDLinkConfig cfg = qConfig.getQKDLinkConfig(Character.toString(deviceID.charAt(2))); // for example, "B"
                     remoteSiteAgentAddress = cfg.remoteSiteAgentUrl.split(":")[0];
                     remoteSiteAgentPort = Integer.parseInt(cfg.remoteSiteAgentUrl.split(":")[1]);
@@ -86,6 +87,8 @@ public class LinkCheck extends TimerTask{
                     LOGGER.info("mmkay, remote info: " + remoteDummyDriverAddress + " and port " + remoteDummyDriverPort);
 
                     remoteStatus = client.getLinkStatus(remoteDummyDriverAddress, remoteDummyDriverPort);
+
+                    LOGGER.info("the status of " + remoteDeviceID + " is currently: " + remoteStatus);
 
                     if(localStatus != -1){ // alice is up
                         if(remoteStatus != -1){ //bob is up
