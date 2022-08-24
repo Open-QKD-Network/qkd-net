@@ -66,6 +66,7 @@ public class LinkCheck extends TimerTask{
                 deviceID = localSite.getDevices(index).getConfig().getId();
                 remoteDeviceID = deviceID.substring(0, 4);
                 localStatus = client.getLinkStatus(dummyDriverAddress, dummyDriverPort);
+                LOGGER.info("local link status is: " + localStatus);
 
                 if(deviceID.charAt(4) < deviceID.charAt(2)){  // alice moment
 
@@ -93,7 +94,7 @@ public class LinkCheck extends TimerTask{
                     if(localStatus != -1){ // alice is up
                         if(remoteStatus != -1){ //bob is up
                             //startNode here.
-                            if(localStatus == 0 && remoteStatus == 0){
+                            if(localStatus == 0 || remoteStatus == 0){
                                 LOGGER.info("we're going to start!");
                                 timers.addTimer(deviceID); // this is because even if there was a timer for this connection earlier, it has been removed by now.
                                 timers.getTimer(deviceID).schedule(new WaitForConnect(cfg, timers.getTimer(deviceID)), 0);
