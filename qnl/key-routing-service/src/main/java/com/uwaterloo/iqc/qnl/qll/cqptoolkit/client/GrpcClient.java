@@ -18,14 +18,14 @@ public class GrpcClient {
     public GrpcClient() {
     }
 
-    public int getLinkStatus(String dummyAddress, int dummyPort)
+    public int getLinkStatus(String dummyAddress, int dummyPort) // refer to CQPToolKit.proto to see what each value signifies
     {
-        int returnValue = -1;
+        int returnValue = -1; // we use -1 to indicate that there is no connection. 0 means the link exists, but nothing is happening.
         try{
             ManagedChannel channel = ManagedChannelBuilder.forAddress(dummyAddress, dummyPort)
             .usePlaintext()
             .build();
-            IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
+            IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel); // see IDeviceGrpc.java on a site after building.
             Iterator<LinkStatus> status = stub.getLinkStatus(com.google.protobuf.Empty.getDefaultInstance());
             if(status.hasNext()){
                 returnValue = status.next().getStateValue();

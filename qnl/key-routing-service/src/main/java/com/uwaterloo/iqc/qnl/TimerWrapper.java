@@ -10,7 +10,7 @@ public class TimerWrapper{
     private HashMap<String, Timer> startNodeTimers;
     private static Logger LOGGER = LoggerFactory.getLogger(TimerWrapper.class);
 
-    public TimerWrapper(){
+    public TimerWrapper(){ // creates a wrapper for our HashMap of timers, so we can edit and modify the list from any class.
         startNodeTimers = new HashMap<String,Timer>();
     }
 
@@ -27,7 +27,7 @@ public class TimerWrapper{
     }
 
     public void addTimer(String deviceID){
-        LOGGER.info("creation of a new timer for" + deviceID + "!");
+        LOGGER.info("creation of a new timer for " + deviceID + "!");
         startNodeTimers.put(deviceID, new Timer());
     }
 

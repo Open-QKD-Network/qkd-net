@@ -50,7 +50,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
         this.server = ServerBuilder.forPort(this.port).addService(this.siteAgent).build();
     }
 
-    public void removeDevice(String deviceID){
+    public void removeDevice(String deviceID){ //calls removeDevice
         siteAgent.removeDevice(deviceID);
     }
 
@@ -69,7 +69,11 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
         }
     }
 
-    /*public interface ISiteAgentServerListener {
+    /*
+    Listener functionality was implemented at the start, but was unnecessary later as we check every 5 seconds the status of the dummy drivers.
+    So we don't need to call startNode when the listener sees that a dummy driver is registered.
+    
+    public interface ISiteAgentServerListener {
         public void onDeviceRegistered(String deviceID);
     }
 
@@ -272,7 +276,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
             return false;
         }
 
-        public void removeDevice(String deviceID){
+        public void removeDevice(String deviceID){ //removes a specific dummy driver from our local set of devices. It will NOT be removed from the siteAgent.
             for(ControlDetails cd : devices) {
                 LOGGER.info("current device has ID: " + cd.getConfig().getId());
                 if(cd.getConfig().getId().equals(deviceID)) {

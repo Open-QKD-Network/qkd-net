@@ -26,8 +26,8 @@ import java.util.HashMap;
 public class KeyRouter{
     private static Logger LOGGER = LoggerFactory.getLogger(KeyRouter.class);
     private static QNLConfiguration qConfig;
-    private static TimerWrapper timers = new TimerWrapper();
-    private static Timer timer = new Timer();
+    private static TimerWrapper timers = new TimerWrapper(); // this is the hashmap of startNode timers.
+    private static Timer timer = new Timer(); // this is the timer that checks the linkStatus of the dummy drivers.
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0)
@@ -54,11 +54,12 @@ public class KeyRouter{
         }
         LOGGER.info("finished starting site agent a");
 
-        //siteAgent.setMySiteAgentListener(new KeyRouter());
+        //siteAgent.setMySiteAgentListener(new KeyRouter()); not needed now.
 
+        // passing the address of the current site along with the ISiteAgentServer object and other paramenters.
         LinkCheck l = new LinkCheck(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port, siteAgent, timers, qConfig);
 
-        //add timers to check registry of dummy drivers here.
+        //calling the timer to check the status of all dummy drivers associated with links with this site.
         timer.schedule(l, 5000, 5000);
 
 
@@ -83,7 +84,10 @@ public class KeyRouter{
         }
     }
 
-    /*@Override
+    /*
+    This was the functionality added when a listener existed. With the current implementation, there's no need for this.
+    
+    @Override
     public void onDeviceRegistered(String deviceID) {
       //do not block this function
       //this function creates a timer object and thread which checks when peer dummy driver is registered on peer site agent

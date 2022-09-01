@@ -34,7 +34,7 @@ public class LinkCheck extends TimerTask{
         this.qConfig = qConfig;
     }
 
-    private int findIndex(Site site, String deviceID){
+    private int findIndex(Site site, String deviceID){ // returns the index of the particular dummy driver on the given site.
         for(int i = 0; i < site.getDevicesCount(); ++i){
             if(site.getDevices(i).getConfig().getId().equals(deviceID)){
                 return i;
@@ -57,7 +57,7 @@ public class LinkCheck extends TimerTask{
         Site localSite = client.getSiteDetails(siteAgentAddress, siteAgentPort);
         Site remoteSite;
 
-        if(localSite.getDevicesCount() > 0){
+        if(localSite.getDevicesCount() > 0){ //the reason logging is worded a bit weirdly is to make it easier to grep and search for.
             LOGGER.info("the amount of devices on our site is: " + localSite.getDevicesCount());
             for(int index = 0; index < localSite.getDevicesCount(); ++index){
                 
@@ -68,7 +68,7 @@ public class LinkCheck extends TimerTask{
                 localStatus = client.getLinkStatus(dummyDriverAddress, dummyDriverPort);
                 LOGGER.info("local link status is: " + localStatus);
 
-                if(deviceID.charAt(4) < deviceID.charAt(2)){  // alice moment
+                if(deviceID.charAt(4) < deviceID.charAt(2)){  // local site is alice.
 
                     remoteDeviceID += deviceID.charAt(2);
                     LOGGER.info("ah, remote id is: " + remoteDeviceID);
@@ -93,8 +93,8 @@ public class LinkCheck extends TimerTask{
 
                     if(localStatus != -1){ // alice is up
                         if(remoteStatus != -1){ //bob is up
-                            //startNode here.
-                            if(localStatus == 0 || remoteStatus == 0){
+                            //call startNode here.
+                            if(localStatus == 0 || remoteStatus == 0){ // when a driver crashes and restarts, its status is 0.
                                 LOGGER.info("we're going to start!");
                                 timers.addTimer(deviceID); // this is because even if there was a timer for this connection earlier, it has been removed by now.
                                 timers.getTimer(deviceID).schedule(new WaitForConnect(cfg, timers.getTimer(deviceID)), 0);
@@ -122,16 +122,12 @@ public class LinkCheck extends TimerTask{
                         LOGGER.info("bob is currently up for alice.");
                     }
                 }
-                else{ //bob moment
-                    if(localStatus == -1){ // bob is down
+                else{ //local site is bob.
+                    if(localStatus == -1){ // bob is down, we need to remove the dummy driver from our local set.
                         LOGGER.info("bye bye bob, from bob!");
                         siteAgentServer.removeDevice(deviceID);
                     }
                 }
-                /*if(!client.getLinkStatus(dummyDriverAddress, dummyDriverPort)){ // unregistering time
-                    LOGGER.info("Inside the if condition, device should have been removed from devices.");
-                    siteAgentServer.removeDevice(deviceID);
-                }*/
             }
         }
     }
