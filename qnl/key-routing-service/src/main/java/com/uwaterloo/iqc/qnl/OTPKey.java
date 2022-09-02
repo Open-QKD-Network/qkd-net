@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.codec.binary.Hex;
 
@@ -74,9 +73,9 @@ public class OTPKey implements KeyListener {
         if(!f.exists()) {
 
             QLLReader QLLRdr = qnlConfig.getQLLReader(id);
-            AtomicLong ref = new AtomicLong(0);
-            QLLRdr.getNextBlockIndex(config.getKeyBlockSz(), ref);
-            QLLRdr.read(hex, config.getKeyBlockSz(), ref.get());
+            String keyId = QLLRdr.getNextKeyId(config.getKeyBlockSz()*config.getKeyBytesSz());
+            byte[] binKey = QLLRdr.read(keyId);
+            hex = Hex.encodeHexString(binKey).getBytes();
             LOGGER.info("OTPKey.writeKeys to :" + otpFile);
             QNLUtils.writeKeys(hex, otpFile, config.getKeyBlockSz());
 

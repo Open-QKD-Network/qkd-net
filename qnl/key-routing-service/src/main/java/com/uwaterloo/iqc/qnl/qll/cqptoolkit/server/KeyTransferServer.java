@@ -1,6 +1,7 @@
 package com.uwaterloo.iqc.qnl.qll.cqptoolkit.server;
 
 import com.uwaterloo.iqc.qnl.QNLConfiguration;
+import com.uwaterloo.iqc.qnl.qll.QLLFileReaderWriter;
 import com.uwaterloo.iqc.qnl.qll.QLLReader;
 import com.uwaterloo.iqc.qnl.KeyListener;
 
@@ -102,7 +103,7 @@ public class KeyTransferServer {
             // LOGGER.info("PEERID: " + peerID);
 
             QLLReader qllRdr = this.qConfig.getQLLReader(peerID);
-            qllRdr.write(keyMessage.getSeqID(), Hex.encodeHexString(keyMessage.getKey().toByteArray()), peerID);
+            ((QLLFileReaderWriter)qllRdr).write(keyMessage.getKey().toByteArray());
             if (this.keysMap.containsKey(qkdID)) {
                 this.keysMap.put(qkdID, this.keysMap.get(qkdID) + 1);
             } else {
