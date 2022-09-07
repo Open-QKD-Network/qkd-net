@@ -107,7 +107,7 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
                 e.printStackTrace();
             }
 
-            if (opId == QNLConstants.REQ_POST_KP_BLOCK_INDEX) {
+            if (opId == QNLConstants.RESP_POST_KP_BLOCK_INDEX) {
                 LOGGER.info("RESP_POST_KP_BLOCK_INDEX/writeResp to inboundChannel:" + inboundChannel + ", resp:"  + resp);
             } else {
                 LOGGER.info("RESP_GET_KP_BLOCK_INDEX/writeResp to inbound channel:" + inboundChannel + ", resp:" + resp);
