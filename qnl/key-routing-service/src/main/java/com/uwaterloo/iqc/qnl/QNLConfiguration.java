@@ -65,6 +65,7 @@ public class QNLConfiguration {
                 qkdLinkReader.close();
             }
 
+            createOTPKeys();
             createQLLClients();
         } catch(Exception e) {
             java.io.StringWriter sw = new java.io.StringWriter();
@@ -109,12 +110,11 @@ public class QNLConfiguration {
         return otpKeyMap.get(id);
     }
 
-    public void createOTPKeys(KeyTransferServer server) {
+    private void createOTPKeys() {
         for (String k : routeCfg.adjacent.keySet()) {
             OTPKey key = new OTPKey(this, k);
 
             String localDeviceId = qkdLinkCfgMap.get(k).localQKDDeviceId;
-            server.addListener(localDeviceId, key);
 
             otpKeyMap.put(k, key);
         }

@@ -18,7 +18,6 @@ public class QNLConfig {
     private String kmsIP;
     private int kmsPort;
     public Map<String, String> OTPConfig;
-    public static final String OTP_KEYBLOCKSZ = "keyBlockSz";
     public static final String KMS = "kms";
 
     public String getRouteConfigLoc() {
@@ -35,10 +34,6 @@ public class QNLConfig {
 
     public String getSiteAgentConfigLoc() {
         return System.getProperty("user.home") + "/" + base + "/" + siteAgentConfigLoc;
-    }
-
-    public String getOTPKeyLoc(String siteId) {
-        return System.getProperty("user.home") + "/" + base + "/" + OTPConfig.get("keyLoc") + "/" + siteId;
     }
 
     public String getBase() {
@@ -83,10 +78,6 @@ public class QNLConfig {
 
     public String getKmsIP() {
         return kmsIP;
-    }
-
-    public int getOTPKeyBlockSz() {
-        return Integer.valueOf(OTPConfig.get(OTP_KEYBLOCKSZ)).intValue();
     }
 
 }

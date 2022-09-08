@@ -12,6 +12,7 @@ public class QNLRequest {
     private short opId;
     private short respOpId;
     private String keyIdentifier;
+    private String otpKeyIdentifier;
     private int keyBytes;
     private int frameSz;
     private ByteBuf payBuf;
@@ -60,6 +61,15 @@ public class QNLRequest {
         return keyIdentifier;
     }
 
+    public void setOTPKeyIdentifier(String identifier) {
+        frameSz += identifier.length() + 2;
+        otpKeyIdentifier = identifier;
+    }
+
+    public String getOTPKeyIdentifier() {
+        return otpKeyIdentifier;
+    }
+
     public void setSiteIds(String src, String dst) {
         frameSz += src.length() + 2;
         srcSiteId = src;
@@ -90,16 +100,9 @@ public class QNLRequest {
 
     public void encode(ByteBuf out) {
         switch (opId) {
-        case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
-        case QNLConstants.REQ_GET_KP_BLOCK_INDEX:
-            break;
         case QNLConstants.REQ_POST_ALLOC_KP_BLOCK:
-            frameSz += payBuf.readableBytes();
-            break;
         case QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK:
             frameSz += payBuf.readableBytes();
-            break;
-        case QNLConstants.REQ_POST_KP_BLOCK_INDEX:
             break;
         }
 
@@ -121,6 +124,10 @@ public class QNLRequest {
 
         if (opId == QNLConstants.REQ_POST_ALLOC_KP_BLOCK) {
             out.writeShort(respOpId);
+        }
+
+        if (opId == QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK) {
+            writeString(out, otpKeyIdentifier);
         }
 
         switch (opId) {
@@ -170,6 +177,11 @@ public class QNLRequest {
             if (opId == QNLConstants.REQ_POST_ALLOC_KP_BLOCK) {
                 this.respOpId = frame.readShort();
                 frameSz -= Short.BYTES;
+            }
+
+            if (opId == QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK) {
+                this.otpKeyIdentifier = readString(frame);
+                frameSz -= Short.BYTES + this.otpKeyIdentifier.length();
             }
 
             switch (opId) {
