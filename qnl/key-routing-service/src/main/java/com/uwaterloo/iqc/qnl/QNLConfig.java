@@ -18,6 +18,7 @@ public class QNLConfig {
     private String kmsIP;
     private int kmsPort;
     public Map<String, String> OTPConfig;
+    private boolean legacyQLL;
     public static final String KMS = "kms";
 
     public String getRouteConfigLoc() {
@@ -80,4 +81,7 @@ public class QNLConfig {
         return kmsIP;
     }
 
+    public boolean getLegacyQLL() {
+        return legacyQLL;
+    }
 }

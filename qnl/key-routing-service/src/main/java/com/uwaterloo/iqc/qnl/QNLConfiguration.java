@@ -10,6 +10,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 
+import com.uwaterloo.iqc.qnl.qll.QLLETSIReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,7 +123,11 @@ public class QNLConfiguration {
 
     private void createQLLClients() {
         for (String k : routeCfg.adjacent.keySet()) {
-            qllClientMap.put(k, new QLLFileReaderWriter(k, config));
+            if (config.getLegacyQLL()) {
+                qllClientMap.put(k, new QLLFileReaderWriter(k, config));
+            } else {
+                qllClientMap.put(k, new QLLETSIReader(routeCfg.getAdjacentIdKME(k)));
+            }
         }
     }
 }
