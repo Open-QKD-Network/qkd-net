@@ -93,7 +93,10 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
 ```json
 {
   "adjacent": {
-    "B": "192.168.2.212"
+    "B": {
+      "address": "192.168.2.212",
+      "kme": null
+    }
   },
   "nonAdjacent": {
   }
@@ -107,7 +110,10 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
 ```json
 {
   "adjacent": {
-    "A": "192.168.2.207"
+    "A": {
+      "address": "192.168.2.207",
+      "kme": null
+    }
   },
   "nonAdjacent": {
   }
@@ -169,8 +175,14 @@ SSL-Server-PSK-Hint:B 5048deac-4aa0-42a3-9b9a-f9d01b8a884d 0
 ```json
 {
   "adjacent": {
-    "A": "192.168.2.207",
-    "C": "192.168.2.235"
+    "A": {
+      "address": "192.168.2.207",
+      "kme": null
+    },
+    "C": {
+      "address": "192.168.2.235",
+      "kme": null
+    },
   },
   "nonAdjacent": {
   }
@@ -247,26 +259,6 @@ poolLoc: kms/pools
 ```
 ##### config.yaml and routes.json (Key-Routing Service)
 
-###### routes.json:
-
-This file is copied from <top level directory>/qkd-net/qnl/conf/ to
-`$HOME/.qkd/qnl`.
-
-Topology information is contained in `route.json`.
-This information is populated manually for adjacent (neighboring) nodes, while the non-adjacent nodes will be discovered by the routing module. Adjacent nodes section contains the name of the node as key and it's IP address as the value.
-
-Example `route.json` file for a QNL Node "B":
-```json
-{
-  "adjacent": {
-    "A": "192.168.1.101",
-    "C": "192.168.1.103"
-  },
-  "nonAdjacent": {
-  }
-}
-```
-
 ###### config.yaml:
 
 This file is copied from <top level directory>/qkd-net/qnl/conf/ to
@@ -288,7 +280,7 @@ siteId: A
 port: 9292
 //Size of a key in bytes.
 keyBytesSz: 32
-//Number of keys in a block. Key routing service provides KMS keys in blocks of size.  
+//Number of keys in a block. Key routing service provides KMS keys in blocks of size.
 keyBlockSz: 1024
 //Key routing service expects QLL to provide keys in blocks of qllBlockSz.
 qllBlockSz: 4096
@@ -296,13 +288,72 @@ qllBlockSz: 4096
 kmsIP: localhost
 //Port on which KMS QNL service is listening.
 kmsPort: 9393
-//One Time Key configuration.
-OTPConfig:
- //Same as above
- keyBlockSz: 1024
- //Location of the OTP key block.
- keyLoc: otp/keys
+//Whether or not the legacy QLL interface is used.
+qllLegacy: true
 ```
+
+###### routes.json:
+
+This file is copied from <top level directory>/qkd-net/qnl/conf/ to
+`$HOME/.qkd/qnl`.
+
+Topology information is contained in `route.json`.
+This information is populated manually for adjacent (neighboring) nodes, while the non-adjacent nodes will be discovered by the routing module. Adjacent nodes section contains the name of the node as key and a subobject with the address of the neighboring QNL node and (optional, see `qllLegacy` flag) KME configuration as a value.
+
+Example `route.json` file for a QNL Node "B" when using the legacy QLL configuration:
+```json
+{
+  "adjacent": {
+    "A": {
+      "address": "192.168.1.101",
+      "kme": null
+    },
+    "C": {
+      "address": "192.168.1.103",
+      "kme": null
+    }
+  },
+  "nonAdjacent": {
+  }
+}
+```
+
+Example `route.json` file for a QNL Node "B" when using the ETSI-based QLL configuration:
+```json
+{
+  "adjacent": {
+    "A": {
+      "address": "192.168.1.101",
+      "kme": {
+        "name": "KME_B",
+        "address": "192.168.1.202",
+        "remote_sae": "SAE_A",
+        "client_cert": "path/to/SAE_B-cert.pem",
+        "client_key": "path/to/SAE_B-key.pem",
+        "client_key_password": null,
+        "server_cert": "path/to/ca.pem"
+      }
+    },
+    "C": {
+      "address": "192.168.1.103",
+      "kme": {
+        "name": "KME_B",
+        "address": "192.168.1.202",
+        "remote_sae": "SAE_C",
+        "client_cert": "path/to/SAE_B-cert.pem",
+        "client_key": "path/to/SAE_B-key.pem",
+        "client_key_password": null,
+        "server_cert": "path/to/ca.pem"
+      }
+    }
+  },
+  "nonAdjacent": {
+  }
+}
+```
+
+Note that the KME parameters are for the local KME endpoint, with only the `remote_sae` parameter identifying the SAE of the remote site. The file paths are resolved relative to the configuration file if not provided as an absolute path. The `server_cert` parameter is optional and may be `null`, in which case the default system trust store is used.
+
 
 ## Build and Install Services
 
@@ -319,6 +370,8 @@ For running the services
 cd <top level director>/qkd-net/kms
 ./scripts/run
 ```
+
+When usiong the ETSI QLL interface, make sure the ETSI endpoints are all reachable before starting the services.
 
 ### Checking registration service
 
