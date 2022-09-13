@@ -17,7 +17,6 @@ import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.KeyTransferServer;
 import com.cqp.remote.*;
 
 import java.io.IOException;
-import java.io.ObjectInputFilter.Config;
 import java.util.Map;
 import java.util.Timer;
 import java.util.ArrayList;
