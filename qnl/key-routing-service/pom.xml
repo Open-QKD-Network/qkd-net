@@ -75,6 +75,43 @@
                 <artifactId>json-simple</artifactId>
                 <version>1.1.1</version>
         </dependency>
+      <dependency>
+          <groupId>com.squareup.okhttp3</groupId>
+          <artifactId>okhttp</artifactId>
+          <version>4.10.0</version>
+      </dependency>
+
+      <dependency>
+          <groupId>com.squareup.okhttp3</groupId>
+          <artifactId>logging-interceptor</artifactId>
+          <version>3.12.1</version>
+      </dependency>
+      <dependency>
+          <groupId>io.gsonfire</groupId>
+          <artifactId>gson-fire</artifactId>
+          <version>1.8.5</version>
+      </dependency>
+
+      <dependency>
+          <groupId>javax.ws.rs</groupId>
+          <artifactId>javax.ws.rs-api</artifactId>
+          <version>2.0</version>
+      </dependency>
+      <dependency>
+          <groupId>io.swagger</groupId>
+          <artifactId>swagger-annotations</artifactId>
+          <version>1.6.6</version>
+      </dependency>
+      <dependency>
+          <groupId>io.github.hakky54</groupId>
+          <artifactId>sslcontext-kickstart</artifactId>
+          <version>7.4.6</version>
+      </dependency>
+      <dependency>
+          <groupId>io.github.hakky54</groupId>
+          <artifactId>sslcontext-kickstart-for-pem</artifactId>
+          <version>7.4.6</version>
+      </dependency>
   </dependencies>
   <build>
     <extensions>
@@ -85,6 +122,27 @@
         </extension>
     </extensions>
   	<plugins>
+        <plugin>
+            <groupId>org.openapitools</groupId>
+            <artifactId>openapi-generator-maven-plugin</artifactId>
+            <!-- RELEASE_VERSION -->
+            <version>6.0.1</version>
+            <!-- /RELEASE_VERSION -->
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>generate</goal>
+                    </goals>
+                    <configuration>
+                        <inputSpec>${project.basedir}/src/main/resources/ETSI_GS_QKD_014_v1.1.1.yaml</inputSpec>
+                        <generatorName>java</generatorName>
+                        <configOptions>
+                            <sourceFolder>src/gen/java/main</sourceFolder>
+                        </configOptions>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
 	    <plugin>
             <groupId>org.xolstice.maven.plugins</groupId>
             <artifactId>protobuf-maven-plugin</artifactId>
@@ -115,7 +173,15 @@
                 <mainClass>com.uwaterloo.iqc.qnl.KeyRouter</mainClass>
              </configuration>
   		</plugin>
-  	</plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <source>8</source>
+                <target>8</target>
+            </configuration>
+        </plugin>
+    </plugins>
   </build>
   <properties>
     <io.grpc.version>1.39.0</io.grpc.version>
@@ -124,7 +190,7 @@
     <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
     <junit.version>4.12</junit.version>
     <protobuf.version>3.17.2</protobuf.version>
-    <maven.compiler.source>1.6</maven.compiler.source>
-    <maven.compiler.target>1.6</maven.compiler.target>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
 </project>
