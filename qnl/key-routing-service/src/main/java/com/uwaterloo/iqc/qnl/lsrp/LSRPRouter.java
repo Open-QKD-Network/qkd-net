@@ -70,7 +70,7 @@ public class LSRPRouter {
     this.allNodes.put(this.mySiteId, self);
 
     for (String k : routeCfg.adjacent.keySet()) {
-      String[] ipPort = routeCfg.adjacent.get(k).split(":");
+      String[] ipPort = routeCfg.adjacent.get(k).address.split(":");
       int port = 9395;
       if (ipPort.length == 2) port = Integer.valueOf(ipPort[1]);
       LOGGER.info("Add neighbour:" + k + ",address:" + ipPort[0] + ",port:" + port);

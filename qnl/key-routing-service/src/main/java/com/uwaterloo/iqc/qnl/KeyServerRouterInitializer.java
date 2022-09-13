@@ -31,7 +31,7 @@ public class KeyServerRouterInitializer extends ChannelInitializer<SocketChannel
         RouteConfig routeCfg = qConfig.getRouteConfig();
 
         for (String k : routeCfg.adjacent.keySet()) {
-            String [] ipPort = routeCfg.adjacent.get(k).split(":");
+            String [] ipPort = routeCfg.adjacent.get(k).address.split(":");
             int port = qConfig.getConfig().getPort();
             if (ipPort.length == 2)
                 port = Integer.valueOf(ipPort[1]);
