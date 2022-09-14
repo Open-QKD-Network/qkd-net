@@ -174,6 +174,9 @@ public class LSRPRouter {
         // new LSRP of existing node
         nn.setFloodingTimeStamp(msg.getTimeStamp());
         update = true;
+      } else {
+        // message was received before, got it again due to a cycle
+        return;
       }
       o = nn;
     }
