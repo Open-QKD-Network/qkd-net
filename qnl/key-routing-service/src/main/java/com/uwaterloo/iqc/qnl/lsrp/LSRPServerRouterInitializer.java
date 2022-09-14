@@ -22,7 +22,7 @@ public class LSRPServerRouterInitializer extends ChannelInitializer<SocketChanne
   public void initChannel(SocketChannel ch) {
     LOGGER.info("Accepts connection: " + ch);
     // inbound decoder
-    ch.pipeline().addLast("loghandler", new LoggingHandler(LogLevel.INFO));
+    ch.pipeline().addLast("loghandler", new LoggingHandler(LogLevel.TRACE));
     ch.pipeline().addLast(new LSRPMessageDecoder());
     ch.pipeline().addLast(new LSRPIncomingClientHandler(this.router));
     ch.pipeline().addLast(new LSRPMessageEncoder());
