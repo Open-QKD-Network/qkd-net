@@ -55,15 +55,17 @@ public class QNLConfiguration {
             routeCfg = gson.fromJson(routeReader, RouteConfig.class);
             routeReader.close();
 
-            JsonReader siteAgentReader = new JsonReader(new FileReader(config.getSiteAgentConfigLoc()));
-            siteAgentCfg = gson.fromJson(siteAgentReader, SiteAgentConfig.class);
-            siteAgentReader.close();
+            if (config.getLegacyQLL()) {
+                JsonReader siteAgentReader = new JsonReader(new FileReader(config.getSiteAgentConfigLoc()));
+                siteAgentCfg = gson.fromJson(siteAgentReader, SiteAgentConfig.class);
+                siteAgentReader.close();
 
-            for (String siteID: routeCfg.adjacent.keySet()) {
-                LOGGER.info("Parsing file: " + config.getQKDLinkConfigLoc(siteID));
-                JsonReader qkdLinkReader = new JsonReader(new FileReader(config.getQKDLinkConfigLoc(siteID)));
-                qkdLinkCfgMap.put(siteID, (QKDLinkConfig) gson.fromJson(qkdLinkReader, QKDLinkConfig.class));
-                qkdLinkReader.close();
+                for (String siteID : routeCfg.adjacent.keySet()) {
+                    LOGGER.info("Parsing file: " + config.getQKDLinkConfigLoc(siteID));
+                    JsonReader qkdLinkReader = new JsonReader(new FileReader(config.getQKDLinkConfigLoc(siteID)));
+                    qkdLinkCfgMap.put(siteID, (QKDLinkConfig) gson.fromJson(qkdLinkReader, QKDLinkConfig.class));
+                    qkdLinkReader.close();
+                }
             }
 
             createOTPKeys();
@@ -114,8 +116,6 @@ public class QNLConfiguration {
     private void createOTPKeys() {
         for (String k : routeCfg.adjacent.keySet()) {
             OTPKey key = new OTPKey(this, k);
-
-            String localDeviceId = qkdLinkCfgMap.get(k).localQKDDeviceId;
 
             otpKeyMap.put(k, key);
         }
