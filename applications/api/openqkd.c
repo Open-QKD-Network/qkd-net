@@ -67,7 +67,7 @@ static int get_urls(char** new_key_url, char** get_key_url, char** site_id) {
   return 0;
 }
 
-static int get_remote_siteagent_url(char** get_key_url, char* remotesite) {
+static int get_remote_siteagent_url(char** get_key_url, char* remotesiteId) {
   // Reads AND modifies get_key_url from value in kms.conf
 
   int malformatted_url = 0;
@@ -88,8 +88,6 @@ static int get_remote_siteagent_url(char** get_key_url, char* remotesite) {
   char* url_path = malloc(addrend - *get_key_url);
   strcpy(url_path, addrend);
   printf("URL path: %s\n", url_path);
-
-  char* remotesiteId = strchr(remotesite, '=') + 1; 
 
   char *str = "/.qkd/mapping.log";
   FILE *fp;
@@ -239,7 +237,8 @@ int oqkd_new_key(char* new_key_url, char**key, int* key_len, char** get_key_url)
     printf("No siteid in new key url:%s\n", new_key_url);
     return -1;
   }
-  ret = get_remote_siteagent_url(&get_key, siteId);
+  char* remotesiteId = strchr(siteId, '=') + 1; 
+  ret = get_remote_siteagent_url(&get_key, remotesiteId);
   if (ret != 0) {
     printf("Remote siteagent could not be found (mapping.log misconfigured; check routes.json)");
   }
