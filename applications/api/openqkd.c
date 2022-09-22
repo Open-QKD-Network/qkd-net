@@ -85,7 +85,8 @@ static int get_remote_siteagent_url(char** get_key_url, char* remotesiteId) {
       return -1;
   }
   //Copy path portion of url from get_key_url
-  char* url_path = malloc(addrend - *get_key_url);
+  char* getkeyend = strchr(*get_key_url, '\0');
+  char* url_path = malloc(getkeyend - addrend + 1);
   strcpy(url_path, addrend);
   printf("URL path: %s\n", url_path);
 
