@@ -67,6 +67,83 @@ static int get_urls(char** new_key_url, char** get_key_url, char** site_id) {
   return 0;
 }
 
+static int get_remote_siteagent_url(char** get_key_url, char* remotesiteId) {
+  // Reads AND modifies get_key_url from value in kms.conf
+
+  int malformatted_url = 0;
+  char* addrend = strchr(*get_key_url, ':');
+  if (addrend == NULL) {
+      malformatted_url = 1;
+  } else {
+    addrend = strchr(addrend + 1, ':');
+    if (addrend == NULL) {
+        malformatted_url = 1;
+    }
+  }
+  if (malformatted_url) {
+      printf("get_key_url: %s is malformatted\n", *get_key_url);
+      return -1;
+  }
+  //Copy path portion of url from get_key_url
+  char* getkeyend = strchr(*get_key_url, '\0');
+  char* url_path = malloc(getkeyend - addrend + 1);
+  strcpy(url_path, addrend);
+  printf("URL path: %s\n", url_path);
+
+  char *str = "/.qkd/mapping.log";
+  FILE *fp;
+
+  const char *homedir;
+  homedir = getenv("HOME");
+  char filestr[256];
+  strcpy(filestr, homedir);
+  strcpy(filestr+strlen(homedir), str);
+  filestr[strlen(homedir) + strlen(str)] = '\0';
+
+  fp = fopen(filestr, "r");
+  if (!fp) {
+    printf("Could not open the file %s\n", filestr);
+    return (-1);
+  }
+
+  fseek(fp, 0, SEEK_END);
+  long fsize = ftell(fp);
+  fseek(fp, 0, SEEK_SET);
+
+  char *jsonString = malloc(fsize + 1);
+  fread(jsonString, 1, fsize, fp);
+  fclose(fp);
+  jsonString[fsize] = 0;
+ 
+  json_object *mappingobj = json_tokener_parse(jsonString);
+  free(jsonString);
+  json_object_object_foreach (mappingobj, key, val) {
+    const char* site = json_object_get_string(val);
+    if (strcmp(remotesiteId, site) == 0) {
+        const char* remotesiteaddress = key;
+        free(*get_key_url);
+        char* scheme = "http://";
+        int scheme_len = strlen(scheme);
+        int address_len = strlen(remotesiteaddress);
+        *get_key_url = malloc(scheme_len + address_len + sizeof(url_path));
+        strcpy(*get_key_url, scheme);
+        memcpy(*get_key_url + scheme_len, remotesiteaddress, address_len);
+        strcpy(*get_key_url + scheme_len + address_len, url_path);
+
+        json_object_put(mappingobj); 
+        free(url_path);
+
+        return 0;
+    }
+  }
+  
+  json_object_put(mappingobj);
+  free(url_path);
+
+  printf("Could find site %s in %s\n", remotesiteId, filestr);
+  return -1;
+}
+
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
   size_t realsize = size * nmemb;
@@ -160,6 +237,11 @@ int oqkd_new_key(char* new_key_url, char**key, int* key_len, char** get_key_url)
   if (siteId == NULL) {
     printf("No siteid in new key url:%s\n", new_key_url);
     return -1;
+  }
+  char* remotesiteId = strchr(siteId, '=') + 1; 
+  ret = get_remote_siteagent_url(&get_key, remotesiteId);
+  if (ret != 0) {
+    printf("Remote siteagent could not be found (mapping.log misconfigured; check routes.json)");
   }
   new_key = malloc(siteId - new_key_url + 1);
   memset(new_key, 0, siteId - new_key_url + 1);
