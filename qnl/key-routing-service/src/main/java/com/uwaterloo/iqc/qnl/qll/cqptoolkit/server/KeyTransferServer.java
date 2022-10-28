@@ -85,8 +85,7 @@ public class KeyTransferServer {
             keyListenerMap.put(id, k);
         }
 
-        @Override
-        public void onKeyFromCQP(Key keyMessage, StreamObserver<Empty> responseObserver) {
+        private void onKeyFromDriver(Key keyMessage, StreamObserver<Empty> responseObserver) {
             String myID = this.qConfig.getConfig().getSiteId();
             // LOGGER.info("SITEID: " + this.qConfig.getConfig().getSiteId());
             String qkdID = keyMessage.getLocalID();
@@ -117,6 +116,18 @@ public class KeyTransferServer {
                 KeyListener keyListener = keyListenerMap.get(qkdID);
                 keyListener.onKeyGenerated();
             }
+        }
+
+        @Override
+        public void onKeyFromCQP(Key keyMessage, StreamObserver<Empty> responseObserver) {
+            LOGGER.info("Received key from CQP.");
+            onKeyFromDriver(keyMessage, responseObserver);
+        }
+
+        @Override
+        public void onKeyFromSatellite(Key keyMessage, StreamObserver<Empty> responseObserver) {
+            LOGGER.info("Received key from satellite.");
+            onKeyFromDriver(keyMessage, responseObserver);
         }
     }
 }

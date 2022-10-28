@@ -15,4 +15,5 @@ message Empty {}
 service KeyTransfer
 {
     rpc OnKeyFromCQP(Key) returns (Empty);
+    rpc OnKeyFromSatellite(Key) returns (Empty);
 }
