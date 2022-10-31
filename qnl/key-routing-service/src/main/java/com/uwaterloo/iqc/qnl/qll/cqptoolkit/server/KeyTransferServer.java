@@ -120,13 +120,13 @@ public class KeyTransferServer {
 
         @Override
         public void onKeyFromCQP(Key keyMessage, StreamObserver<Empty> responseObserver) {
-            LOGGER.info("Received key from CQP.");
+            LOGGER.debug("Received key from CQP.");
             onKeyFromDriver(keyMessage, responseObserver);
         }
 
         @Override
         public void onKeyFromSatellite(Key keyMessage, StreamObserver<Empty> responseObserver) {
-            LOGGER.info("Received key from satellite.");
+            LOGGER.debug("Received key from satellite.");
             onKeyFromDriver(keyMessage, responseObserver);
         }
     }
