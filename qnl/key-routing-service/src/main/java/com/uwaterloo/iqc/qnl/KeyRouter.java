@@ -17,7 +17,6 @@ import com.uwaterloo.iqc.qnl.qll.cqptoolkit.server.KeyTransferServer;
 import com.cqp.remote.*;
 
 import java.io.IOException;
-import java.io.ObjectInputFilter.Config;
 import java.util.Map;
 import java.util.Timer;
 import java.util.ArrayList;
@@ -35,33 +34,33 @@ public class KeyRouter{
         else
           qConfig = new QNLConfiguration(args[0]);
 
-        final KeyTransferServer server = new KeyTransferServer(qConfig);
-          qConfig.createOTPKeys(server);
-        server.start();
+        if (qConfig.getConfig().getLegacyQLL()) {
+            final KeyTransferServer server = new KeyTransferServer(qConfig);
+            server.start();
 
-        //GrpcClient client = new GrpcClient();
-        //client.getSiteDetails("localhost", 8000);
-        //client.startNode("localhost", 8000, "localhost", 8001);
-	
-        //TODO: investigate auto-generating siteagent.json, and/or find a way to communicate requirement of having such a file
+            //GrpcClient client = new GrpcClient();
+            //client.getSiteDetails("localhost", 8000);
+            //client.startNode("localhost", 8000, "localhost", 8001);
 
-        LOGGER.info("starting site agent a");
-        final ISiteAgentServer siteAgent = new ISiteAgentServer(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port);
-        try {
-          siteAgent.start();
-        } catch(IOException e) {
-          LOGGER.error("Unable to start site agent", e);
+            //TODO: investigate auto-generating siteagent.json, and/or find a way to communicate requirement of having such a file
+
+                LOGGER.info("starting site agent a");
+                final ISiteAgentServer siteAgent = new ISiteAgentServer(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port);
+                try {
+                  siteAgent.start();
+                } catch(IOException e) {
+                  LOGGER.error("Unable to start site agent", e);
+                }
+                LOGGER.info("finished starting site agent a");
+
+            //siteAgent.setMySiteAgentListener(new KeyRouter()); not needed now.
+
+            // passing the address of the current site along with the ISiteAgentServer object and other paramenters.
+            LinkCheck l = new LinkCheck(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port, siteAgent, timers, qConfig);
+
+            //calling the timer to check the status of all dummy drivers associated with links with this site.
+            timer.schedule(l, 5000, 5000);
         }
-        LOGGER.info("finished starting site agent a");
-
-        //siteAgent.setMySiteAgentListener(new KeyRouter()); not needed now.
-
-        // passing the address of the current site along with the ISiteAgentServer object and other paramenters.
-        LinkCheck l = new LinkCheck(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port, siteAgent, timers, qConfig);
-
-        //calling the timer to check the status of all dummy drivers associated with links with this site.
-        timer.schedule(l, 5000, 5000);
-
 
         LOGGER.info("Key router started, args.length:" + args.length);
 
@@ -86,7 +85,7 @@ public class KeyRouter{
 
     /*
     This was the functionality added when a listener existed. With the current implementation, there's no need for this.
-    
+
     @Override
     public void onDeviceRegistered(String deviceID) {
       //do not block this function

@@ -1,0 +1,227 @@
+openapi: 3.0.0
+info:
+  description: |
+    "014"
+  version: 1.1.1
+  title: "014"
+paths:
+  '/keys/{sae_id}/status':
+    get:
+      tags:
+        - Status
+      summary: Get status
+      operationId: getStatus
+      parameters:
+        - name: sae_id
+          in: path
+          description: Slave SAE ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/status'
+        '400':
+          description: Bad request format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Object not found
+        '503':
+          description: Error on the server side
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  '/keys/{sae_id}/enc_keys':
+    post:
+      tags:
+        - Key
+      summary: Get key
+      operationId: getKey
+      parameters:
+        - name: sae_id
+          in: path
+          description: Slave SAE ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/key_request'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/key_container'
+        '400':
+          description: Bad request format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Object not found
+        '503':
+          description: Error on the server side
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  '/keys/{sae_id}/dec_keys':
+    post:
+      tags:
+        - Key
+      summary: Get key with Key Ids
+      operationId: getKeyWithKeyIds
+      parameters:
+        - name: sae_id
+          in: path
+          description: Master SAE ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/key_ids'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/key_container'
+        '400':
+          description: Bad request format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Object not found
+        '503':
+          description: Error on the server side
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+components:
+  schemas:
+    status:
+      type: object
+      properties:
+        source_KME_ID:
+          type: string
+        target_KME_ID:
+          type: string
+        master_SAE_ID:
+          type: string
+        slave_SAE_ID:
+          type: string
+        key_size:
+          type: integer
+        stored_key_count:
+          type: integer
+        max_key_count:
+          type: integer
+        max_key_per_request:
+          type: integer
+        max_key_size:
+          type: integer
+        min_key_size:
+          type: integer
+        max_SAE_ID_count:
+          type: integer
+        status_extension:
+          type: string
+    key:
+      type: object
+      properties:
+        key_ID:
+          type: string
+          format: uuid
+        key_ID_extension:
+          type: string
+        key:
+          type: string
+        key_extension:
+          type: string
+    key_information_dto:
+      type: object
+      properties:
+        key_ID:
+          type: string
+          format: uuid
+        key_ID_extension:
+          type: string
+    key_ids:
+      type: object
+      properties:
+        key_IDs:
+          type: array
+          items:
+            $ref: '#/components/schemas/key_information_dto'
+        key_IDs_extension:
+          type: string
+    key_container:
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/key'
+        key_container_extension:
+          type: string
+    key_request:
+      type: object
+      properties:
+        number:
+          type: integer
+        size:
+          type: integer
+        additional_slave_SAE_IDs:
+          type: array
+          items:
+            type: string
+        extension_mandatory:
+          type: array
+          items:
+            type: string
+        extension_optional:
+          type: array
+          items:
+            type: string
+    error:
+      type: object
+      properties:
+        message:
+          type: string
+        details:
+          type: string
+  requestBodies:
+    key_request:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/key_request'
+      description: KeyRequest request DTO
+      required: true
+    key_ids:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/key_ids'
+      description: Key Ids request DTO
+      required: true

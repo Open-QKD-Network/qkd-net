@@ -5,8 +5,22 @@ import java.util.Map;
 import com.uwaterloo.iqc.qnl.lsrp.LSRPRouter;
 
 public class RouteConfig {
-    //adjacent - key:siteid, value:ip address
-    public Map<String, String> adjacent;
+    public class Route {
+        public String address;
+        public KMEConfig kme;
+    }
+
+    public class KMEConfig {
+        public String name;
+        public String address;
+        public String remote_sae;
+        public String client_cert;
+        public String client_key;
+        public String client_key_password;
+        public String server_cert;
+    }
+
+    public Map<String, Route> adjacent;
     //non-adjacent -  key:siteid of non-adjacent node,
     //value:siteid of adjacent node through which the key
     //is reachable
@@ -36,7 +50,15 @@ public class RouteConfig {
 
     public String[] getAdjacentIdAddress(String key) {
         if (adjacent.containsKey(key)) {
-            return adjacent.get(key).split(":");
+            return adjacent.get(key).address.split(":");
+        }
+
+        return null;
+    }
+
+    public KMEConfig getAdjacentIdKME(String key) {
+        if (adjacent.containsKey(key)) {
+            return adjacent.get(key).kme;
         }
 
         return null;

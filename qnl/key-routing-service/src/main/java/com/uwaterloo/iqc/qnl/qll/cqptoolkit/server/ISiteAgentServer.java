@@ -154,7 +154,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                         RawKeys key = keys.next();
                         List<ByteString> byteStrList = key.getKeyDataList();
                         for(ByteString byteStr : byteStrList) {
-                            LOGGER.info("got key bytes: " + byteStr.toStringUtf8());
+                            LOGGER.trace("got key bytes: " + byteStr.toStringUtf8());
                             // TODO: find more elegant way to add List<ByteString> to arraylist
                             byte[] byteArr = byteStr.toByteArray();
                             for(byte b : byteArr) {

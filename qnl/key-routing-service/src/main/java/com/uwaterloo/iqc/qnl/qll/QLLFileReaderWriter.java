@@ -1,20 +1,21 @@
 package com.uwaterloo.iqc.qnl.qll;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.RandomAccessFile;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import com.uwaterloo.iqc.qnl.QNLConfig;
+
+import static java.lang.Math.min;
 
 
 public class QLLFileReaderWriter implements QLLReader {
@@ -26,147 +27,139 @@ public class QLLFileReaderWriter implements QLLReader {
     private BufferedWriter currentWriter;
 
     private String siteId;
-    private AtomicLong qllBlockIndex = new AtomicLong(0);
+
+    // Current block to read from
+    private int qllReadBlockIndex = 0;
+
+    // Current offset into read block
+    private int qllReadBlockOffset = 0;
+
+    private int qllBlockIndex = 0;
+    // Current block to write into
+    private int qllWriteBlockIndex = 0;
+
+    // Current offset into write block
+    private int qllWriteBlockOffset = 0;
     private int qllBlockSz;
     private String keyLoc;
-    private int keyByteSz;
+
+    // Maximum size of blocks
+    private static final int blockBytes = 4096 * 2;
 
     public QLLFileReaderWriter(String id, QNLConfig qCfg) {
         siteId = id;
         this.qllBlockSz = qCfg.getQllBlockSz();
         this.keyLoc = qCfg.getQNLSiteKeyLoc(siteId);
-        this.keyByteSz = qCfg.getKeyBytesSz();
         LOGGER.info("QLLFileReaderWriter.new:|" + this);
     }
 
-    private synchronized void writeKeyBlock(long seqId, String keyHexString, String destinationSiteId) {
+    private File blockName(int blockIndex) {
+        return new File(this.keyLoc + "/" + siteId + "_" + blockIndex);
+    }
 
-        long qllBlockIndex = (seqId-1)/this.qllBlockSz;
-        String qllFileName = this.keyLoc + "/" + destinationSiteId+"_"+qllBlockIndex;
+    private void openBlock() {
+        File qllFile = blockName(qllWriteBlockIndex);
 
         try {
-
-            if(this.currentFile == null || !qllFileName.equals(this.currentFile.getName())) {
-
-                this.currentFile = new File(qllFileName);
-                this.currentWriter = new BufferedWriter(new FileWriter(this.currentFile, true));
-
-                if(!this.currentFile.exists()) {
+            if(this.currentFile == null || !qllFile.equals(this.currentFile)) {
+                this.currentFile = qllFile;
+                if(this.currentFile.exists()) {
+                    this.currentFile.delete();
                     this.currentFile.createNewFile();
-                } else if (seqId % this.qllBlockSz == 1) {
-                    new RandomAccessFile(qllFileName, "rw").setLength(0); //empties file
                 }
-
+                if (currentWriter != null) {
+                    currentWriter.close();
+                }
+                this.currentWriter = new BufferedWriter(new FileWriter(this.currentFile, true));
             }
-
-            this.currentWriter.write(seqId + " " + keyHexString + "\n");
-            this.currentWriter.flush();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private synchronized int readKeyBlock(byte[] dst, int len, long offset) {
+    public void write(byte[] key) {
+        char[] keyHex = Hex.encodeHex(key);
 
-        int linesRead = 0; int linesSkipped = 0; int destPos = 0;
-        int qllIndexWithinBlock;
-        long index, startIndex, qllBlockIndex;
-        boolean isSkipLines = true;
-        String qllFile, line;
-        BufferedReader reader;
-
-        LOGGER.info("QLLFileReaderWriter.readKeyBlock:len:" + len + ",end offset:" + offset + "|" + this);
         try {
+            int written = 0;
+            while (written < keyHex.length) {
+                openBlock();
+                // Write at most so many bytes until block is full
+                int toWrite = min(blockBytes - qllWriteBlockOffset, keyHex.length - written);
+                this.currentWriter.write(keyHex, written, toWrite);
+                this.currentWriter.flush();
+                qllWriteBlockOffset += toWrite;
+                written += toWrite;
 
-            index = offset;
-            startIndex = index - len;
-
-            while (linesRead < len) {
-
-                qllBlockIndex = startIndex / this.qllBlockSz;
-                qllIndexWithinBlock = (int)startIndex % this.qllBlockSz;
-                qllFile = this.keyLoc + "/" + this.siteId + "_" + qllBlockIndex;
-
-                reader = new BufferedReader(new FileReader(qllFile));
-
-                if (qllIndexWithinBlock > 0 && isSkipLines) {
-                	while (linesSkipped < qllIndexWithinBlock) {
-                        line = reader.readLine();
-                        if (line != null)
-                        	++linesSkipped;
-                        else
-                        	break;
-                    }
-                    isSkipLines = false;
+                // Advance to next block if current is full
+                if (qllWriteBlockOffset >= blockBytes) {
+                    LOGGER.info("Full key block written, index is {}",  qllWriteBlockIndex);
+                    qllWriteBlockOffset = 0;
+                    qllWriteBlockIndex++;
                 }
-
-                line = reader.readLine();
-                while (line != null && linesRead < len) {
-
-                    ++linesRead;
-                    for (int i =0; i < line.length(); i++) {
-                        if (line.charAt(i) == ' ') {
-                            line = line.substring(i+1);
-                            break;
-                        }
-                    }
-                    LOGGER.info("line length= " + line.length() + ", destPost=" + destPos + ", line is: " + line);
-
-                    System.arraycopy(line.getBytes(), 0, dst, destPos, line.length());
-                    destPos += line.length();
-                    line = reader.readLine();
-                }
-
-                if (linesRead < len) {
-                    startIndex = linesRead;
-                }
-
-                reader.close();
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public String getNextKeyId(int len) {
+        return String.valueOf(qllReadBlockIndex) + "-" + String.valueOf(qllReadBlockOffset) + "-" + String.valueOf(len);
+    }
+
+    @Override
+    public String readNextKey(byte[] dst, int len) {
+        String keyId = String.valueOf(qllReadBlockIndex) + "-" + String.valueOf(qllReadBlockOffset) + "-" + String.valueOf(len);
+        byte[] data = readKeyBlock(len, qllReadBlockIndex, qllReadBlockOffset);
+        System.arraycopy(data, 0, dst, 0,len);
+        return keyId;
+    }
+
+    public byte[] read(String identifier) {
+        String[] parts = identifier.split("-");
+        if (parts.length != 3) {
+            throw new RuntimeException("Invalid key identifier " + identifier);
+        }
+        int block = Integer.parseInt(parts[0]);
+        int offset = Integer.parseInt(parts[1]);
+        int length = Integer.parseInt(parts[2]);
+        return readKeyBlock(length, block, offset);
+    }
+
+    private synchronized byte[] readKeyBlock(int len, int block, int offset) {
+        File blockName = blockName(block);
+        len *= 2; // read as hex, so 2 characters per byte
+        char[] hexbuf = new char[len];
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(blockName));
+            reader.skip(offset);
+            int read = 0;
+
+
+            while (read < len) {
+                if (offset >= blockBytes) {
+                    blockName = blockName(++block);
+                    reader = new BufferedReader(new FileReader(blockName));
+                    offset = 0;
+                }
+                int res = reader.read(hexbuf, read, len - read);
+                if (res <= 0) {
+                    throw new IOException("Key block did not provide sufficient data");
+                }
+                offset += res;
+                read += res;
+            }
+        } catch (Exception e) {
             java.io.StringWriter sw = new java.io.StringWriter();
             java.io.PrintWriter pw = new java.io.PrintWriter(sw);
             e.printStackTrace(pw);
             LOGGER.error("QLLFileReaderWriter.readKeyBlock exception:" + e + ",stacktrace:" + sw.toString());
         }
-        LOGGER.info("QLLFileReaderWriter.readKeyBlock:linesRead:" + linesRead + "|" + this);
-        return linesRead;
-    }
-
-    public void write(long seqId, String keyHexString, String destinationSiteId){
-        writeKeyBlock(seqId,keyHexString,destinationSiteId);
-    }
-
-    public int read(byte[] dst, int len, AtomicLong indexRef) {
-        long index = this.qllBlockIndex.addAndGet(len);
-        int linesRead = readKeyBlock(dst, len, index);
-        if (linesRead == len)
-        	indexRef.set(index);
-        else {
-        	indexRef.set(-1);
-        	this.qllBlockIndex.addAndGet(-len);
-        }
-        return linesRead;
-    }
-
-    public int read(byte[] dst, int len, long offset) {
-    	if (offset < 0)
-    		return 0;
-        return readKeyBlock(dst, len, offset);
-    }
-
-    public void getNextBlockIndex(int len, AtomicLong indexRef) {
-        LOGGER.info("QLLFileReaderWriter.getNextBlockIndex,len:" + len + ",indexRef:" + indexRef.get() + "|" + this);
-        long index = this.qllBlockIndex.addAndGet(len);
-        int blockIndex = (int)index / this.qllBlockSz;
-        String fileStr = this.keyLoc + "/" + this.siteId + "_" + blockIndex;
-        File f = new File(fileStr);
-        if (f.exists())
-        	indexRef.set(index);
-        else {
-        	this.qllBlockIndex.addAndGet(-len);
-        	indexRef.set(-1);
+        try {
+            return Hex.decodeHex(hexbuf);
+        } catch (DecoderException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -176,8 +169,7 @@ public class QLLFileReaderWriter implements QLLReader {
       sb.append(")");
       sb.append(",qllBlockSz=").append(this.qllBlockSz);
       sb.append(",keyLoc=").append(this.keyLoc);
-      sb.append(",keyByteSz=").append(this.keyByteSz);
-      sb.append(",qllBLockIndex=").append(this.qllBlockIndex.get());
+      sb.append(",qllBLockIndex=").append(this.qllBlockIndex);
       return sb.toString();
     }
 }

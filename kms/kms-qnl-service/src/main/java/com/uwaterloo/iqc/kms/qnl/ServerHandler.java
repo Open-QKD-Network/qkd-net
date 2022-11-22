@@ -62,7 +62,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
             resp.setOpId(QNLConstants.RESP_POST_ALLOC_KP_BLOCK);
             resp.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
             resp.setUUID(qReq.getUUID());
-            resp.setKeyBlockIndex(qReq.getKeyBlockIndex());
+            resp.setKeyIdentifier(qReq.getKeyIdentifier());
             resp.setRespOpId(qReq.getRespOpId());
             binDest = new byte[blockByteSz];
             qReq.getPayLoad().readBytes(binDest);

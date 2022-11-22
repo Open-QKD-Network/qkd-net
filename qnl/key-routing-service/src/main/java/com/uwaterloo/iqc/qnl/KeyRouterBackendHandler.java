@@ -58,10 +58,7 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
         String destSiteId = qResp.getDstSiteId();
         String srcSiteId = qResp.getSrcSiteId();
         QNLResponse resp = null;
-        long index;
         QLLReader qllRdr;
-        byte [] bin =  null;
-        byte [] hex = null;
 
         LOGGER.info("KeyRouterBackend/processResp:" + this + ",res:" + qResp);
         switch (opId) {
@@ -71,7 +68,7 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
             // C ---> B ---> A, A is localSiteId, send to B
             adjResp.setOpId(qResp.getRespOpId());
             adjResp.setSiteIds(qResp.getSrcSiteId(), qResp.getDstSiteId());
-            adjResp.setKeyBlockIndex(qResp.getKeyBlockIndex());
+            adjResp.setKeyIdentifier(qResp.getKeyIdentifier());
             adjResp.setUUID(qResp.getUUID());
 
             LOGGER.info("RESP_POST_ALLOC_KP_BLOCK/writeResp:" + adjResp);
@@ -95,12 +92,10 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
             // so adjSiteId is B
             adjSiteId = rConfig.getAdjacentId(destSiteId);
             LOGGER.info("adjSiteId:" + adjSiteId);
-            index = qResp.getKeyBlockIndex();
+            String keyId = qResp.getKeyIdentifier();
             try {
                 qllRdr = qConfig.getQLLReader(adjSiteId);
-                hex =  new byte[blockByteSz*2];
-                qllRdr.read(hex, cfg.getKeyBlockSz(), index);
-                bin = new Hex().decode(hex);
+                byte[] bin = qllRdr.read(keyId);
 
                 resp = new QNLResponse(blockByteSz);
                 resp.setOpId(QNLConstants.RESP_GET_ALLOC_KP_BLOCK);
@@ -112,7 +107,7 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
                 e.printStackTrace();
             }
 
-            if (opId == QNLConstants.REQ_POST_KP_BLOCK_INDEX) {
+            if (opId == QNLConstants.RESP_POST_KP_BLOCK_INDEX) {
                 LOGGER.info("RESP_POST_KP_BLOCK_INDEX/writeResp to inboundChannel:" + inboundChannel + ", resp:"  + resp);
             } else {
                 LOGGER.info("RESP_GET_KP_BLOCK_INDEX/writeResp to inbound channel:" + inboundChannel + ", resp:" + resp);
@@ -145,7 +140,7 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
                     resp.setOpId(QNLConstants.RESP_POST_KP_BLOCK_INDEX);
                 }
                 resp.setSiteIds(qResp.getSrcSiteId(), qResp.getDstSiteId());
-                resp.setKeyBlockIndex(qResp.getKeyBlockIndex());
+                resp.setKeyIdentifier(qResp.getKeyIdentifier());
                 resp.setUUID(qResp.getUUID());
             } else {
                 //propagate the peer alloc block response

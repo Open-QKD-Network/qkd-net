@@ -8,21 +8,20 @@ import io.netty.buffer.Unpooled;
 public class QNLRequest {
 
     private String srcSiteId;
-    private int srcSiteIdLen;
     private String dstSiteId;
-    private int dstSiteIdLen;
     private short opId;
     private short respOpId;
-    private long keyBlockIndex;
-    private int kpBlockBytesSz;
+    private String keyIdentifier;
+    private String otpKeyIdentifier;
+    private int keyBytes;
     private int frameSz;
     private ByteBuf payBuf;
     private boolean payLoadMode = false;
     private String uuid;
 
-    public QNLRequest(int kpBlockByteSz) {
-        this.kpBlockBytesSz = kpBlockByteSz;
-        payBuf = Unpooled.buffer(kpBlockByteSz + 128);
+    public QNLRequest(int keyBytes) {
+        this.keyBytes = keyBytes;
+        payBuf = Unpooled.buffer(keyBytes + 128);
         frameSz = 0;
     }
 
@@ -53,22 +52,29 @@ public class QNLRequest {
         return uuid;
     }
 
-    public void setKeyBlockIndex(long index) {
-        frameSz += Long.BYTES;
-        keyBlockIndex = index;
+    public void setKeyIdentifier(String identifier) {
+        frameSz += identifier.length() + 2;
+        keyIdentifier = identifier;
     }
 
-    public long getKeyBlockIndex() {
-        return keyBlockIndex;
+    public String getKeyIdentifier() {
+        return keyIdentifier;
+    }
+
+    public void setOTPKeyIdentifier(String identifier) {
+        frameSz += identifier.length() + 2;
+        otpKeyIdentifier = identifier;
+    }
+
+    public String getOTPKeyIdentifier() {
+        return otpKeyIdentifier;
     }
 
     public void setSiteIds(String src, String dst) {
-        srcSiteIdLen = src.length();
-        frameSz += srcSiteIdLen + 2;
+        frameSz += src.length() + 2;
         srcSiteId = src;
 
-        dstSiteIdLen = dst.length();
-        frameSz += srcSiteIdLen + 2;
+        frameSz += dst.length() + 2;
         dstSiteId = dst;
     }
 
@@ -80,48 +86,56 @@ public class QNLRequest {
         return dstSiteId;
     }
 
+    private static String readString(ByteBuf frame) {
+        short len = frame.readShort();
+        byte [] src = new byte[len];
+        frame.readBytes(src);
+        return new String(src);
+    }
+
+    private static void writeString(ByteBuf frame, String data) {
+        frame.writeShort(data.length());
+        frame.writeBytes(data.getBytes());
+    }
+
     public void encode(ByteBuf out) {
         switch (opId) {
-        case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
-        case QNLConstants.REQ_GET_KP_BLOCK_INDEX:
-            break;
         case QNLConstants.REQ_POST_ALLOC_KP_BLOCK:
-            frameSz += payBuf.readableBytes();
-            break;
         case QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK:
             frameSz += payBuf.readableBytes();
-            break;
-        case QNLConstants.REQ_POST_KP_BLOCK_INDEX:
             break;
         }
+
         out.writeInt(frameSz);
         out.writeShort(opId);
-        out.writeShort(srcSiteIdLen);
-        out.writeBytes(srcSiteId.getBytes(), 0, srcSiteIdLen);
-        out.writeShort(dstSiteIdLen);
-        out.writeBytes(dstSiteId.getBytes(), 0, dstSiteIdLen);
+        writeString(out, srcSiteId);
+        writeString(out, dstSiteId);
 
         switch (opId) {
-        case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
-        case QNLConstants.REQ_GET_KP_BLOCK_INDEX:
-            break;
         case QNLConstants.REQ_POST_ALLOC_KP_BLOCK:
-            out.writeShort(uuid.length());
-            out.writeBytes(uuid.getBytes(), 0, uuid.length());
-            out.writeLong(keyBlockIndex);
-            out.writeShort(respOpId);
-            out.writeBytes(payBuf);
-            break;
         case QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK:
-            out.writeShort(uuid.length());
-            out.writeBytes(uuid.getBytes(), 0, uuid.length());
-            out.writeLong(keyBlockIndex);
+        case QNLConstants.REQ_POST_KP_BLOCK_INDEX:
+            writeString(out, uuid);
+            writeString(out, keyIdentifier);
+            break;
+        default:
+            break;
+        }
+
+        if (opId == QNLConstants.REQ_POST_ALLOC_KP_BLOCK) {
+            out.writeShort(respOpId);
+        }
+
+        if (opId == QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK) {
+            writeString(out, otpKeyIdentifier);
+        }
+
+        switch (opId) {
+        case QNLConstants.REQ_POST_ALLOC_KP_BLOCK:
+        case QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK:
             out.writeBytes(payBuf);
             break;
-        case QNLConstants.REQ_POST_KP_BLOCK_INDEX:
-            out.writeShort(uuid.length());
-            out.writeBytes(uuid.getBytes(), 0, uuid.length());
-            out.writeLong(keyBlockIndex);
+        default:
             break;
         }
     }
@@ -135,76 +149,49 @@ public class QNLRequest {
     }
 
     public boolean decode(ByteBuf frame) {
-        int m =  frame.readableBytes();
-        short uuidLen;
-        byte [] id;
-
         if (!this.payLoadMode) {
             frameSz = frame.readInt();
             this.opId = frame.readShort();
             frameSz -= Short.BYTES;
 
-            this.srcSiteIdLen = frame.readShort();
-            frameSz -= Short.BYTES;
-            byte [] src = new byte[srcSiteIdLen];
-            frame.readBytes(src);
-            this.srcSiteId = new String(src);
-            frameSz -= this.srcSiteIdLen;
+            this.srcSiteId = readString(frame);
+            frameSz -= Short.BYTES + this.srcSiteId.length();
 
-            this.dstSiteIdLen = frame.readShort();
-            frameSz -= Short.BYTES;
-            byte [] dst = new byte[dstSiteIdLen];
-            frame.readBytes(dst);
-            this.dstSiteId = new String(dst);
-            frameSz -= this.dstSiteIdLen;
+            this.dstSiteId = readString(frame);
+            frameSz -= Short.BYTES + this.dstSiteId.length();
 
             switch (opId) {
-            case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
-            case QNLConstants.REQ_GET_KP_BLOCK_INDEX:
-                break;
             case QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK:
-                uuidLen = frame.readShort();
-                frameSz -= Short.BYTES;
-                id = new byte[uuidLen];
-                frame.readBytes(id);
-                this.uuid = new String(id);
-                frameSz -= uuidLen;
-
-                this.keyBlockIndex = frame.readLong();
-                frameSz -= Long.BYTES;
-
-                frameSz -= frame.readableBytes();
-                frame.readBytes(payBuf, frame.readableBytes());
-                payLoadMode = !(frameSz == 0);
-                break;
             case QNLConstants.REQ_POST_KP_BLOCK_INDEX:
-                uuidLen = frame.readShort();
-                frameSz -= Short.BYTES;
-                id = new byte[uuidLen];
-                frame.readBytes(id);
-                this.uuid = new String(id);
-                frameSz -= uuidLen;
-
-                frameSz -= Long.BYTES;
-                this.keyBlockIndex = frame.readLong();
-                break;
             case QNLConstants.REQ_POST_ALLOC_KP_BLOCK:
-                uuidLen = frame.readShort();
-                frameSz -= Short.BYTES;
-                id = new byte[uuidLen];
-                frame.readBytes(id);
-                this.uuid = new String(id);
-                frameSz -= uuidLen;
+                this.uuid = readString(frame);
+                frameSz -= Short.BYTES + this.uuid.length();
 
-                this.keyBlockIndex = frame.readLong();
-                frameSz -= Long.BYTES;
+                this.keyIdentifier = readString(frame);
+                frameSz -= Short.BYTES + this.keyIdentifier.length();
+                break;
+            default:
+                break;
+            }
 
+            if (opId == QNLConstants.REQ_POST_ALLOC_KP_BLOCK) {
                 this.respOpId = frame.readShort();
                 frameSz -= Short.BYTES;
+            }
 
+            if (opId == QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK) {
+                this.otpKeyIdentifier = readString(frame);
+                frameSz -= Short.BYTES + this.otpKeyIdentifier.length();
+            }
+
+            switch (opId) {
+            case QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK:
+            case QNLConstants.REQ_POST_ALLOC_KP_BLOCK:
                 frameSz -= frame.readableBytes();
                 frame.readBytes(payBuf, frame.readableBytes());
                 payLoadMode = !(frameSz == 0);
+                break;
+            default:
                 break;
             }
         } else {
@@ -247,7 +234,7 @@ public class QNLRequest {
         case QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK:
         case QNLConstants.REQ_POST_ALLOC_KP_BLOCK:
         case QNLConstants.REQ_POST_KP_BLOCK_INDEX:
-            fmt.format("  KeyBlockIndex: %s%n", keyBlockIndex);
+            fmt.format("  KeyBlockIndex: %s%n", keyIdentifier);
             fmt.format("  UUID: %s%n", uuid);
             break;
         }

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 
+import com.uwaterloo.iqc.qnl.qll.QLLETSIReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,17 +55,20 @@ public class QNLConfiguration {
             routeCfg = gson.fromJson(routeReader, RouteConfig.class);
             routeReader.close();
 
-            JsonReader siteAgentReader = new JsonReader(new FileReader(config.getSiteAgentConfigLoc()));
-            siteAgentCfg = gson.fromJson(siteAgentReader, SiteAgentConfig.class);
-            siteAgentReader.close();
+            if (config.getLegacyQLL()) {
+                JsonReader siteAgentReader = new JsonReader(new FileReader(config.getSiteAgentConfigLoc()));
+                siteAgentCfg = gson.fromJson(siteAgentReader, SiteAgentConfig.class);
+                siteAgentReader.close();
 
-            for (String siteID: routeCfg.adjacent.keySet()) {
-                LOGGER.info("Parsing file: " + config.getQKDLinkConfigLoc(siteID));
-                JsonReader qkdLinkReader = new JsonReader(new FileReader(config.getQKDLinkConfigLoc(siteID)));
-                qkdLinkCfgMap.put(siteID, (QKDLinkConfig) gson.fromJson(qkdLinkReader, QKDLinkConfig.class));
-                qkdLinkReader.close();
+                for (String siteID : routeCfg.adjacent.keySet()) {
+                    LOGGER.info("Parsing file: " + config.getQKDLinkConfigLoc(siteID));
+                    JsonReader qkdLinkReader = new JsonReader(new FileReader(config.getQKDLinkConfigLoc(siteID)));
+                    qkdLinkCfgMap.put(siteID, (QKDLinkConfig) gson.fromJson(qkdLinkReader, QKDLinkConfig.class));
+                    qkdLinkReader.close();
+                }
             }
 
+            createOTPKeys();
             createQLLClients();
         } catch(Exception e) {
             java.io.StringWriter sw = new java.io.StringWriter();
@@ -109,12 +113,9 @@ public class QNLConfiguration {
         return otpKeyMap.get(id);
     }
 
-    public void createOTPKeys(KeyTransferServer server) {
+    private void createOTPKeys() {
         for (String k : routeCfg.adjacent.keySet()) {
             OTPKey key = new OTPKey(this, k);
-
-            String localDeviceId = qkdLinkCfgMap.get(k).localQKDDeviceId;
-            server.addListener(localDeviceId, key);
 
             otpKeyMap.put(k, key);
         }
@@ -122,7 +123,15 @@ public class QNLConfiguration {
 
     private void createQLLClients() {
         for (String k : routeCfg.adjacent.keySet()) {
-            qllClientMap.put(k, new QLLFileReaderWriter(k, config));
+            try {
+                if (config.getLegacyQLL()) {
+                    qllClientMap.put(k, new QLLFileReaderWriter(k, config));
+                } else {
+                    qllClientMap.put(k, new QLLETSIReader(routeCfg.getAdjacentIdKME(k)));
+                }
+            } catch (RuntimeException e) {
+                LOGGER.error("Failed to load configuration for " + k, e);
+            }
         }
     }
 }

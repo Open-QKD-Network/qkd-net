@@ -69,16 +69,11 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
     String destSiteId = qReq.getDstSiteId();
     String srcSiteId = qReq.getSrcSiteId();
     String localSiteId = cfg.getSiteId();
-    String otherSiteId;
     String adjSiteId;
     QNLRequest req;
-    QNLResponse resp;
     short opId = qReq.getOpId();
     QLLReader qllRdr;
-    AtomicLong ref;
-    long index;
-    byte[] hex;
-    byte[] binDest = null;
+    byte[] binDest;
     int blockByteSz = cfg.getKeyBlockSz() * cfg.getKeyBytesSz();
     OTPKey otpKey;
     String uniqueID;
@@ -94,10 +89,8 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         if (localSiteId.compareToIgnoreCase(adjSiteId) < 0) {
           uniqueID = UUID.randomUUID().toString();
           qllRdr = qConfig.getQLLReader(adjSiteId);
-          ref = new AtomicLong(0);
-          qllRdr.getNextBlockIndex(cfg.getKeyBlockSz(), ref);
           req.setOpId(QNLConstants.REQ_POST_KP_BLOCK_INDEX);
-          req.setKeyBlockIndex(ref.get());
+          req.setKeyIdentifier(qllRdr.getNextKeyId(blockByteSz));
           req.setUUID(uniqueID);
         } else {
           req.setOpId(QNLConstants.REQ_GET_KP_BLOCK_INDEX);
@@ -111,21 +104,14 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         break;
       case QNLConstants.REQ_POST_KP_BLOCK_INDEX:
         qllRdr = qConfig.getQLLReader(srcSiteId);
-        index = qReq.getKeyBlockIndex();
-        hex = new byte[blockByteSz * 2];
-        qllRdr.read(hex, cfg.getKeyBlockSz(), index);
-
-        try {
-          binDest = new Hex().decode(hex);
-        } catch (Exception e) {
-        }
+        binDest = qllRdr.read(qReq.getKeyIdentifier());
 
         if (localSiteId.equals(destSiteId)) {
           req = new QNLRequest(blockByteSz);
           req.setOpId(QNLConstants.REQ_POST_ALLOC_KP_BLOCK);
           req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
           req.setUUID(qReq.getUUID());
-          req.setKeyBlockIndex(qReq.getKeyBlockIndex());
+          req.setKeyIdentifier(qReq.getKeyIdentifier());
           req.setRespOpId(QNLConstants.RESP_POST_KP_BLOCK_INDEX);
           req.setPayLoad(binDest);
 
@@ -135,21 +121,18 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           ctx.fireChannelRead(req);
         } else {
           adjSiteId = rConfig.getAdjacentId(destSiteId);
-          otherSiteId = rConfig.getOtherAdjacentId(adjSiteId);
           retainConnectHandler(ctx, adjSiteId);
+
+          otpKey = qConfig.getOTPKey(adjSiteId);
+          String otpKeyIdent = otpKey.encode(binDest);
 
           req = new QNLRequest(blockByteSz);
           req.setOpId(QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK);
           req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
-          req.setKeyBlockIndex(qReq.getKeyBlockIndex());
+          req.setKeyIdentifier(qReq.getKeyIdentifier());
           req.setUUID(qReq.getUUID());
-          try {
-            otpKey = qConfig.getOTPKey(adjSiteId);
-            otpKey.otp(binDest);
-            req.setPayLoad(binDest);
-          } catch (Exception e) {
-            e.printStackTrace(System.out);
-          }
+          req.setOTPKeyIdentifier(otpKeyIdent);
+          req.setPayLoad(binDest);
 
           LOGGER.info("REQ_POST_KP_BLOCK_INDEX/generate new QNLRequest:" + req);
           ctx.fireChannelActive();
@@ -160,21 +143,16 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         // Step 2:
         uniqueID = UUID.randomUUID().toString();
         qllRdr = qConfig.getQLLReader(srcSiteId);
-        ref = new AtomicLong(0);
-        hex = new byte[cfg.getKeyBlockSz() * cfg.getKeyBytesSz() * 2];
-        qllRdr.read(hex, cfg.getKeyBlockSz(), ref);
+        binDest = new byte[blockByteSz];
+        String keyId = qllRdr.readNextKey(binDest, blockByteSz);
 
         if (localSiteId.equals(destSiteId)) {
           req = new QNLRequest(blockByteSz);
           req.setOpId(QNLConstants.REQ_POST_ALLOC_KP_BLOCK);
           req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
-          req.setKeyBlockIndex(ref.get());
+          req.setKeyIdentifier(keyId);
           req.setRespOpId(QNLConstants.RESP_GET_KP_BLOCK_INDEX);
           req.setUUID(uniqueID);
-          try {
-            binDest = new Hex().decode(hex);
-          } catch (Exception e) {
-          }
           req.setPayLoad(binDest);
 
           LOGGER.info("REQ_GET_KP_BLOCK_INDEX/generate new QNLRequest:" + req);
@@ -191,7 +169,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           req = new QNLRequest(blockByteSz);
           req.setOpId(QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK);
           req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
-          req.setKeyBlockIndex(ref.get());
+          req.setKeyIdentifier(keyId);
           req.setUUID(uniqueID);
           // req.setRespOpId(QNLConstants.RESP_GET_KP_BLOCK_INDEX); // added by XL
           try {
@@ -199,8 +177,8 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
             // In this case next hop is A
             // qll(C->B) xor otp(B->A)
             otpKey = qConfig.getOTPKey(adjSiteId);
-            binDest = new Hex().decode(hex);
-            otpKey.otp(binDest);
+            String otpKeyIdent = otpKey.encode(binDest);
+            req.setOTPKeyIdentifier(otpKeyIdent);
             req.setPayLoad(binDest);
           } catch (Exception e) {
             e.printStackTrace(System.out);
@@ -220,7 +198,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           req.setOpId(QNLConstants.REQ_POST_ALLOC_KP_BLOCK);
           req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
           req.setUUID(qReq.getUUID());
-          req.setKeyBlockIndex(qReq.getKeyBlockIndex());
+          req.setKeyIdentifier(qReq.getKeyIdentifier());
           req.setRespOpId(QNLConstants.RESP_POST_PEER_ALLOC_KP_BLOCK);
           binDest = new byte[blockByteSz];
           qReq.getPayLoad().readBytes(binDest);
@@ -229,7 +207,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           try {
             // qll(C->B) xor otp(B->A) xor otp(A->B) = qll(C->B)
             otpKey = qConfig.getOTPKey(adjSiteId);
-            otpKey.otp(binDest);
+            otpKey.decode(binDest, qReq.getOTPKeyIdentifier());
             req.setPayLoad(binDest);
           } catch (Exception e) {
             e.printStackTrace(System.out);
@@ -248,7 +226,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           try {
             // OTPKey should be key between localSite and previous hop
             otpKey = qConfig.getOTPKey(rConfig.getAdjacentId(srcSiteId));
-            otpKey.otp(binDest);
+            otpKey.decode(binDest, qReq.getOTPKeyIdentifier());
           } catch (Exception e) {
             LOGGER.error("cannot get OTP key to decode the REQ_POST_PEER_ALLOC_KP_BLOCK payload");
             e.printStackTrace(System.out);
@@ -261,11 +239,12 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           req = new QNLRequest(blockByteSz);
           req.setOpId(QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK);
           req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
-          req.setKeyBlockIndex(qReq.getKeyBlockIndex());
+          req.setKeyIdentifier(qReq.getKeyIdentifier());
           req.setUUID(qReq.getUUID());
           try {
             otpKey = qConfig.getOTPKey(adjSiteId);
-            otpKey.otp(binDest);
+            String otpKeyIdent = otpKey.encode(binDest);
+            req.setOTPKeyIdentifier(otpKeyIdent);
             req.setPayLoad(binDest);
           } catch (Exception e) {
             LOGGER.error(
