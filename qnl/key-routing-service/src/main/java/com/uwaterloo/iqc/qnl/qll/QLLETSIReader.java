@@ -3,7 +3,9 @@ package com.uwaterloo.iqc.qnl.qll;
 import com.uwaterloo.iqc.qnl.RouteConfig;
 import nl.altindag.ssl.util.PemUtils;
 import nl.altindag.ssl.SSLFactory;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Response;
 import org.openapitools.client.ApiClient;
 import org.openapitools.client.ApiException;
 import org.openapitools.client.api.KeyApi;
@@ -21,7 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.net.ssl.X509ExtendedTrustManager;
 
-public class QLLETSIReader implements QLLReader {
+public class QLLETSIReader implements QLLReader, Interceptor {
 
     private ApiClient client;
     private KeyApi api;
@@ -41,7 +43,7 @@ public class QLLETSIReader implements QLLReader {
         return Files.newInputStream(configFile.toPath());
     }
 
-    public static OkHttpClient loadClient(RouteConfig.KMEConfig config) throws IOException {
+    public OkHttpClient loadClient(RouteConfig.KMEConfig config) throws IOException {
         SSLFactory.Builder sslFactoryBuilder = SSLFactory.builder();
 
         // Set up the client identity
@@ -64,6 +66,7 @@ public class QLLETSIReader implements QLLReader {
                 .sslSocketFactory(sslFactory.getSslSocketFactory(), sslFactory.getTrustManager().get())
                 // Uncomment to disable hostname verification for debugging
                 // .hostnameVerifier((hostname, session) -> true)
+                .addNetworkInterceptor(this)
                 .build();
     }
 
@@ -142,5 +145,14 @@ public class QLLETSIReader implements QLLReader {
         }
         Key key = getKeyById(identifier);
         return Base64.getDecoder().decode(key.getKey());
+    }
+
+    @Override
+    public Response intercept(Chain chain) throws IOException {
+        // Some TLS servers are currently broken, and result in errors when session resumption is used
+        // Work around this by always invalidating the session after the request
+        Response response = chain.proceed(chain.request());
+        ((SSLSocket)chain.connection().socket()).getSession().invalidate();
+        return response;
     }
 }
