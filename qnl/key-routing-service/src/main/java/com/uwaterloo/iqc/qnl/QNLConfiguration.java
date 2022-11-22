@@ -123,10 +123,14 @@ public class QNLConfiguration {
 
     private void createQLLClients() {
         for (String k : routeCfg.adjacent.keySet()) {
-            if (config.getLegacyQLL()) {
-                qllClientMap.put(k, new QLLFileReaderWriter(k, config));
-            } else {
-                qllClientMap.put(k, new QLLETSIReader(routeCfg.getAdjacentIdKME(k)));
+            try {
+                if (config.getLegacyQLL()) {
+                    qllClientMap.put(k, new QLLFileReaderWriter(k, config));
+                } else {
+                    qllClientMap.put(k, new QLLETSIReader(routeCfg.getAdjacentIdKME(k)));
+                }
+            } catch (RuntimeException e) {
+                LOGGER.error("Failed to load configuration for " + k, e);
             }
         }
     }
