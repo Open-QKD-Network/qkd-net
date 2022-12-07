@@ -57,11 +57,27 @@ public class KeyRouter{
         //siteAgent.setMySiteAgentListener(new KeyRouter()); not needed now.
 
         // passing the address of the current site along with the ISiteAgentServer object and other paramenters.
-        LinkCheck l = new LinkCheck(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port, siteAgent, timers, qConfig);
+        //LinkCheck l = new LinkCheck(qConfig.getSiteAgentConfig().url, qConfig.getSiteAgentConfig().port, siteAgent, timers, qConfig);
 
         //calling the timer to check the status of all dummy drivers associated with links with this site.
-        timer.schedule(l, 5000, 5000);
+        //timer.schedule(l, 5000, 5000);
 
+        RouteConfig routeCfg = qConfig.getRouteConfig();
+        String mySiteId = qConfig.getConfig().getSiteId();
+        for (String k : routeCfg.adjacent.keySet()) {
+          if (mySiteId.compareTo(k) < 0) {
+            //I am Alice
+            LinkCheck2 linkcheck = new LinkCheck2(timer,
+              mySiteId,
+              k,
+              qConfig.getSiteAgentConfig().url,
+              qConfig.getSiteAgentConfig().port,
+              siteAgent,
+              qConfig
+            );
+            timer.schedule(linkcheck, 5000);
+          }
+        }
 
         LOGGER.info("Key router started, args.length:" + args.length);
 
