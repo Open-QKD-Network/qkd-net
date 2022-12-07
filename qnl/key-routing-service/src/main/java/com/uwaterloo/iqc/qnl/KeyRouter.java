@@ -75,7 +75,7 @@ public class KeyRouter{
               siteAgent,
               qConfig
             );
-            timer.schedule(linkcheck, 5000);
+            timer.schedule(linkcheck, 1000 * 30);
           }
         }
 

@@ -53,10 +53,12 @@ public class LinkCheck2 extends TimerTask {
             return;
         }
         
+        boolean localDeviceRegistered = false;
         for (int index = 0; index < localSite.getDevicesCount(); ++index) {
             String deviceId = localSite.getDevices(index).getConfig().getId();
             LOGGER.info("Locally registered QKD device:" + deviceId + ", this:" + this);
             if (this.myQKDDeviceId.equalsIgnoreCase(deviceId)) {
+                localDeviceRegistered = true;
                 LOGGER.info("Local QKD device is registered:" + this.myQKDDeviceId);
                 QKDLinkConfig link = qConfig.getQKDLinkConfig(this.peerSiteId);
                 String remoteDeviceId = link.remoteQKDDeviceId;
@@ -66,14 +68,19 @@ public class LinkCheck2 extends TimerTask {
                 if (isRemoteRegistered) {
                     LOGGER.info("Remote QKD device is registered:" + remoteDeviceId + ", this:" + this);
                     this.grpcClient.startNode(link.localSiteAgentUrl, link.localQKDDeviceId, link.remoteSiteAgentUrl, link.remoteQKDDeviceId);
+                    return;
                 } else {
                     LOGGER.info("Remote QKD device is NOT registered:" + remoteDeviceId + ", this:" + this);
                     restartTimerTask();
                     return;
                 }
-            } else {
-                continue;
             }
+        }
+
+        if (!localDeviceRegistered) {
+            LOGGER.info("Local QKD device is NOT registered, this:" + this);
+            restartTimerTask();
+            return;
         }
     }
 
@@ -85,7 +92,7 @@ public class LinkCheck2 extends TimerTask {
             this.localSiteAgentPort,
             this.localSiteAgent,
             this.qConfig);
-        this.timer.schedule(again, 1000 * 5);
+        this.timer.schedule(again, 1000 * 30);
     }
 
     private boolean isRemoteDeviceRegistered(String remoteDeviceId, String remoteSiteAgentUrl) {
