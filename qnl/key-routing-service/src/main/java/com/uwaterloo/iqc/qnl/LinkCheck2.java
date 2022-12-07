@@ -56,7 +56,7 @@ public class LinkCheck2 extends TimerTask {
         for (int index = 0; index < localSite.getDevicesCount(); ++index) {
             String deviceId = localSite.getDevices(index).getConfig().getId();
             LOGGER.info("Locally registered QKD device:" + deviceId + ", this:" + this);
-            if (this.myQKDDeviceId == deviceId) {
+            if (this.myQKDDeviceId.equalsIgnoreCase(deviceId)) {
                 LOGGER.info("Local QKD device is registered:" + this.myQKDDeviceId);
                 QKDLinkConfig link = qConfig.getQKDLinkConfig(this.peerSiteId);
                 String remoteDeviceId = link.remoteQKDDeviceId;
@@ -105,7 +105,7 @@ public class LinkCheck2 extends TimerTask {
         for (int index = 0; index < remoteSite.getDevicesCount(); index++) {
             String deviceId = remoteSite.getDevices(index).getConfig().getId();
             LOGGER.info("QKD device on remote site agent:" + deviceId + ", my remote device:" + remoteDeviceId + ", this:" + this);
-            if (deviceId == remoteDeviceId) {
+            if (deviceId.equalsIgnoreCase(remoteDeviceId)) {
                 return true;
             }
         }
