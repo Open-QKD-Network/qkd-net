@@ -5,4 +5,11 @@ public class QKDLinkConfig {
     public String remoteQKDDeviceId;
     public String localSiteAgentUrl;
     public String remoteSiteAgentUrl;
+
+    public String toString() {
+        return "LocalId=" + localQKDDeviceId +
+               ",RemoteId=" + remoteQKDDeviceId +
+               ",LocalSiteAgent=" + localSiteAgentUrl +
+               ",RemoteSiteAgent=" + remoteSiteAgentUrl;
+    }
 }
