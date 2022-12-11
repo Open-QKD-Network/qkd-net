@@ -20,7 +20,6 @@ cd test
 jar xf ../target/kms-api-gateway-0.0.1-SNAPSHOT.jar
 rm BOOT-INF/lib/bcpkix-jdk15on-1.60.jar
 rm BOOT-INF/lib/bcprov-jdk15on-1.60.jar
-rm BOOT-INF/lib/logback-core-1.1.11.jar
 
 #Create new jar
 jar -cfM0 new.jar BOOT-INF/ META-INF/ org/

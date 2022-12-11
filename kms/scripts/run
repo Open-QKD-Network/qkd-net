@@ -8,7 +8,7 @@ sleep 20s
 export SITE_PROPERTIES=$HOME/.qkd/kms/site.properties
 screen -Sdm kms-svc scripts/run-kms-service.sh
 sleep 20s
-screen -Sdm kms-gw java -Djdk.tls.namedGroups=p256_frodo640aes -jar kms-api-gateway/target/kms-api-gateway-0.0.1-SNAPSHOT.jar
+screen -Sdm kms-gw java -Djdk.tls.namedGroups=p521_kyber1024 -jar kms-api-gateway/target/kms-api-gateway-0.0.1-SNAPSHOT.jar
 sleep 20s
 cd kms-qnl-service
 screen -Sdm kms-qnl-svc ./mvnw exec:java
