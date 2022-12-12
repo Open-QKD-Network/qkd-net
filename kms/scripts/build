@@ -44,7 +44,7 @@ git update-index --assume-unchanged mvnw.cmd
 
 cd ${QKD_HOME}/kms/kms-api-gateway
 mvn -N io.takari:maven:wrapper
-./mvnw clean install
+./mvnw -DskipTests clean install
 git update-index --assume-unchanged mvnw
 git update-index --assume-unchanged mvnw.cmd
 
