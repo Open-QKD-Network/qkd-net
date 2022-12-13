@@ -1,5 +1,5 @@
-CFLAGS=-I. -g -Wall -Wextra
-ADD_LIBS=-lcurl -ljson-c
+CFLAGS= -I. -I/home/ubuntu/openquantumsafe/curl-install/include -L/home/ubuntu/openquantumsafe/curl-install/lib -g -Wall -Wextra
+ADD_LIBS= -ljson-c -lcurl
 
 CFLAGS+=${ADD_CFLAGS}
 
