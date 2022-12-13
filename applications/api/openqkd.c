@@ -178,6 +178,9 @@ static int fetch(MemoryStruct *chunk, char* url, const char*post) {
   curl_easy_setopt(handle, CURLOPT_VERBOSE, 0L);
   curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void *)chunk);
   curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 1L);
+  // Use hybrid key exchange
+  curl_easy_setopt(handle, CURLOPT_SSL_EC_CURVES, "p521_kyber1024");
+
   res = curl_easy_perform(handle);
  
   if (res != CURLE_OK) {
