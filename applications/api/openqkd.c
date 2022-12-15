@@ -229,34 +229,34 @@ int oqkd_new_key(char* new_key_url, char**key, int* key_len, char** get_key_url)
   int len = 0;
   char* mySiteId = NULL;
   char* siteId = NULL;
+  char *new_key2 = NULL;
   MemoryStruct chunk;
   chunk.memory = malloc(1);
   chunk.size = 0;
 
   printf("QKD_NEW_KEY from %s\n", new_key_url);
-  ret = get_urls(NULL, &get_key, &mySiteId);
+  ret = get_urls(&new_key, &get_key, &mySiteId);
   if (ret != 0) {
     printf("Fails to get key urls\n");
     return -1;
   }
   /*assume client C makes connection to server B, 
-  on B side, the new_key_url is http://localhost:8089/api/newkey&siteid=C*/
+  on B side, the new_key_url is http://C/api/newkey&siteid=C
+  we need to replace C with B address
+  */
   siteId = strchr(new_key_url, '&');
   if (siteId == NULL) {
     printf("No siteid in new key url:%s\n", new_key_url);
     return -1;
   }
-  char* remotesiteId = strchr(siteId, '=') + 1; 
-  ret = get_remote_siteagent_url(&get_key, remotesiteId);
-  if (ret != 0) {
-    printf("Remote siteagent could not be found (mapping.log misconfigured; check routes.json)");
-  }
-  new_key = malloc(siteId - new_key_url + 1);
-  memset(new_key, 0, siteId - new_key_url + 1);
-  memcpy(new_key, new_key_url, siteId - new_key_url);
+  new_key2 = malloc(strlen(new_key) + siteId - new_key_url + 1);
+  memset(new_key2, 0, strlen(new_key) + siteId - new_key_url + 1);
+  memcpy(new_key2, new_key, strlen(new_key));
+  memcpy(new_key2 + strlen(new_key), siteId, siteId - new_key_url);
+  printf("Real new key url:%s\n", new_key2);
   siteId++; // move &
 
-  ret = fetch(&chunk, new_key, siteId);
+  ret = fetch(&chunk, new_key2, siteId);
   if (ret != 0) {
     printf("Fails to get new key\n");
     return -1;
@@ -325,18 +325,16 @@ int oqkd_get_key(char* get_key_url, char**key, int* key_len) {
     printf("siteid is not in get_key_url:%s\n", get_key_url);
     return -1;
   }
-  len = siteId - temp + 1;
-  getKey = malloc(len);
-  memset(getKey, 0, len);
-  memcpy(getKey, temp, len - 1); // get key
+  ret = get_urls(NULL, &getKey, NULL);
+  if (getKey == NULL) {
+    printf("get getkey url fails\n");
+    return -1;
+  }
 
-  temp += len; // move over key temp = siteid=B&index=0&blockid=sadfdf
-  len = strlen(temp) + 1;
-  post = malloc(len);
-  memset(post, 0, len);
-  memcpy(post, temp, len - 1);
+  printf("getkey url %s\n", getKey);
+  printf("Post %s\n", siteId+ 1);
 
-  ret = fetch(&chunk, getKey, post);
+  ret = fetch(&chunk, getKey, siteId + 1);
   if (ret != 0) {
     printf("Fails to get key with url:%s\n", get_key_url);
     return -1;
