@@ -13,15 +13,14 @@ int main(int argc, char * argv[]) {
 
 #if 1
   /* run this on server side/bob/site B */
-  /*ret = oqkd_get_new_key_url(&new_key_url);
+  ret = oqkd_get_new_key_url(&new_key_url);
   if (ret == 0) {
       printf("new_key_url:%s\n", new_key_url);
   } else {
       printf("Fails to get new_key_url\n");
       return ret;
-  }*/
-  new_key_url = "https://192.168.2.64:8095/api/newkey&siteid=B";
-  fprintf("New key URL:%s\n", new_key_url);
+  }
+  printf("New key URL:%s\n", new_key_url);
   ret = oqkd_new_key(new_key_url, &key, &len, &get_key_url);
   if (ret ==0) {
     printf("new key succeeds, key len:%d, get_key_url:%s\n", len, get_key_url);
@@ -33,7 +32,7 @@ int main(int argc, char * argv[]) {
   }
 #else
   /* run this on client side/alice/site C */
-  ret = oqkd_get_key("http://192.168.2.64:8095/api/getkey&siteid=B&index=0&blockid=f2febd3d-fcb4-4410-a522-66c672227d4c",
+  ret = oqkd_get_key("http://192.168.2.64:8095/api/getkey?siteid=B&index=0&blockid=f2febd3d-fcb4-4410-a522-66c672227d4c",
       &key, &len);
   if (ret == 0) {
     printf("oqkd_get_key succeed: len=%d\n", len);
