@@ -49,9 +49,11 @@ public class LinkCheck2 extends TimerTask {
             internalRun();
         } catch (Exception e) {
             LOGGER.warn("Exception in LinkCheck2TimerTask:" + e);
-            for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
-                LOGGER.warn("Exception stack:" + ste);
-            }
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            e.printStackTrace(pw);
+            LOGGER.warn("Exception stack trace:" + sw.toString());
+
             restartTimerTask();
         }
     }
