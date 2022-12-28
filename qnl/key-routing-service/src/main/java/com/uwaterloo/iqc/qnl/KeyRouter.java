@@ -67,7 +67,8 @@ public class KeyRouter{
         for (String k : routeCfg.adjacent.keySet()) {
           if (mySiteId.compareTo(k) < 0) {
             //I am Alice
-            LinkCheck2 linkcheck = new LinkCheck2(timer,
+            Timer a = new Timer("LinkCheck2-" + mySiteId + "-" + k);
+            LinkCheck2 linkcheck = new LinkCheck2(a,
               mySiteId,
               k,
               qConfig.getSiteAgentConfig().url,
@@ -75,7 +76,7 @@ public class KeyRouter{
               siteAgent,
               qConfig
             );
-            timer.schedule(linkcheck, 1000 * 30);
+            a.schedule(linkcheck, 1000 * 30);
           }
         }
 

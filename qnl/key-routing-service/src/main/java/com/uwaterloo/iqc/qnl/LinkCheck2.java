@@ -45,10 +45,22 @@ public class LinkCheck2 extends TimerTask {
 
     // TimerTask class
     public void run() {
+        try {
+            internalRun();
+        } catch (Exception e) {
+            LOGGER.warn("Exception in LinkCheck2TimerTask:" + e);
+            for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+                LOGGER.warn("Exception stack:" + ste);
+            }
+            restartTimerTask();
+        }
+    }
+
+    private void internalRun() {
 
         Site localSite = this.grpcClient.getSiteDetails(this.localSiteAgentAddress, this.localSiteAgentPort);
 
-        if (localSite.getDevicesCount() == 0) {
+        if (localSite == null || localSite.getDevicesCount() == 0) {
             restartTimerTask();
             return;
         }
@@ -109,6 +121,10 @@ public class LinkCheck2 extends TimerTask {
         }
 
         Site remoteSite = this.grpcClient.getSiteDetails(remoteSiteAgentAddress, remoteSiteAgentPort);
+        if (remoteSite == null) {
+            LOGGER.info("RemoteSite is null, this:" + this);
+            return false;
+        }
         for (int index = 0; index < remoteSite.getDevicesCount(); index++) {
             String deviceId = remoteSite.getDevices(index).getConfig().getId();
             LOGGER.info("QKD device on remote site agent:" + deviceId + ", my remote device:" + remoteDeviceId + ", this:" + this);
