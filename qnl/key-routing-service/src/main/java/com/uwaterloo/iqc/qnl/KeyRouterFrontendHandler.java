@@ -91,7 +91,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         adjSiteId = rConfig.getAdjacentId(destSiteId);
         LOGGER.info("adjSiteId:" + adjSiteId);
         req = new QNLRequest(blockByteSz);
-        if (!localSiteId.equals(adjSiteId)) {
+        if (localSiteId.compareToIgnoreCase(adjSiteId) < 0) {
           uniqueID = UUID.randomUUID().toString();
           qllRdr = qConfig.getQLLReader(adjSiteId);
           ref = new AtomicLong(0);
