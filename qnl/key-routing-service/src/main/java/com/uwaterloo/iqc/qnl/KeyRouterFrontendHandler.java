@@ -91,7 +91,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         adjSiteId = rConfig.getAdjacentId(destSiteId);
         LOGGER.info("adjSiteId:" + adjSiteId);
         req = new QNLRequest(blockByteSz);
-        if (localSiteId.compareToIgnoreCase(adjSiteId) < 0) {
+        if (!localSiteId.equals(adjSiteId)) {
           uniqueID = UUID.randomUUID().toString();
           qllRdr = qConfig.getQLLReader(adjSiteId);
           ref = new AtomicLong(0);
@@ -118,6 +118,10 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         try {
           binDest = new Hex().decode(hex);
         } catch (Exception e) {
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            e.printStackTrace(pw);
+            LOGGER.warn("QNLException:"  + e +  ", stack trace:" + sw.toString());
         }
 
         if (localSiteId.equals(destSiteId)) {
@@ -128,6 +132,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           req.setKeyBlockIndex(qReq.getKeyBlockIndex());
           req.setRespOpId(QNLConstants.RESP_POST_KP_BLOCK_INDEX);
           req.setPayLoad(binDest);
+          LOGGER.info("Payload:" + Hex.encodeHexString(binDest));
 
           LOGGER.info("REQ_POST_KP_BLOCK_INDEX/generate new QNLRequest:" + req);
           retainConnectHandler(ctx, QNLConfig.KMS);
@@ -147,8 +152,12 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
             otpKey = qConfig.getOTPKey(adjSiteId);
             otpKey.otp(binDest);
             req.setPayLoad(binDest);
+            LOGGER.info("OTPPayload:" + Hex.encodeHexString(binDest));
           } catch (Exception e) {
-            e.printStackTrace(System.out);
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            e.printStackTrace(pw);
+            LOGGER.warn("QNLException:"  + e +  ", stack trace:" + sw.toString());
           }
 
           LOGGER.info("REQ_POST_KP_BLOCK_INDEX/generate new QNLRequest:" + req);
@@ -174,8 +183,13 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           try {
             binDest = new Hex().decode(hex);
           } catch (Exception e) {
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            e.printStackTrace(pw);
+            LOGGER.warn("QNLException:"  + e +  ", stack trace:" + sw.toString());
           }
           req.setPayLoad(binDest);
+          LOGGER.info("Payload:" + Hex.encodeHexString(binDest));
 
           LOGGER.info("REQ_GET_KP_BLOCK_INDEX/generate new QNLRequest:" + req);
           retainConnectHandler(ctx, QNLConfig.KMS);
@@ -202,8 +216,12 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
             binDest = new Hex().decode(hex);
             otpKey.otp(binDest);
             req.setPayLoad(binDest);
+            LOGGER.info("OTPPayload:" + Hex.encodeHexString(binDest));
           } catch (Exception e) {
-            e.printStackTrace(System.out);
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            e.printStackTrace(pw);
+            LOGGER.warn("QNLException:"  + e +  ", stack trace:" + sw.toString());
           }
           LOGGER.info("REQ_GET_KP_BLOCK_INDEX/generate new QNLRequest:" + req);
           retainConnectHandler(ctx, adjSiteId);
@@ -231,8 +249,12 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
             otpKey = qConfig.getOTPKey(adjSiteId);
             otpKey.otp(binDest);
             req.setPayLoad(binDest);
+            LOGGER.info("OTPPayload:" + Hex.encodeHexString(binDest));
           } catch (Exception e) {
-            e.printStackTrace(System.out);
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            e.printStackTrace(pw);
+            LOGGER.warn("QNLException:"  + e +  ", stack trace:" + sw.toString());
           }
 
           LOGGER.info("REQ_POST_PEER_ALLOC_KP_BLOCK/generate new QNLRequest to KMS:" + req);
@@ -251,7 +273,10 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
             otpKey.otp(binDest);
           } catch (Exception e) {
             LOGGER.error("cannot get OTP key to decode the REQ_POST_PEER_ALLOC_KP_BLOCK payload");
-            e.printStackTrace(System.out);
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            e.printStackTrace(pw);
+            LOGGER.warn("QNLException:"  + e +  ", stack trace:" + sw.toString());
           }
 
           // OTP encode the payload for next hop
@@ -267,10 +292,14 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
             otpKey = qConfig.getOTPKey(adjSiteId);
             otpKey.otp(binDest);
             req.setPayLoad(binDest);
+            LOGGER.info("OTPPayload:" + Hex.encodeHexString(binDest));
           } catch (Exception e) {
             LOGGER.error(
                 "cannot get OTP key to encode the outbound REQ_POST_PEER_ALLOC_KP_BLOCK payload");
-            e.printStackTrace(System.out);
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            e.printStackTrace(pw);
+            LOGGER.warn("QNLException:"  + e +  ", stack trace:" + sw.toString());
           }
           LOGGER.info(
               "REQ_POST_PEER_ALLOC_KP_BLOCK/generate new QNLRequest to Node "

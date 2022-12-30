@@ -56,6 +56,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         short opId = qReq.getOpId();
         String uuid, srcId, dstId;
 
+        logger.info("KMS/ServerHandler processReq:" + qReq);
         switch (opId) {
         case QNLConstants.REQ_POST_ALLOC_KP_BLOCK:
             resp = new QNLResponse(blockByteSz);
@@ -76,7 +77,13 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     FileUtils.forceMkdir(f);
                 logger.info("ServerHandler.writeKeys to keypool:" + f.getAbsolutePath() + "/" + uuid + ", blockSz:" + blockSz);
                 QNLUtils.writeKeys(hexKeys, f.getAbsolutePath() + "/" + uuid, blockSz);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                java.io.StringWriter sw = new java.io.StringWriter();
+                java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+                e.printStackTrace(pw);
+                logger.warn("KMS/ServerHandler Exception stack trace:" + sw.toString());
+                logger.info("KMS/ServerHandler exception, " + e);
+            }
             ctx.channel().writeAndFlush(resp).addListener(
             new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future) {
