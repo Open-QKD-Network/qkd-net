@@ -1,5 +1,6 @@
 ### Environment
 1. Ubuntu 22.04
+
 2. Java SDK 11
 
 https://www.digitalocean.com/community/tutorials/how-to-install-java-with-apt-on-ubuntu-22-04
@@ -16,7 +17,11 @@ libgrpc-dev/jammy,now 1.30.2-3build6 amd64 [installed,automatic]
 libgrpc10/jammy,now 1.30.2-3build6 amd64 [installed,automatic]
 protobuf-compiler-grpc/jammy,now 1.30.2-3build6 amd64 [installed]
 ```
+
 4. maven
+```sh
+apt-get install maven
+```
 
 5. screen
 ```sh
