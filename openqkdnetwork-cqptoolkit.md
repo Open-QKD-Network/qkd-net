@@ -5,8 +5,16 @@
 
 https://www.digitalocean.com/community/tutorials/how-to-install-java-with-apt-on-ubuntu-22-04
 
+```sh
+apt install default-jre
+apt install default-jdk
+```
+
 3. GRPC
 ```sh
+apt install protobuf-compiler-grpc
+apt install libgrpc-dev
+apt install libgrpc++-dev
 root@ip-172-31-8-20:/home/ubuntu# apt list --installed | grep grpc
 
 WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
