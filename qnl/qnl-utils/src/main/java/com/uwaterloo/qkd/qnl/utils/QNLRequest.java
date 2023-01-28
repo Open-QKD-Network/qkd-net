@@ -238,7 +238,7 @@ public class QNLRequest {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         Formatter fmt = new Formatter(sb);
-        fmt.format("QNLRequest:%n  opId: %s%n  srcSiteId: %s%n  dstSiteId: %s%n",
+        fmt.format("QNLRequest:  opId: %s  srcSiteId: %s  dstSiteId: %s",
                    opIdToString(opId), srcSiteId, dstSiteId);
         switch (opId) {
         case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
@@ -247,8 +247,8 @@ public class QNLRequest {
         case QNLConstants.REQ_POST_PEER_ALLOC_KP_BLOCK:
         case QNLConstants.REQ_POST_ALLOC_KP_BLOCK:
         case QNLConstants.REQ_POST_KP_BLOCK_INDEX:
-            fmt.format("  KeyBlockIndex: %s%n", keyBlockIndex);
-            fmt.format("  UUID: %s%n", uuid);
+            fmt.format("  KeyBlockIndex: %s", keyBlockIndex);
+            fmt.format("  UUID: %s", uuid);
             break;
         }
         fmt.close();
