@@ -179,6 +179,8 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
 
         private void startNode(int hopIndex, PhysicalPath path) {
             HopPair hop = path.getHops(hopIndex);
+            LOGGER.info("startNode, firstSite=" + hop.getFirst().getSite() + ", firstDeviceId=" + hop.getFirst().getDeviceId() +
+                        ",secondSite=" + hop.getSecond().getSite() + ", secondDeviceId=" + hop.getSecond().getDeviceId());
             if(hop.getFirst().getSite().equals(url)) {
                 LOGGER.info("Starting Alice node with url " + url);
                 // device ID is necessary since we don't know if device address is set for us
@@ -197,6 +199,9 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                 PhysicalPath newPath = PhysicalPath.newBuilder(path).setHops(hopIndex,
                                         HopPair.newBuilder(hop).setFirst(
                                             Hop.newBuilder(hop.getFirst()).setDeviceAddress(thisDeviceAddr))).build();
+                HopPair hop2 = newPath.getHops(hopIndex);
+                LOGGER.info("startNode2, firstSite=" + hop2.getFirst().getSite() + ", firstDeviceId=" + hop2.getFirst().getDeviceId() +
+                            ",secondSite=" + hop2.getSecond().getSite() + ", secondDeviceId=" + hop2.getSecond().getDeviceId());
                 stub.startNode(newPath);
             } else if(hop.getSecond().getSite().equals(url)) {
                 LOGGER.info("Starting Bob node with url " + url);
@@ -209,7 +214,7 @@ public class ISiteAgentServer { // wrapper class for start() stop() functionalit
                 prepHop(deviceAddress, hop.getSecond().getDeviceId()); // starts key reader thread
                 ManagedChannel channel = splitAndGetChannel(deviceAddress);
                 IDeviceGrpc.IDeviceBlockingStub stub = IDeviceGrpc.newBlockingStub(channel);
-                LOGGER.info("Peer address has length " + hop.getFirst().getDeviceAddress().length() + " and message " + hop.getFirst().getDeviceAddress());
+                LOGGER.info("Peer address " + hop.getFirst().getDeviceAddress());
                 stub.runSession(SessionDetailsTo.newBuilder()
                                             // getDeviceAddress() works here because we always start on left/first side
                                             // and we set deviceaddress when doing that side
