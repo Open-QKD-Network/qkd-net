@@ -417,21 +417,27 @@ curl 'http://localhost:8095/api/getkey?siteid=B&index=1&blockid=' | jq
 
 ### Stopping things
 Stop OpenQKDNet by cd into `qkd-net/kms` and running `./scripts/stop` and `./scripts/cleanup`.
+
 It is alright if on running`./scripts/stop` you get `No screen session found`.
 
 ### Ensure the nodes can talk to each other.
 We'll use netcat to check whether the 2 nodes can connect to each other on TCP Port 9395.
-On Ubuntu B run `nc -l 9395`,
-On Ubuntu A run `nc IP_addr_of_node_B 9395`.
+
+- On Ubuntu B run `nc -l 9395`,
+- On Ubuntu A run `nc IP_addr_of_node_B 9395`.
+
 Enter any text on A. If you get the same text on B, then we know that the 2 nodes are able to talk to each other.
 
 ### Inspecting running Java processes
 Ideally, once you've run './scripts/run`, the number of Java processes on both nodes should be `13`.
+
 You can get the number of Java processes running on each node by running `ps -aux | grep java | wc -l` on both nodes.
+
 If you get a number which is more than this, run `ps -aux | grep java` and figure out which other processes are running. If the process has no side effects for OpenQKDNet (e.g. VS Code Plugin related Java process), then you're good.
+
 But, in particular, if you can see any process related to **jitsi** and/or **jicofo** running, we want to stop them via:
 - `sudo systemctl stop jicofo`
-- `sudo systemctl stop jicofo`
+- `sudo systemctl stop jitsi-videobridge2`
 
 TEAM
 ----
