@@ -88,8 +88,15 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
 9. *cd ..*
 10. *tar xvf **qkd-kaiduan-a.tar***
 11. *mv .qkd ~/*
-12. Add **false** to the end of kms.conf and kms/kms.conf to disable OAuth authentication
-13. On Ubuntu **A**, changes IP address of **B** in the **~/.qkd/qnl/routes.json**.
+12. Add **false** to the end of BOTH `kms.conf` and `kms/kms.conf` to disable OAuth authentication.
+After this last 2 lines of `kms.conf` and `kms/kms.conf` should be:
+```
+# there will be 3 lines above this starting with http://localhost
+A
+false
+```
+
+14. On Ubuntu **A**, changes IP address of **B** in the **~/.qkd/qnl/routes.json**.
 ```json
 {
   "adjacent": {
@@ -102,7 +109,7 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
 14. Run commands 3 to 9 on Ubuntu B
 15. *tar xvf **qkd-kaiduan-b.tar***
 16. *mv .qkd ~/*
-17. Add **false** to the end of kms.conf and kms/kms.conf to disable OAuth authentication
+17. Like we did for Ubuntu A in Step 12, add **false** to the end of kms.conf and kms/kms.conf to disable OAuth authentication.
 18. On Ubuntu **B**, changes IP address of **A** in the **~/.qkd/qnl/routes.json**
 ```json
 {
@@ -113,7 +120,7 @@ On two Linux (Ubuntu) systems, please follow the steps below to get a two nodes 
   }
 }
 ```
-19. On Ubuntu A, *cd qkd-net/kms*, run command *./scripts/run*
+19. On Ubuntu A, *cd qkd-net/kms*, run command *./scripts/run*. Wait for this terminate.
 20. On Ubuntu B, *cd qkd-net/kms*, run command *./scripts/run*
 21. You can check if OpenQKDNetwork is up by looking the ~/.qkd/mapping.log and ~/qkd_logs/lsrp.log
 ```
@@ -127,6 +134,8 @@ B
     B <----> A = 1
 ========Nodes/Links========
 ```
+**NOTE:** If you cannot see these 2 files, then please stop & don't proceeed further. [Troubleshoot](#troubleshooting) if need be, but first get this working.
+
 22. We will run tls-demo application alice on Ubuntu A and run bob on Ubuntu B
 23. On Ubuntu A, *cd ../applications/tls-demo/*, run *make* command
 24. On Ubuntu B, run command *./bob -b 10446*
@@ -403,6 +412,26 @@ curl 'http://localhost:8095/api/getkey?siteid=B&index=1&blockid=' | jq
   "blocId": "8a94dc22e761de8c5501addc05"
 }
 ```
+
+## TROUBLESHOOTING
+
+### Stopping things
+Stop OpenQKDNet by cd into `qkd-net/kms` and running `./scripts/stop` and `./scripts/cleanup`.
+It is alright if on running`./scripts/stop` you get `No screen session found`.
+
+### Ensure the nodes can talk to each other.
+We'll use netcat to check whether the 2 nodes can connect to each other on TCP Port 9395.
+On Ubuntu B run `nc -l 9395`,
+On Ubuntu A run `nc IP_addr_of_node_B 9395`.
+Enter any text on A. If you get the same text on B, then we know that the 2 nodes are able to talk to each other.
+
+### Inspecting running Java processes
+Ideally, once you've run './scripts/run`, the number of Java processes on both nodes should be `13`.
+You can get the number of Java processes running on each node by running `ps -aux | grep java | wc -l` on both nodes.
+If you get a number which is more than this, run `ps -aux | grep java` and figure out which other processes are running. If the process has no side effects for OpenQKDNet (e.g. VS Code Plugin related Java process), then you're good.
+But, in particular, if you can see any process related to **jitsi** and/or **jicofo** running, we want to stop them via:
+- `sudo systemctl stop jicofo`
+- `sudo systemctl stop jicofo`
 
 TEAM
 ----
