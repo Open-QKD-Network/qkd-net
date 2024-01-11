@@ -325,31 +325,7 @@ cd <top level director>/qkd-net/kms
  Open a browser, check http://localhost:8761/
 
 ### Testing KMS service
-
-When OAuth is enabled, first access token is fetched:
-
-```shell
-curl -X POST -H"authorization:Basic aHRtbDU6cGFzc3dvcmQ=" -F"password=bot" -F"client_secret=password" -F"client=html5" -F"username=pwebb" -F"grant_type=password" -F"scope=openid"  http://localhost:9992/uaa/oauth/token | jq
-```
-
-Sample output:
-```json
-{
-  "access_token": "291a94d5-d624-4269-a2bb-07db62130bb3",
-  "token_type": "bearer",
-  "refresh_token": "99d4cdd9-641e-4290-ac4b-865b1d7068a6",
-  "expires_in": 43017,
-  "scope": "openid"
-}
-```
-
-Once the access token is available, different endpoints can be accessed.
-
-Assuming we have 2 sites setup with siteid as A and B repsectively.
-Some application from site A initiates a connection to an application on
-site B.
-Pre-shared key fetching can be simulated using the two calls below.  
-
+We don't have to deal with OAuth at all in this branch :-).
 
 There are two REST API endpoints:
 
@@ -375,7 +351,7 @@ Format in JSON
 e.g. request-response:
 
 ```shell
-curl 'http://localhost:8095/api/newkey?siteid=A' -H"Authorization: Bearer 291a94d5-d624-4269-a2bb-07db62130bb3" | jq
+curl 'http://localhost:8095/api/newkey?siteid=A' | jq
 ```
 
 ```json
@@ -417,7 +393,7 @@ means a new OAuth token like above is fetched first by the application on site A
 e.g. request-response:
 
 ```shell
-curl 'http://localhost:8095/api/getkey?siteid=B&index=1&blockid=' -H"Authorization: Bearer abcdef12-d624-4269-a2bb-07db62130bb3" | jq
+curl 'http://localhost:8095/api/getkey?siteid=B&index=1&blockid=' | jq
 ```
 
 ```json
