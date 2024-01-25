@@ -2,7 +2,7 @@ qkd-net
 =======
 Remind
 --------
-Please follow https://github.com/Open-QKD-Network/qkd-net/tree/disable-spring-auth branch to get start.
+Please follow https://github.com/Open-QKD-Network/qkd-net/blob/disable-spring-auth/README.md branch to get start.
 
 Overview
 --------
