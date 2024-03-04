@@ -67,83 +67,6 @@ static int get_urls(char** new_key_url, char** get_key_url, char** site_id) {
   return 0;
 }
 
-static int get_remote_siteagent_url(char** get_key_url, char* remotesiteId) {
-  // Reads AND modifies get_key_url from value in kms.conf
-
-  int malformatted_url = 0;
-  char* addrend = strchr(*get_key_url, ':');
-  if (addrend == NULL) {
-      malformatted_url = 1;
-  } else {
-    addrend = strchr(addrend + 1, ':');
-    if (addrend == NULL) {
-        malformatted_url = 1;
-    }
-  }
-  if (malformatted_url) {
-      printf("get_key_url: %s is malformatted\n", *get_key_url);
-      return -1;
-  }
-  //Copy path portion of url from get_key_url
-  char* getkeyend = strchr(*get_key_url, '\0');
-  char* url_path = malloc(getkeyend - addrend + 1);
-  strcpy(url_path, addrend);
-  printf("URL path: %s\n", url_path);
-
-  char *str = "/.qkd/mapping.log";
-  FILE *fp;
-
-  const char *homedir;
-  homedir = getenv("HOME");
-  char filestr[256];
-  strcpy(filestr, homedir);
-  strcpy(filestr+strlen(homedir), str);
-  filestr[strlen(homedir) + strlen(str)] = '\0';
-
-  fp = fopen(filestr, "r");
-  if (!fp) {
-    printf("Could not open the file %s\n", filestr);
-    return (-1);
-  }
-
-  fseek(fp, 0, SEEK_END);
-  long fsize = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
-
-  char *jsonString = malloc(fsize + 1);
-  fread(jsonString, 1, fsize, fp);
-  fclose(fp);
-  jsonString[fsize] = 0;
- 
-  json_object *mappingobj = json_tokener_parse(jsonString);
-  free(jsonString);
-  json_object_object_foreach (mappingobj, key, val) {
-    const char* site = json_object_get_string(val);
-    if (strcmp(remotesiteId, site) == 0) {
-        const char* remotesiteaddress = key;
-        free(*get_key_url);
-        char* scheme = "http://";
-        int scheme_len = strlen(scheme);
-        int address_len = strlen(remotesiteaddress);
-        *get_key_url = malloc(scheme_len + address_len + sizeof(url_path));
-        strcpy(*get_key_url, scheme);
-        memcpy(*get_key_url + scheme_len, remotesiteaddress, address_len);
-        strcpy(*get_key_url + scheme_len + address_len, url_path);
-
-        json_object_put(mappingobj); 
-        free(url_path);
-
-        return 0;
-    }
-  }
-  
-  json_object_put(mappingobj);
-  free(url_path);
-
-  printf("Could find site %s in %s\n", remotesiteId, filestr);
-  return -1;
-}
-
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
   size_t realsize = size * nmemb;
@@ -178,6 +101,14 @@ static int fetch(MemoryStruct *chunk, char* url, const char*post) {
   curl_easy_setopt(handle, CURLOPT_VERBOSE, 0L);
   curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void *)chunk);
   curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 1L);
+  if (!strncmp(url, "https://", 8)) {
+      printf("Disable SSL certificate check\n");
+      curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0L);
+      curl_easy_setopt(handle, CURLOPT_SSL_VERIFYHOST, 0L);
+  }
+  // Use hybrid key exchange
+  // curl_easy_setopt(handle, CURLOPT_SSL_EC_CURVES, "p521_kyber1024");
+
   res = curl_easy_perform(handle);
  
   if (res != CURLE_OK) {
@@ -201,10 +132,10 @@ int oqkd_get_new_key_url(char** new_key_url) {
   }
   printf("new_key:%s, site_id:%s\n", new_key, site_id);
   // newkey
-  len = strlen(new_key) + strlen("&siteid=") + 1;
+  len = strlen(new_key) + strlen("?siteid=") + 1;
   *new_key_url = malloc(len);
   memset(*new_key_url, 0, len);
-  sprintf(*new_key_url, "%s&siteid=%s", new_key, site_id);
+  sprintf(*new_key_url, "%s?siteid=%s", new_key, site_id);
 
   free(new_key);
   free(site_id);
@@ -221,34 +152,34 @@ int oqkd_new_key(char* new_key_url, char**key, int* key_len, char** get_key_url)
   int len = 0;
   char* mySiteId = NULL;
   char* siteId = NULL;
+  char *new_key2 = NULL;
   MemoryStruct chunk;
   chunk.memory = malloc(1);
   chunk.size = 0;
 
   printf("QKD_NEW_KEY from %s\n", new_key_url);
-  ret = get_urls(NULL, &get_key, &mySiteId);
+  ret = get_urls(&new_key, &get_key, &mySiteId);
   if (ret != 0) {
     printf("Fails to get key urls\n");
     return -1;
   }
   /*assume client C makes connection to server B, 
-  on B side, the new_key_url is http://localhost:8089/api/newkey&siteid=C*/
-  siteId = strchr(new_key_url, '&');
+  on B side, the new_key_url is http://C/api/newkey?siteid=C
+  we need to replace C with B address
+  */
+  siteId = strchr(new_key_url, '?');
   if (siteId == NULL) {
     printf("No siteid in new key url:%s\n", new_key_url);
     return -1;
   }
-  char* remotesiteId = strchr(siteId, '=') + 1; 
-  ret = get_remote_siteagent_url(&get_key, remotesiteId);
-  if (ret != 0) {
-    printf("Remote siteagent could not be found (mapping.log misconfigured; check routes.json)");
-  }
-  new_key = malloc(siteId - new_key_url + 1);
-  memset(new_key, 0, siteId - new_key_url + 1);
-  memcpy(new_key, new_key_url, siteId - new_key_url);
-  siteId++; // move &
+  new_key2 = malloc(strlen(new_key) + siteId - new_key_url + 1);
+  memset(new_key2, 0, strlen(new_key) + siteId - new_key_url + 1);
+  memcpy(new_key2, new_key, strlen(new_key));
+  memcpy(new_key2 + strlen(new_key), siteId, siteId - new_key_url);
+  printf("Real new key url:%s\n", new_key2);
+  siteId++; // move ?
 
-  ret = fetch(&chunk, new_key, siteId);
+  ret = fetch(&chunk, new_key2, siteId);
   if (ret != 0) {
     printf("Fails to get new key\n");
     return -1;
@@ -281,11 +212,11 @@ int oqkd_new_key(char* new_key_url, char**key, int* key_len, char** get_key_url)
   }
   json_object_put(keyobj);
 
-  len = strlen(get_key) + strlen("&siteid=") + strlen(mySiteId) +
+  len = strlen(get_key) + strlen("?siteid=") + strlen(mySiteId) +
       strlen("&index=") + strlen(dex) + strlen("&blockid=") + strlen(block_id) + 1;
   *get_key_url = malloc(len);
   memset(*get_key_url, 0, len);
-  sprintf(*get_key_url, "%s&siteid=%s&index=%s&blockid=%s", get_key, mySiteId, dex, block_id);
+  sprintf(*get_key_url, "%s?siteid=%s&index=%s&blockid=%s", get_key, mySiteId, dex, block_id);
 
   printf("Return get_key_url:%s\n", *get_key_url);
   return ret;
@@ -295,9 +226,7 @@ int oqkd_get_key(char* get_key_url, char**key, int* key_len) {
   int ret = 0;
   char* getKey = NULL;
   char* siteId = NULL;
-  char* post = NULL;
   char *temp = get_key_url;
-  int len = 0;
   long index = 0;
   char hex[65] = {0};
   char block_id[37] = {0};
@@ -307,28 +236,26 @@ int oqkd_get_key(char* get_key_url, char**key, int* key_len) {
   chunk.size = 0;
 
   printf("QKD_GET_KEY from %s\n", get_key_url);
-  /*http://localhost:8095/api/getkey&siteid=B&index=0&blockid=sadfsdf*/
+  /*http://localhost:8095/api/getkey?siteid=B&index=0&blockid=sadfsdf*/
   if (get_key_url == NULL) {
     printf("get_key_url is NULL\n");
     return -1;
   }
-  siteId = strchr(temp, '&');
+  siteId = strchr(temp, '?');
   if (siteId == NULL) {
     printf("siteid is not in get_key_url:%s\n", get_key_url);
     return -1;
   }
-  len = siteId - temp + 1;
-  getKey = malloc(len);
-  memset(getKey, 0, len);
-  memcpy(getKey, temp, len - 1); // get key
+  ret = get_urls(NULL, &getKey, NULL);
+  if (getKey == NULL) {
+    printf("get getkey url fails\n");
+    return -1;
+  }
 
-  temp += len; // move over key temp = siteid=B&index=0&blockid=sadfdf
-  len = strlen(temp) + 1;
-  post = malloc(len);
-  memset(post, 0, len);
-  memcpy(post, temp, len - 1);
+  printf("getkey url %s\n", getKey);
+  printf("Post %s\n", siteId+ 1);
 
-  ret = fetch(&chunk, getKey, post);
+  ret = fetch(&chunk, getKey, siteId + 1);
   if (ret != 0) {
     printf("Fails to get key with url:%s\n", get_key_url);
     return -1;
