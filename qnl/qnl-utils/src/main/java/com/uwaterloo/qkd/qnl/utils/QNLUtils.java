@@ -28,6 +28,12 @@ public class QNLUtils {
         return linesRead;
     }
 
+    /**
+     * reads all the lines in the specified <file> into the given vector of strings <v>.
+     * @param src
+     * @param file
+     * @param keyBlockSz
+     */
     public static int readKeys(Vector<String> v, String file, int keyBlockSz) {
         String line;
         int linesRead = 0;
@@ -56,6 +62,14 @@ public class QNLUtils {
             bw.close();
         } catch(IOException ioe) {}
     }
+
+    /**
+     * Writes keys present in src to the specified file. keyBlockSz not really used.
+     * @param src
+     * @param file
+     * @param keyBlockSz
+     * 
+     */
     
     public static void writeKeys(Vector<String> src, String file, int keyBlockSz) {
         try {

@@ -2,6 +2,7 @@ package com.uwaterloo.iqc.qnl;
 
 import java.util.Map;
 
+/** Handles or wraps around ~/.qkd/qnl/config.yaml */
 public class QNLConfig {
 
     private String base;
@@ -19,7 +20,8 @@ public class QNLConfig {
     public static final String OTP_KEYBLOCKSZ = "keyBlockSz";
     public static final String KMS = "kms";
 
-    public String getRouteConfigLoc() {
+    /** [@rahul temp] example return value: ~/.qkd/qnl/routes.json */         
+    public String getRouteConfigLoc() { 
         return System.getProperty("user.home") + "/" + base + "/" + routeConfigLoc;
     }
 

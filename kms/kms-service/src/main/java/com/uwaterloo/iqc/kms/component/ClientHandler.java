@@ -13,6 +13,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.ReadTimeoutException;
 
+/** runs from the KMS as a Netty Client. Connects to a Netty server whose IP and port are given in resources/site.properties */
 public class ClientHandler
     extends SimpleChannelInboundHandler<ByteBuf> {
     private String srcId;
@@ -35,6 +36,7 @@ public class ClientHandler
 
     }
 
+    /** Called when a new connection is established. */ 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
 
@@ -54,8 +56,12 @@ public class ClientHandler
     }
 
     private void processResp(QNLResponse resp) {
+        // [@rahul doubt]: I think we can assert that resp.opId = RESP_GET_ALLOC_KP_BLOCK 
         blockId = resp.getUUID();
-        byte[] bin = new byte[blockByteSz];
+        
+        // Putting QNLResponse's payload (in bytes) into bin.
+        byte[] bin = new byte[blockByteSz]; // byts[128]
+        
         resp.getPayLoad().readBytes(bin);
         String hex = KeyUtils.byteArray2Hex(bin);
         byte [] hexBytes = hex.getBytes();

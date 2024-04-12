@@ -1,3 +1,7 @@
+/**
+ * Handles all the interfacing with the QNL layer that the KMS service/layer requires.
+ * Does this by starting a Netty client & making calls to QNLUtils
+ */
 package com.uwaterloo.iqc.kms.component;
 
 import java.io.File;
@@ -23,6 +27,20 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 public class QNLKeyReader {
     private static final Logger logger = LoggerFactory.getLogger(QNLKeyReader.class);
 
+    /**
+     * [@rahul temp] I think this gets run in key-flow.pdf
+     * Side effects: creates a new key pool
+     * @param src
+     * @param dest
+     * @param keys
+     * @param ip
+     * @param port
+     * @param poolBaseDir
+     * @param blockSz
+     * @param byteSz
+     * @return
+     * @throws Exception
+     */
     public String read(String src, String dest, Vector<String> keys,
                        String ip, int port, String poolBaseDir, int blockSz, int byteSz) throws Exception {
 

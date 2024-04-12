@@ -15,7 +15,16 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-
+/**
+ * [@rahul temp]
+ * Handles 4 of the 6 types of requests mentioned in QNLConstants.java.
+ * KMS-QNL operations
+ * -  REQ_GET_ALLOC_KP_BLOCK
+ * QNL-QNL operations
+ * - REQ_GET_KP_BLOCK_INDEX
+ * - REQ_POST_KP_BLOCK_INDEX
+ * - REQ_POST_PEER_ALLOC_KP_BLOCK
+*/
 public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
 
   private static Logger LOGGER = LoggerFactory.getLogger(KeyRouterFrontendHandler.class);
@@ -100,6 +109,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           req.setKeyBlockIndex(ref.get());
           req.setUUID(uniqueID);
         } else {
+          //[@rahul temp] based on logs, this gets triggered.
           req.setOpId(QNLConstants.REQ_GET_KP_BLOCK_INDEX);
         }
         req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());

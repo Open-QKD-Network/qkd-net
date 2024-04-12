@@ -19,7 +19,7 @@ public class KeyRouter {
     public static void main(String[] args) throws Exception {
         QNLConfiguration qConfig;
         if (args.length == 0)
-          qConfig = new QNLConfiguration(null);
+          qConfig = new QNLConfiguration(null); // [@rahul temp]: ~/.qkd/qnl/config.yaml
         else
           qConfig = new QNLConfiguration(args[0]);
 
