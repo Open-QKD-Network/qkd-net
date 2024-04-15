@@ -13,6 +13,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.ReadTimeoutException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /** runs from the KMS as a Netty Client. Connects to a Netty server whose IP and port are given in resources/site.properties */
 public class ClientHandler
     extends SimpleChannelInboundHandler<ByteBuf> {
@@ -24,7 +27,9 @@ public class ClientHandler
     private int blockSz;
     private int byteSz;
     private int blockByteSz;
-
+    
+    // [@rahul temp]: if this is not getting used please remove.]
+    private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
     public ClientHandler(String src, String dst, Vector<String> keys, int blockSz, int byteSz) {
         srcId = src;
         dstId = dst;
@@ -57,6 +62,12 @@ public class ClientHandler
 
     private void processResp(QNLResponse resp) {
         // [@rahul doubt]: I think we can assert that resp.opId = RESP_GET_ALLOC_KP_BLOCK 
+        if (resp.getOpId() != QNLConstants.RESP_GET_ALLOC_KP_BLOCK) {
+            logger.error("[rahul debug]: ClientHandler received NON resp get alloc kp block.");
+        } else {
+            logger.info("[rahul debug]: ClientHandler received expected QNLResponse.");
+        }
+        
         blockId = resp.getUUID();
         
         // Putting QNLResponse's payload (in bytes) into bin.
