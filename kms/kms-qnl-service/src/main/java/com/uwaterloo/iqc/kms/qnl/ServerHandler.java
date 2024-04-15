@@ -43,6 +43,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         qReq = new QNLRequest(blockByteSz);
     }
 
+    /** [@rahul temp] Called when a new connection is established. */
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         ctx.channel().read();

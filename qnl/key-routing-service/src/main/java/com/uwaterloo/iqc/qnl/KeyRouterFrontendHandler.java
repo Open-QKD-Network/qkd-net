@@ -38,6 +38,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
     qReq = new QNLRequest(1024 * 32);
   }
 
+  /** [@rahul temp] Called when a new connection is established. */
   @Override
   public void channelActive(ChannelHandlerContext ctx) {
     inboundChannel = ctx.channel();

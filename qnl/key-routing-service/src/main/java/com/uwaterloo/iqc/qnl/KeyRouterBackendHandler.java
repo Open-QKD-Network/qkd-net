@@ -35,6 +35,7 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
         LOGGER.info("KeyRouterBackendHandler.new:" + this + ",inboundChannel:" + inboundChannel);
     }
 
+    /** [@rahul temp] Called when a new connection is established. */
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         ctx.channel().read();
@@ -113,6 +114,7 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
             }
 
             if (opId == QNLConstants.REQ_POST_KP_BLOCK_INDEX) {
+                // [@rahul temp]: Please check this. I think this cannot be called i.e. this condition can never be reached.
                 LOGGER.info("RESP_POST_KP_BLOCK_INDEX/writeResp to inboundChannel:" + inboundChannel + ", resp:"  + resp);
             } else {
                 LOGGER.info("RESP_GET_KP_BLOCK_INDEX/writeResp to inbound channel:" + inboundChannel + ", resp:" + resp);
@@ -134,6 +136,8 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
             // Request: C ---> B ---> A
             // Response: C <--- B <--- A
             // localSite is B, adjSiteId should be next hop to C
+
+            // [@rahul doubt]: what if we have multiple adjSites?
             adjSiteId = rConfig.getAdjacentId(srcSiteId);
 
             LOGGER.info("RESP_POST_PEER_ALLOC_KP_BLOCK/adjSiteId:" + adjSiteId + ",localSiteId:" + localSiteId + ",srcSiteId:" + srcSiteId);
