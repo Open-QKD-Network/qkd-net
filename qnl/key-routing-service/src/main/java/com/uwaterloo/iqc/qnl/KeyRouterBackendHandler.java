@@ -100,8 +100,6 @@ public class KeyRouterBackendHandler extends ChannelInboundHandlerAdapter {
             try {
                 qllRdr = qConfig.getQLLReader(adjSiteId);
                 hex =  new byte[blockByteSz*2];
-                
-                LOGGER.info("[rahul debug] [BackendHandler]: %s: Config %s", qResp.opIdToString(qResp.getOpId()), qConfig.getConfig().getSiteId());
                 qllRdr.read(hex, cfg.getKeyBlockSz(), index);
                 bin = new Hex().decode(hex);
 

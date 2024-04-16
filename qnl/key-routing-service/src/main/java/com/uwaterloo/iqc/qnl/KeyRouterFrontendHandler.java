@@ -124,7 +124,6 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         qllRdr = qConfig.getQLLReader(srcSiteId);
         index = qReq.getKeyBlockIndex();
         hex = new byte[blockByteSz * 2];
-        LOGGER.info("[rahul debug][REQ POST KP BLOCK INDEX]: Config %s", qConfig.getConfig().getSiteId());
         qllRdr.read(hex, cfg.getKeyBlockSz(), index);
 
         try {
