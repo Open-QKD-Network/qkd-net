@@ -86,7 +86,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     FileUtils.forceMkdir(f);
                 logger.info("ServerHandler.writeKeys to keypool:" + f.getAbsolutePath() + "/" + uuid + ", blockSz:" + blockSz);
                 QNLUtils.writeKeys(hexKeys, f.getAbsolutePath() + "/" + uuid, blockSz);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                logger.error("[rahul debug] Exception occurrecd in REQ_POST_ALLOC_KP_BLOCK when trying to write key to files");
+            }
             ctx.channel().writeAndFlush(resp).addListener(
             new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future) {

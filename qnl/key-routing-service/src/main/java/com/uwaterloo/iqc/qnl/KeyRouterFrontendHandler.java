@@ -89,6 +89,8 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
     long index;
     byte[] hex;
     byte[] binDest = null;
+    
+    /** Number of bytes per block. */
     int blockByteSz = cfg.getKeyBlockSz() * cfg.getKeyBytesSz();
     OTPKey otpKey;
     String uniqueID;
@@ -176,6 +178,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         qllRdr.read(hex, cfg.getKeyBlockSz(), ref);
 
         if (localSiteId.equals(destSiteId)) {
+          LOGGER.info("[rahul debug]: req_get_kp_block_index went into expected if condition.");
           req = new QNLRequest(blockByteSz);
           req.setOpId(QNLConstants.REQ_POST_ALLOC_KP_BLOCK);
           req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
@@ -193,6 +196,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           ctx.fireChannelActive();
           ctx.fireChannelRead(req);
         } else {
+          LOGGER.info("[rahul debug]: req_get_kp_block_index went into UNEXPECTED if condition.");
           // For example C ---> B ---> A
           // localSiteId is intermediate site B
           // adjSiteId should be next hop on the path towards the destSiteId
