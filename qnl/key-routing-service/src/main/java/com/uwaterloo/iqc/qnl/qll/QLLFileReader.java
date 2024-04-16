@@ -18,6 +18,8 @@ public class QLLFileReader implements QLLReader {
     private AtomicLong qllBlockIndex = new AtomicLong(0);
     private int qllBlockSz;
     private String keyLoc;
+    
+    // size of a single key in bytes
     private int keyByteSz;
 
     public QLLFileReader(String id, QNLConfig qCfg) {
@@ -98,13 +100,15 @@ public class QLLFileReader implements QLLReader {
     public int read(byte[] dst, int len, long offset) {
     	if (offset < 0)
     		return 0;
+        LOGGER.info("[rahul debug]: read called on site %s", siteId);
         return readKeyBlock(dst, len, offset);
     }
 
     public void getNextBlockIndex(int len, AtomicLong indexRef) {
+        // len = number of keys in a block
         LOGGER.info("QLLFileReader.getNextBlockIndex,len:" + len + ",indexRef:" + indexRef.get() + "|" + this);
         long index = this.qllBlockIndex.addAndGet(len);
-        int blockIndex = (int)index / this.qllBlockSz;
+        int blockIndex = (int)index / this.qllBlockSz; // blockSize = number of byte per block
         String fileStr = this.keyLoc + "/" + this.siteId + "_" + blockIndex;
         File f = new File(fileStr);
         if (f.exists())
