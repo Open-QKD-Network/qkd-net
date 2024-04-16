@@ -15,6 +15,7 @@ public class QNLConfig {
     private String qnlSiteKeyLoc;
     
     private String siteId;
+    
     /** Port on which key routing service is listening for key block requests. */
     private int port;
     
@@ -60,27 +61,32 @@ public class QNLConfig {
                "/" + OTPConfig.get("keyLoc") + "/" + siteId;
     }
 
+    /** Returns the base location for finding other QNL-related paths & files. For example {@code .qkd/qnl}*/
     public String getBase() {
         return base;
     }
 
+    /** Returns the location (relative to {@code base}) where QLL puts the key blocks for QNL to carve out key blocks for KMS.  */
     public String getQnlSiteKeyLoc() {
         return qnlSiteKeyLoc;
     }
 
-
+    /** Returns the size of a key in bytes. */
     public int getKeyBytesSz() {
         return keyBytesSz;
     }
 
+    /** Returns the number of keys in a block. */
     public int getKeyBlockSz() {
         return keyBlockSz;
     }
 
+    /** Returns the port on which Key Routing Service is listening for key block requests. */
     public int getPort() {
         return port;
     }
 
+    /** Number of bytes per block that QLL to provide keys in. */
     public int getQllBlockSz() {
         return qllBlockSz;
     }
