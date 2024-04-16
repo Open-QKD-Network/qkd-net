@@ -4,18 +4,43 @@ import java.util.Map;
 
 /** Handles or wraps around ~/.qkd/qnl/config.yaml */
 public class QNLConfig {
-
+    
+    /** Base location for finding other QNL-related paths & files. */
     private String base;
+    
+    /** Name of the route configuration file */
     private String routeConfigLoc;
+    
+    /** Location (relative to {@code base}) where QLL puts the key blocks for QNL to carve out key blocks for KMS.  */
     private String qnlSiteKeyLoc;
+    
     private String siteId;
+    /** Port on which key routing service is listening for key block requests. */
     private int port;
+    
+    /** Size of a key in bytes. */
     private int keyBytesSz;
+    
+    /** Number of keys in a block. Key routing service provides KMS keys in blocks of this size. */
     private int keyBlockSz;
+    
+    /** Number of bytes per block that QLL to provide keys in. Used by Key Routing Service. */
     private int qllBlockSz;
+    
+    // [@rahul doubt]: I'm not sure whether this is still used or not.
     private int headerSz;
+    
+    /** IP address where KMS QNL service is running. */
     private String kmsIP;
+    
+    /** Port on which KMS QNL service is running */
     private int kmsPort;
+    
+    /**
+     * Contains 
+     * keyBlockS: number of keys per block.
+     * keyLoc: location of OTP key block relative to {@code base}
+     */
     public Map<String, String> OTPConfig;
     public static final String OTP_KEYBLOCKSZ = "keyBlockSz";
     public static final String KMS = "kms";
