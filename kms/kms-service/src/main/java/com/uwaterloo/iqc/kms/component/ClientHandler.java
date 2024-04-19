@@ -41,7 +41,7 @@ public class ClientHandler
 
     }
 
-    /** Called when a new connection is established. */ 
+    /** Called when a new connection to the server is established. */ 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
 
@@ -113,6 +113,7 @@ public class ClientHandler
     }
 
 
+    /** [@rahul temp]: Called when a message is received from the server */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
         ByteBuf frame = (ByteBuf)in;

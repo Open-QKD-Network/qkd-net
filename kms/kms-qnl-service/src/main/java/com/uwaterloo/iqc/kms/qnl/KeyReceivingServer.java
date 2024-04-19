@@ -57,6 +57,8 @@ public class KeyReceivingServer {
                 configLoc = configBaseLoc + "kms/qnl/config.yaml";
             }
             ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+            
+            // deserializes the YAML file at configLoc into a KMSQNLConfig object.
             kqConfig = mapper.readValue(new File(configLoc), KMSQNLConfig.class);
             kqConfig.setLoc(configBaseLoc);
         } catch(Exception e) {
