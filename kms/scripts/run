@@ -25,7 +25,7 @@ screen -Sdm config-svc java -jar config-service/target/config-service-0.0.1-SNAP
 echo "Starting KMS config service..."
 sleep 10s
 
-screen -Sdm reg-svc scripts/run-registration-service.sh
+screen -Sdm reg-svc scripts/run-registration-service
 echo "Starting KMS registration service..."
 sleep 20s
 
@@ -35,7 +35,7 @@ sleep 20s
 
 export SITE_PROPERTIES=$HOME/.qkd/kms/site.properties
 
-screen -Sdm kms-svc scripts/run-kms-service.sh
+screen -Sdm kms-svc scripts/run-kms-service
 echo "Starting KMS service..."
 sleep 20s
 
