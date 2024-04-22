@@ -9,8 +9,8 @@ requiredFiles=(
     kms-service/target/kms-service-0.0.1-SNAPSHOT.jar
     kms-api-gateway/target/kms-api-gateway-0.0.1-SNAPSHOT.jar
     kms-qnl-service/mvnw
-    ../../qnl/key-routing-service/mvnw
-    ../../qll_sim/mvnw
+    ../qnl/key-routing-service/mvnw
+    ../qll_sim/mvnw
 )
 
 for filePath in ${requiredFiles[@]}; do
