@@ -49,7 +49,8 @@ public class KeyRouterConnectHandler extends ChannelInboundHandlerAdapter {
         ChannelFuture f = b.connect(remoteHost, remotePort);
         
         // [@rahul revisit]: I think we might miss out on possible errors that should ideally be logged.
-        f.awaitUninterruptibly();
+        // [@rahul temp]: experiment
+        // f.awaitUninterruptibly();
         outboundChannel = f.channel();
         final KeyRouterConnectHandler that = this;
         f.addListener(new ChannelFutureListener() {
