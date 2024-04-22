@@ -9,7 +9,7 @@ import com.uwaterloo.iqc.qnl.qll.QLLReader;
 import com.uwaterloo.qkd.qnl.utils.QNLConstants;
 import com.uwaterloo.qkd.qnl.utils.QNLRequest;
 import com.uwaterloo.qkd.qnl.utils.QNLResponse;
-import io.netty.buffer.ByteBuf;
+
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -48,12 +48,10 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelRead(final ChannelHandlerContext ctx, Object msg) {
-    ByteBuf frame = (ByteBuf) msg;
-    if (qReq.decode(frame)) {
-      processReq(ctx, qReq);
-    } else {
-      LOGGER.info("cannot decode payload!!!!!!!!" + frame.toString());
-    }
+    // ByteBuf frame = (ByteBuf) msg;
+    // We receive a succesfully parsed QNLRequest from the Decoder in the channel pipeline.
+    QNLRequest qReq = (QNLRequest) msg; 
+    processReq(ctx, qReq);
     ctx.channel().read();
   }
 
@@ -63,7 +61,9 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
   }
 
   @Override
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {}
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+    // [@rahul temp]: please fill in some implementation/logging here.
+  }
 
   /* * Closes the specified channel after all queued write requests are flushed.
    */
