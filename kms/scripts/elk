@@ -1,3 +1,5 @@
+#!/bin/bash
+
 VERS=6.2.1
 PLATFORM=linux-x86_64
 BASEURL=https://artifacts.elastic.co/downloads
