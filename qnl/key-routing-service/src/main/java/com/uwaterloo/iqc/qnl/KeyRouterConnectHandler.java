@@ -47,6 +47,8 @@ public class KeyRouterConnectHandler extends ChannelInboundHandlerAdapter {
         .handler(new KeyClientRouterInitializer(inboundChannel, qConfig))
         .option(ChannelOption.AUTO_READ, false);
         ChannelFuture f = b.connect(remoteHost, remotePort);
+        
+        // [@rahul revisit]: I think we might miss out on possible errors that should ideally be logged.
         f.awaitUninterruptibly();
         outboundChannel = f.channel();
         final KeyRouterConnectHandler that = this;

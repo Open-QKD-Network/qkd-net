@@ -4,13 +4,13 @@ public class QNLConstants {
 
     //KMS-QNL OP
     public static final short REQ_GET_ALLOC_KP_BLOCK = 1;
-    public static final short REQ_POST_ALLOC_KP_BLOCK = 2;
+    public static final short REQ_POST_ALLOC_KP_BLOCK = 2; // [@rahul temp] [revisit/put this somewhere else] this contains payload
 
     //QNL-QNL OP
     public static final short REQ_POST_OTP_BLOCK_INDEX = 3;
     public static final short REQ_GET_KP_BLOCK_INDEX = 4;
     public static final short REQ_POST_KP_BLOCK_INDEX = 5;
-    public static final short REQ_POST_PEER_ALLOC_KP_BLOCK = 6;
+    public static final short REQ_POST_PEER_ALLOC_KP_BLOCK = 6; // [@rahul temp] [revisit/put this somewhere else] this contains payload
 
     //Corresponding responses
     public static final short RESP_GET_ALLOC_KP_BLOCK = 101;
