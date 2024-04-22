@@ -21,7 +21,17 @@ public class QNLConstants {
     public static final short RESP_POST_KP_BLOCK_INDEX = 105;
     public static final short RESP_POST_PEER_ALLOC_KP_BLOCK = 106;
 
+    // --- operations for QLL ---
+    
 
+    // ensure QLLs have been bootstrapped
+    public static final short REQ_QLL_INIT = 201;
+    public static final short RESP_QLL_INIT = 202;
+
+    // three messages
+    public static final short QLL_SYN = 203;
+    public static final short QLL_SYN_ACK = 204;
+    public static final short QLL_ACK = 205;
 
     public static final int KP_BLOCK_BYTES_SZ = 32768;
 
