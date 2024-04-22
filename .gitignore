@@ -24,3 +24,8 @@ hs_err_pid*
 
 # a file that shows up on MacOS sometimes.
 *.DS_Store
+
+# not adding IDE specific config files
+# [@rahul temp]: revisit to figure out if this choice makes sense.
+.idea/
+.vscode/
