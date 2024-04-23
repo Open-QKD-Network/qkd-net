@@ -33,6 +33,7 @@ public class KeyRouterConnectHandler extends ChannelInboundHandlerAdapter {
         LOGGER.info("KeyRouterConnectHandler.new:" + this + "," + remoteHost + ":" + remotePort);
     }
 
+    /** [@rahul temp] Called when a new connection is established. */
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         inboundChannel = ctx.channel();
@@ -46,6 +47,8 @@ public class KeyRouterConnectHandler extends ChannelInboundHandlerAdapter {
         .handler(new KeyClientRouterInitializer(inboundChannel, qConfig))
         .option(ChannelOption.AUTO_READ, false);
         ChannelFuture f = b.connect(remoteHost, remotePort);
+        
+        // [@rahul doubt]: I think we might miss out on possible errors that should ideally be logged.
         f.awaitUninterruptibly();
         outboundChannel = f.channel();
         final KeyRouterConnectHandler that = this;

@@ -14,6 +14,8 @@ public class QNLRequest {
     private short opId;
     private short respOpId;
     private long keyBlockIndex;
+    
+    // [@rahul revist]: please re-confirm: size of block in bytes.
     private int kpBlockBytesSz;
     private int frameSz;
     private ByteBuf payBuf;
@@ -22,7 +24,7 @@ public class QNLRequest {
 
     public QNLRequest(int kpBlockByteSz) {
         this.kpBlockBytesSz = kpBlockByteSz;
-        payBuf = Unpooled.buffer(kpBlockByteSz + 128);
+        payBuf = Unpooled.buffer(kpBlockByteSz + 128); // [@rahul doubt]: why do we add 128 here?
         frameSz = 0;
     }
 
@@ -45,7 +47,7 @@ public class QNLRequest {
     }
 
     public void setUUID(String id) {
-        frameSz += id.length() + 2;
+        frameSz += id.length() + 2; // [@rahul doubt] why do we have a +2 here?
         uuid = id;
     }
 
@@ -80,7 +82,9 @@ public class QNLRequest {
         return dstSiteId;
     }
 
+    /** Encodes this QNLRequest into a ByteBuffer which can be sent over a network. */
     public void encode(ByteBuf out) {
+        // add the size of the payload
         switch (opId) {
         case QNLConstants.REQ_GET_ALLOC_KP_BLOCK:
         case QNLConstants.REQ_GET_KP_BLOCK_INDEX:
@@ -134,6 +138,12 @@ public class QNLRequest {
         return payBuf;
     }
 
+    // [@rahul revisit] check if the comment is correct.
+    /**
+     * 
+     * @param frame
+     * @return true if successfully decoded.
+     */
     public boolean decode(ByteBuf frame) {
         int m =  frame.readableBytes();
         short uuidLen;
@@ -235,6 +245,7 @@ public class QNLRequest {
         }
     }
 
+    // [@rahul revisit]: I think there's something wrong with this. Got "QNLRequest:" when logging this.
     public String toString() {
         StringBuilder sb = new StringBuilder();
         Formatter fmt = new Formatter(sb);
@@ -255,4 +266,3 @@ public class QNLRequest {
         return sb.toString();
     }
 }
-

@@ -24,6 +24,7 @@ public class LSRPOutgoingClientHandler extends ChannelInboundHandlerAdapter {
     this.router = router;
   }
 
+  /** [@rahul temp] Called when a new connection is established. */
   @Override
   public void channelActive(ChannelHandlerContext ctx) {
     LOGGER.info("LSRPOutgoingClientHandler.channelActive, channel:" + ctx.channel());

@@ -18,7 +18,16 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+/**
+ * Responsible for receiving a POST request of type `ALLOC_KP_BLOCK` 
+ * expects: req to contain -> srcSiteID, destSiteID, UUID, payload=actual key
+ * effects:
+ * - finds poolLoc using using the kqCfg. Example poolLoc: ~/.qkd/kms/pools
+ * - writes the <actual key> to <poolLoc> / <srcSiteID> / <destSiteID> / <UUID> (note: name of the file = <UUID>)
+ * - sends a QNL Response and closes the channel:
+ *  > opID = RESP_POST_ALLOC_KP_BLOCK
+ *  > siteIDs, UUID, keyBlockIndex, RespOpId are all copied from the request.
+ */
 public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private QNLRequest qReq;
@@ -34,11 +43,13 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         qReq = new QNLRequest(blockByteSz);
     }
 
+    /** [@rahul temp] Called when a new connection to the server is established. */
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         ctx.channel().read();
     }
 
+    /** [@rahul temp]: Called when a message is received from the server */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx,
                                 ByteBuf in) throws Exception {
@@ -76,7 +87,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     FileUtils.forceMkdir(f);
                 logger.info("ServerHandler.writeKeys to keypool:" + f.getAbsolutePath() + "/" + uuid + ", blockSz:" + blockSz);
                 QNLUtils.writeKeys(hexKeys, f.getAbsolutePath() + "/" + uuid, blockSz);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                logger.error("[rahul debug] Exception occurrecd in REQ_POST_ALLOC_KP_BLOCK when trying to write key to files");
+            }
             ctx.channel().writeAndFlush(resp).addListener(
             new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future) {
@@ -96,4 +109,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     throws Exception {
     }
 
+
+    // [@rahul doubt]: should we be overriding exception caught here?
 }

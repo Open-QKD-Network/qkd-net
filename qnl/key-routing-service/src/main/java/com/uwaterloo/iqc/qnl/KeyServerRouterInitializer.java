@@ -28,16 +28,20 @@ public class KeyServerRouterInitializer extends ChannelInitializer<SocketChannel
         ch.pipeline().addLast(new RequestDecoder(bodySz));
         ch.pipeline().addLast("loghandler", new LoggingHandler(LogLevel.INFO));
         ch.pipeline().addLast("frontendhandler", new KeyRouterFrontendHandler(qConfig));
+        
+        // [@rahul temp]: map of "siteid": "ip:port"
         RouteConfig routeCfg = qConfig.getRouteConfig();
 
         for (String k : routeCfg.adjacent.keySet()) {
             String [] ipPort = routeCfg.adjacent.get(k).split(":");
-            int port = qConfig.getConfig().getPort();
+            int port = qConfig.getConfig().getPort();  // port of QNL's Key Routing Service
             if (ipPort.length == 2)
                 port = Integer.valueOf(ipPort[1]);
             LOGGER.info("add " + k + ", KeyRouterConnectHandler to " + ipPort[0] + ":" + port);
             ch.pipeline().addLast(k, new KeyRouterConnectHandler(ipPort[0], port, qConfig));
         }
+        
+        // connect to KMS-QNL service.
         ch.pipeline().addLast("kms", new KeyRouterConnectHandler( cfg.getKmsIP(),
                               cfg.getKmsPort(), qConfig));
         ch.pipeline().addLast(new ResponseEncoder());
