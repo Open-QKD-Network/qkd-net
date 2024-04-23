@@ -32,3 +32,6 @@ hs_err_pid*
 # [@rahul temp]: revisit to figure out if this choice makes sense.
 .idea/
 .vscode/
+
+# Allow maven wrapper's jar file
+!**/.mvn/wrapper/maven-wrapper.jar
