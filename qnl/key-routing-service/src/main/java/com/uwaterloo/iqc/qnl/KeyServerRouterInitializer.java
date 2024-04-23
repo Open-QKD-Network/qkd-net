@@ -32,6 +32,7 @@ public class KeyServerRouterInitializer extends ChannelInitializer<SocketChannel
         // [@rahul temp]: map of "siteid": "ip:port"
         RouteConfig routeCfg = qConfig.getRouteConfig(); 
 
+        // [@rahul temp]: port 9292.
         for (String k : routeCfg.adjacent.keySet()) {
             String [] ipPort = routeCfg.adjacent.get(k).split(":");
             int port = qConfig.getConfig().getPort(); // port of Key Routing Service

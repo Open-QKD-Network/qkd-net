@@ -99,10 +99,12 @@ public class QNLConfig {
         return siteId;
     }
 
+    /** Returns the port on which KMS QNL service is running */
     public int getKmsPort() {
         return kmsPort;
     }
 
+    /** Returns the IP address where KMS QNL service is running. */
     public String getKmsIP() {
         return kmsIP;
     }
