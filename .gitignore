@@ -1,6 +1,9 @@
 # Compiled class file
 *.class
 
+# all compiled files
+target/
+
 # Log file
 *.log
 
@@ -21,3 +24,11 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# MacOS-specific
+*.DS_Store
+
+# not adding IDE specific config files
+# [@rahul temp]: revisit to figure out if this choice makes sense.
+.idea/
+.vscode/
