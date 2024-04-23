@@ -102,6 +102,8 @@ public class KeyPoolManager {
         poolName = srcSiteId + dstSiteId;
 
         logger.info("KeyPoolManager.fetchKey:" + srcSiteId + "->" + dstSiteId + ",index=" + ind);
+        
+        //  If we already have unissued keys generated from previous QKD, return a new key from there
         if (containsPool(poolName)) {
             cipherKey = key(poolName, index);
         } else if (containsPoolLock(poolName) &&

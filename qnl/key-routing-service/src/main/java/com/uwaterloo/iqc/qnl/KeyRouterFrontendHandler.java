@@ -1,3 +1,14 @@
+/**
+ * [@rahul temp] [@rahul revisit]
+ * Handles 4 of the 6 types of requests mentioned in QNLConstants.java.
+ * KMS-QNL operations
+ * -  REQ_GET_ALLOC_KP_BLOCK
+ * QNL-QNL operations
+ * - REQ_GET_KP_BLOCK_INDEX
+ * - REQ_POST_KP_BLOCK_INDEX
+ * - REQ_POST_PEER_ALLOC_KP_BLOCK
+ * Does not handle REQ_POST_OTP_BLOCK_INDEX, REQ_POST_ALLOC_KP_BLOCK
+*/
 package com.uwaterloo.iqc.qnl;
 
 import java.util.UUID;
@@ -29,6 +40,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
     qReq = new QNLRequest(1024 * 32);
   }
 
+  /** [@rahul temp] Called when a new connection is established. */
   @Override
   public void channelActive(ChannelHandlerContext ctx) {
     inboundChannel = ctx.channel();
@@ -53,7 +65,9 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
   }
 
   @Override
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {}
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+    // [@rahul revisit]: please fill in some implementation/logging here.
+  }
 
   /* * Closes the specified channel after all queued write requests are flushed.
    */
@@ -79,6 +93,8 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
     long index;
     byte[] hex;
     byte[] binDest = null;
+    
+    // Number of bytes per block.
     int blockByteSz = cfg.getKeyBlockSz() * cfg.getKeyBytesSz();
     OTPKey otpKey;
     String uniqueID;
@@ -100,6 +116,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           req.setKeyBlockIndex(ref.get());
           req.setUUID(uniqueID);
         } else {
+          //[@rahul temp] based on logs, this gets triggered
           req.setOpId(QNLConstants.REQ_GET_KP_BLOCK_INDEX);
         }
         req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
@@ -165,6 +182,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         qllRdr.read(hex, cfg.getKeyBlockSz(), ref);
 
         if (localSiteId.equals(destSiteId)) {
+          LOGGER.info("[rahul debug]: req_get_kp_block_index went into expected if condition.");
           req = new QNLRequest(blockByteSz);
           req.setOpId(QNLConstants.REQ_POST_ALLOC_KP_BLOCK);
           req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
@@ -182,6 +200,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           ctx.fireChannelActive();
           ctx.fireChannelRead(req);
         } else {
+          LOGGER.info("[rahul debug]: req_get_kp_block_index went into UNEXPECTED if condition.");
           // For example C ---> B ---> A
           // localSiteId is intermediate site B
           // adjSiteId should be next hop on the path towards the destSiteId

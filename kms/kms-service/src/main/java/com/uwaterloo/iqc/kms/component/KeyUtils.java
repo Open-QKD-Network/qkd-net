@@ -32,6 +32,11 @@ public class KeyUtils {
         return byteArray2Hex(md.digest(convertme));
     }
 
+    /**
+     * returns a hexadecimal representation of the given byte array <hash>
+     * by mapping each byte to a two hexadecimal digits.
+     * Length of returned hexstring will be twice the length of byte arr <hash>
+     */ 
     public static String byteArray2Hex(final byte[] hash) {
         Formatter formatter = new Formatter();
         for (byte b : hash) {
