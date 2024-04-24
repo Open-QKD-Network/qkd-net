@@ -44,7 +44,7 @@ public class QNLConfig {
      */
     public Map<String, String> OTPConfig;
     public static final String OTP_KEYBLOCKSZ = "keyBlockSz";
-    public static final String KMS = "kms";
+    public static final String KMS = "kms"; // [@rahul temp]: name of channel handler for KMS QNL service.
 
     /** [@rahul temp] example return value: ~/.qkd/qnl/routes.json */         
     public String getRouteConfigLoc() { 

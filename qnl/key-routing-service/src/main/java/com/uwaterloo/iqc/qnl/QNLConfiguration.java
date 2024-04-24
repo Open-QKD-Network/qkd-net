@@ -75,13 +75,13 @@ public class QNLConfiguration {
     }
 
     private void createOTPKeys() {
-        for (String k : routeCfg.adjacent.keySet())
-            otpKeyMap.put(k, new OTPKey(this, k));
+        for (String adjSiteID : routeCfg.adjacent.keySet())
+            otpKeyMap.put(adjSiteID, new OTPKey(this, adjSiteID));
     }
 
     private void createQLLClients() {
-        for (String k : routeCfg.adjacent.keySet()) {
-            qllClientMap.put(k, new QLLFileReader(k, config));
+        for (String adjSiteID : routeCfg.adjacent.keySet()) {
+            qllClientMap.put(adjSiteID, new QLLFileReader(adjSiteID, config));
         }
     }
 }

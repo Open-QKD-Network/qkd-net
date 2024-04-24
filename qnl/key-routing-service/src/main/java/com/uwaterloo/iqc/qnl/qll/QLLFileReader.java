@@ -109,8 +109,10 @@ public class QLLFileReader implements QLLReader {
     }
 
     public void getNextBlockIndex(int len, AtomicLong indexRef) {
+        // [@rahul temp]: len = number of keys in a block
         LOGGER.info("QLLFileReader.getNextBlockIndex,len:" + len + ",indexRef:" + indexRef.get() + "|" + this);
         long index = this.qllBlockIndex.addAndGet(len);
+        // (# of keys/block) / (# of bytes / block)
         int blockIndex = (int)index / this.qllBlockSz;
         String fileStr = this.keyLoc + "/" + this.siteId + "_" + blockIndex;
         File f = new File(fileStr);

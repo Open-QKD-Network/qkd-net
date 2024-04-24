@@ -169,6 +169,7 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
           }
 
           LOGGER.info("REQ_POST_KP_BLOCK_INDEX/generate new QNLRequest:" + req);
+          LOGGER.info("[rahul debug]: channelPipeline:" + ctx.pipeline().names());
           ctx.fireChannelActive();
           ctx.fireChannelRead(req);
         }
@@ -304,11 +305,16 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
     }
   }
 
+  /**
+   * Removes all channel handlers from the pipeline except the one with name {@code retained}.
+   * @param ctx ChannelHandlerContext
+   * @param retained name of channel handler to retain
+   */
   private void retainConnectHandler(ChannelHandlerContext ctx, String retained) {
     LOGGER.info("retainConnectHandler:" + retained);
     RouteConfig rCfg = qConfig.getRouteConfig();
-    for (String k : rCfg.adjacent.keySet()) {
-      if (!k.equals(retained)) ctx.pipeline().remove(k);
+    for (String adjSiteID : rCfg.adjacent.keySet()) {
+      if (!adjSiteID.equals(retained)) ctx.pipeline().remove(adjSiteID);
     }
     if (!retained.equals(QNLConfig.KMS)) ctx.pipeline().remove(QNLConfig.KMS);
   }

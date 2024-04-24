@@ -41,7 +41,7 @@ public class KeyRouterConnectHandler extends ChannelInboundHandlerAdapter {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         Bootstrap b = new Bootstrap();
-        b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 50000);
+        b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 50000); // [@rahul temp]: wait 50 seconds to connect with client.
         b.group(workerGroup)
         .channel(ctx.channel().getClass())
         .handler(new KeyClientRouterInitializer(inboundChannel, qConfig))

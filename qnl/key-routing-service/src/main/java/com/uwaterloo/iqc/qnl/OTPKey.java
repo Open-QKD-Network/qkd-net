@@ -29,7 +29,9 @@ public class OTPKey {
 
     public void otp(byte[] data) throws Exception {
         int i = 0;
+        // for each byte in data: XOR it with the corresponding byte in OTP key.
         for (byte b : otpKey)
+            // XOR the data with the OTP key
             data[i] = (byte)(b ^ data[i++]);
     }
 
