@@ -121,8 +121,11 @@ public class KeyRouterFrontendHandler extends ChannelInboundHandlerAdapter {
         }
         req.setSiteIds(qReq.getSrcSiteId(), qReq.getDstSiteId());
         LOGGER.info("REQ_GET_ALLOC_KP_BLOCK/generate new QNLRequest:" + req);
+        
+        LOGGER.info("[rahul debug]: channelPipeline before:" + ctx.pipeline().names());
         retainConnectHandler(ctx, adjSiteId);
-
+        LOGGER.info("[rahul debug]: channelPipeline after:" + ctx.pipeline().names());
+        
         ctx.fireChannelActive();
         ctx.fireChannelRead(req);
         break;
