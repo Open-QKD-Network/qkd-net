@@ -31,7 +31,7 @@ public class KMSController {
     @Autowired private KeyPoolManager keyPoolMgr;
     @Autowired private PolicyEngine policy;
     private static final Logger logger = LoggerFactory.getLogger(KMSController.class);
-    private static final String URL = "http://127.0.0.1:9000/saeid2siteid.json";
+    private static final String URL = "https://raw.githubusercontent.com/Open-QKD-Network/qkd-net/refs/heads/etsi-020/saeid2siteid.json";
     
     /**
      * Request a new key from KMS. KMS generating the key is considered
