@@ -9,3 +9,49 @@ kxie@kxie-Inspiron-3880:~/kaiduan-2026/qkd-net$ curl http://localhost:8095/api/v
 == saeid --> node ID
  "376cdd3d-9506-46d0-b95f-fb4670242bd6":"C"
  "ccb018cc-0af2-4cf3-adb1-9f31ac4590c1":"D"
+
+1) on node D
+
+2026-09-07 09:52:46.347 [kms-service] [trace=,span=] [nio-9060-exec-1] c.u.iqc.kms.controller.KMSController    : SAEID:376cdd3d-9506-46d0-b95f-fb4670242bd6Site ID:C
+2026-09-07 09:52:46.347 [kms-service] [trace=,span=] [nio-9060-exec-1] c.u.iqc.kms.component.KeyPoolManager    : KeyPoolManager.fetchKey:D->C,index=-1
+2026-09-07 09:52:46.347 [kms-service] [trace=,span=] [nio-9060-exec-1] c.u.iqc.kms.component.KeyPoolManager    : KeyPoolManager.fetchKey starts ...
+2026-09-07 09:52:46.347 [kms-service] [trace=,span=] [nio-9060-exec-1] c.u.iqc.kms.component.QNLKeyReader      : QNLKeyReader.read:D->C,localhost:9292,/home/b43s/.qkd/kms/pools/,4,32
+2026-09-07 09:52:46.378 [kms-service] [trace=,span=] [nio-9060-exec-1] i.netty.util.internal.PlatformDependent : Your platform does not provide complete low-level API for accessing direct buffers reliably. Unless explicitly requested, heap buffer will always be preferred to avoid potential system unstability.
+2026-09-07 09:52:49.040 [kms-service] [trace=,span=] [nio-9060-exec-1] c.u.iqc.kms.component.QNLKeyReader      : QNLKeyReader.writeKeys to keypool:/home/b43s/.qkd/kms/pools//D/C/115d07de-60a6-43d7-996d-629c645f300f, blockSz:4
+2026-09-07 09:52:49.043 [kms-service] [trace=,span=] [nio-9060-exec-1] c.u.iqc.kms.component.KeyPoolManager    : KeyPoolManager.fetchKey, add keypool: DC,blockId:115d07de-60a6-43d7-996d-629c645f300f,blockSz:4,keyBlockDest:[36b4bf06cc5cbb7e61983f8b4dfd7771edc2ee01bb049b52e0a91a4f2e90fa0c, 563c43958e9fff46755b63d0a4d8c96fc98c9edf066c91c3b8fccd7aae23dd42, 064be1aa39bde5a059a31196a5b659c8e8f7be19bd2e058cfa3ca19f49292fc0, 868699bff7e182dac089038c97efa12fdcb294e96b7ca885e484b9407a645f7d]
+2026-09-07 09:52:49.043 [kms-service] [trace=,span=] [nio-9060-exec-1] c.u.iqc.kms.controller.KMSController    : New Key:
+2026-09-07 09:52:49.043 [kms-service] [trace=,span=] [nio-9060-exec-1] c.u.iqc.kms.controller.KMSController    :        Index: 0        Key: 36b4bf06cc5cbb7e61983f8b4dfd7771edc2ee01bb049b52e0a91a4f2e90fa0c   BlockId: 115d07de-60a6-43d7-996d-629c645f300f
+
+2) On node C
+
+2.1) Upon receiving REQ_POST_ALLOC_KP_BLOCK in KeyRouterFrontendHandler.java, it reads a block of key from QLL layer, generates a UUID for the block
+2.2) In ServerHandler.java, it writes the key to keypool file with block uuid as filename
+
+3) On node D
+./kms_qnl_service.log:7:2026-09-07 09:52:46 [nioEventLoopGroup-3-1] [com.uwaterloo.iqc.kms.qnl.ServerHandler] INFO :: ServerHandler.writeKeys to keypool:/home/kxie/.qkd/kms/pools/D/C/115d07de-60a6-43d7-996d-629c645f300f, blockSz:4
+
+4) On node C
+
+2026-09-07 09:52:49.040 [kms-service] [trace=,span=] [nio-9060-exec-1] c.u.iqc.kms.component.QNLKeyReader      : QNLKeyReader.writeKeys to keypool:/home/b43s/.qkd/kms/pools//D/C/115d07de-60a6-43d7-996d-629c645f300f, blockSz:4
+
+5)  thoughts?
+A and B are in network 1,
+C and D are in network 2,
+
+B and C are gateway nodes
+
+A ---- B   C ---- D
+
+Assume we want to get a key between A and D, but in fact the key is from A and B, B sends the key to C with ETSi 020.
+
+Questions:
+
+5.1) On A side, shall we create a keypool A->D with block id as file name or keypool A->B
+5.2) On B side, shall we create a keypool A->B ?
+
+5.3) On C side, shall we create a keypool C->D or keypool A->D?
+5.4) On D side, shall we create a keypool C->D or keypool A->D?
+
+We need to add a field for D to QNLRequest/QNLResponse.
+We need to add a configuration gateway node.
+For A and D get key, we need to find out D is not in our network (network 1), we can change LSRPRoute.java to generate a node ID to IP mapping. With this mapping, we can find out if D is not in our network (no entry with key D in the mapping).
