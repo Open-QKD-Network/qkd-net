@@ -1,0 +1,3 @@
+curl http://localhost:8095/api/v1/keys/abced/status
+curl -X POST -H "Content-Type: application/json" -d @extkey.json http://localhost:8095/kmapi/v1/ext_keys
+curl -X POST -H "Content-Type: application/json" -d @ackkey.json http://localhost:8095/kmapi/v1/ext_keys/ack

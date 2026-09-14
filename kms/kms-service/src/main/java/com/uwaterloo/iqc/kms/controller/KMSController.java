@@ -172,7 +172,7 @@ public class KMSController {
         return sb.toString();
     }
 
-    @PostMapping("/kmapi/v1/ext_keys")
+    @PostMapping("/v1/ext_keys")
     public ResponseEntity<Void> sendExtKey(@RequestBody ExtKeyRequest request) {
         String initiator = request.getInitiatorSaeId();
         String ackUrl = request.getAckCallbackUrl();
@@ -191,7 +191,7 @@ public class KMSController {
         return ResponseEntity.accepted().build();
     }
 
-    @PostMapping("/kmapi/v1/ext_keys/ack")
+    @PostMapping("/v1/ext_keys/ack")
     public ResponseEntity<Void> ackExtKey(@RequestBody List<ExtKeyActRequest> requests) {
         for (ExtKeyActRequest request : requests) {
             logger.info("Processing ext key ack, ack status: " + request.getAckStatus());
