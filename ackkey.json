@@ -1,0 +1,35 @@
+[
+  {
+    "key_id_container": [
+      {
+        "key_id": "550e8400-e29b-41d4-a716-446655440000",
+        "extension": {
+          "E32473_extension1": "Some string applicable to a particular key",
+          "E32473_extension2": {
+            "property1": 10111,
+            "property2": {
+              "subprop1": 21,
+              "subprop2": true
+            }
+          }
+        }
+      }
+    ],
+    "ack_status": "relayed",
+    "initiator_sae_id": "encryptor1",
+    "target_sae_ids": [
+      "encryptor2"
+    ],
+    "message": "string",
+    "extension": {
+      "E32473_extension1": "Some string applicable to all keys in the container",
+      "E32473_extension2": {
+        "property1": 10111,
+        "property2": {
+          "subprop1": 21,
+          "subprop2": true
+        }
+      }
+    }
+  }
+]

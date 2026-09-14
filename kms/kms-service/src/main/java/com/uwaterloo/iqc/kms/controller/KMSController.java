@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +19,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 
 import com.uwaterloo.iqc.kms.component.Key;
 import com.uwaterloo.iqc.kms.component.KeyPoolManager;
@@ -166,6 +170,43 @@ public class KMSController {
         sb.append("}");
 
         return sb.toString();
+    }
+
+    @PostMapping("/kmapi/v1/ext_keys")
+    public ResponseEntity<Void> sendExtKey(@RequestBody ExtKeyRequest request) {
+        String initiator = request.getInitiatorSaeId();
+        String ackUrl = request.getAckCallbackUrl();
+        logger.info("Processing ext key, initiator saeid: " + initiator);
+        logger.info("Processing ext key, ack url: " + ackUrl);
+
+        for (String targetSaeId : request.getTargetSaeIds()) {
+            logger.info("Processing ext key, target saeid: " + targetSaeId);
+        }
+
+        for (ExtKeyInfo key : request.getKeys()) {
+            String keyId = key.getKeyId();
+            String value = key.getValue();
+            logger.info("Processing ext key, key id:" + keyId + ", value:" +  value);
+        }
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/kmapi/v1/ext_keys/ack")
+    public ResponseEntity<Void> ackExtKey(@RequestBody List<ExtKeyActRequest> requests) {
+        for (ExtKeyActRequest request : requests) {
+            logger.info("Processing ext key ack, ack status: " + request.getAckStatus());
+            logger.info("Processing ext key ack, initiator sae id: " + request.getInitiatorSaeId());
+            logger.info("Processing ext key ack, message: " + request.getMessage());
+
+            for (String targetSaeId : request.getTargetSaeIds()) {
+                logger.info("Processing ext key ack, target saeid: " + targetSaeId);
+            }
+
+            for (ExtKeyIdContainer key : request.getKeyIdContainer()) {
+                logger.info("Processing ext key ack, key id: " + key.getKeyId());
+            }
+        }
+        return ResponseEntity.ok().build();
     }
 
     void printKey(Key k, boolean isNew) {
