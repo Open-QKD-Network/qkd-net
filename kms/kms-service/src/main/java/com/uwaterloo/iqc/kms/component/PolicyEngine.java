@@ -21,7 +21,7 @@ public class PolicyEngine {
 
     public String getETSI020BorderNode() {
         // Read from etsi20-border.conf
-        String filePath = System.getProperty("user.home") + "/.qkd/kms/etsi020-boder.conf";
+        String filePath = System.getProperty("user.home") + "/.qkd/kms/etsi020-border.conf";
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             return reader.readLine();
         } catch (Exception io) {
