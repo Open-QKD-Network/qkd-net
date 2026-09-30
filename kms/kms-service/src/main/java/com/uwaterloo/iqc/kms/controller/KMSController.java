@@ -20,6 +20,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import com.uwaterloo.iqc.kms.component.Key;
 import com.uwaterloo.iqc.kms.component.KeyPoolManager;
@@ -91,6 +93,12 @@ public class KMSController {
     @RequestMapping("/v1/keys/{slaveSAEID}/enc_keys")
     public String getEncKey(@PathVariable String slaveSAEID) {
         String siteID = getSiteIDFromSAEID(slaveSAEID, URL);
+
+        // If siteID is not in our network, then invoke ETSI020 API
+        if (isInOurNetwork(siteID) == false) {
+            return getKeyWithETSI020(siteID);
+        }
+
         Key k;
         if (policy.check()) {
 	    k = keyPoolMgr.newKey(siteID);
@@ -247,5 +255,37 @@ public class KMSController {
         } catch (IOException |InterruptedException e) {
             return null;
         }
+    }
+
+    boolean isInOurNetwork(String siteID) {
+        logger.info("Check if node is in our network " + siteID);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String filePath = System.getProperty("user.home") + "/.qkd/reverse_mapping.log";
+            String jsonContent = Files.readString(Path.of(filePath));
+            JsonNode json = objectMapper.readTree(jsonContent);
+            boolean ret = json.has(siteID);
+            logger.info("Site " + siteID + " is in our network: " + ret);
+            return ret;
+        } catch (Exception e) {
+            logger.info("Exception in isInOurNetwork " + e);
+            return false;
+        }
+    }
+
+    String getKeyWithETSI020(String siteID) {
+        String border = policy.getETSI020BorderNode();
+        logger.info("ETSI020BorderNode:" + border);
+        Key k;
+        if (policy.check()) {
+	        k = keyPoolMgr.newETSI020Key(border);
+	        printKey(k, true);
+        } else {
+	        k = new Key();
+        }
+        StringBuilder sb = new StringBuilder("{\"keys\":[");
+        sb.append(k.toJsonString());
+        sb.append("]}");
+        return sb.toString();
     }
 }

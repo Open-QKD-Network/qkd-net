@@ -69,6 +69,16 @@ public class KeyPoolManager {
         return key;
     }
 
+    public Key newETSI020Key(String borderId) {
+        Key key = null;
+        try {
+            key = fetchKey(borderId, null, -1L);
+        } catch(Exception e) {
+        }
+        if (key == null)
+            key = new Key();
+        return key;
+    }
 
     public Key getKey(String siteId, String block, long index) {
         Key key;

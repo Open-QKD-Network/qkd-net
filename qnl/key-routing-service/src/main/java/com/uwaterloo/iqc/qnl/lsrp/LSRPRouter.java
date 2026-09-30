@@ -646,5 +646,19 @@ public class LSRPRouter {
     } catch (Exception e) {
       LOGGER.info("Write mapping to file exception:" + e);
     }
+    // reverse mapping, name ---> IP
+    json = new JsonObject();
+    for (Map.Entry<String, Node> entry : this.allNodes.entrySet()) {
+      Node node = entry.getValue();
+      json.addProperty(node.getName(), node.getAddress());
+    }
+    try {
+      String mappingRoute = System.getProperty("user.home") + "/.qkd/reverse_mapping.log";
+      java.io.FileWriter fw = new java.io.FileWriter(mappingRoute);
+      fw.write(json.toString());
+      fw.close();
+    } catch (Exception e) {
+      LOGGER.info("Write reverse mapping to file exception:" + e);
+    }
   }
 }
