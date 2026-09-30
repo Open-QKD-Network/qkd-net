@@ -274,8 +274,8 @@ public class KMSController {
     }
 
     String getKeyWithETSI020(String siteID) {
-        String border = policy.getETSI020BorderNode();
-        logger.info("ETSI020BorderNode:" + border);
+        String border = policy.getETSI020BorderNode("local");
+        logger.info("ETSI020 Local Border Node:" + border);
         Key k;
         if (policy.check()) {
 	        k = keyPoolMgr.newETSI020Key(border);
