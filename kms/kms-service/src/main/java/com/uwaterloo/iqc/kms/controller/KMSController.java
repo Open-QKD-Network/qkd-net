@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.scheduling.annotation.Async;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,8 +22,15 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.HashMap;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 
 import com.uwaterloo.iqc.kms.component.Key;
 import com.uwaterloo.iqc.kms.component.KeyPoolManager;
@@ -39,6 +48,8 @@ public class KMSController {
     private static final Logger logger = LoggerFactory.getLogger(KMSController.class);
     private static final String URL = "https://raw.githubusercontent.com/Open-QKD-Network/qkd-net/refs/heads/etsi-020/saeid2siteid.json";
     
+    private final ConcurrentHashMap<String, CompletableFuture<String>> pendingAcks = new ConcurrentHashMap<>();
+
     /**
      * Request a new key from KMS. KMS generating the key is considered
      * a source site while the site requesting the key is considered a
@@ -96,7 +107,7 @@ public class KMSController {
 
         // If siteID is not in our network, then invoke ETSI020 API
         if (isInOurNetwork(siteID) == false) {
-            return getKeyWithETSI020(siteID);
+            return getKeyWithETSI020(siteID, slaveSAEID);
         }
 
         Key k;
@@ -181,21 +192,8 @@ public class KMSController {
     }
 
     @PostMapping("/v1/ext_keys")
-    public ResponseEntity<Void> sendExtKey(@RequestBody ExtKeyRequest request) {
-        String initiator = request.getInitiatorSaeId();
-        String ackUrl = request.getAckCallbackUrl();
-        logger.info("Processing ext key, initiator saeid: " + initiator);
-        logger.info("Processing ext key, ack url: " + ackUrl);
-
-        for (String targetSaeId : request.getTargetSaeIds()) {
-            logger.info("Processing ext key, target saeid: " + targetSaeId);
-        }
-
-        for (ExtKeyInfo key : request.getKeys()) {
-            String keyId = key.getKeyId();
-            String value = key.getValue();
-            logger.info("Processing ext key, key id:" + keyId + ", value:" +  value);
-        }
+    public ResponseEntity<Void> recvExtKey(@RequestBody ExtKeyRequest request) {
+        processExtKeyAsync(request);
         return ResponseEntity.accepted().build();
     }
 
@@ -212,6 +210,7 @@ public class KMSController {
 
             for (ExtKeyIdContainer key : request.getKeyIdContainer()) {
                 logger.info("Processing ext key ack, key id: " + key.getKeyId());
+                onAckExtKey(key.getKeyId());
             }
         }
         return ResponseEntity.ok().build();
@@ -273,7 +272,7 @@ public class KMSController {
         }
     }
 
-    String getKeyWithETSI020(String siteID) {
+    String getKeyWithETSI020(String siteID, String slaveSAEID) {
         String border = policy.getETSI020BorderNode("local");
         logger.info("ETSI020 Local Border Node:" + border);
         Key k;
@@ -283,9 +282,104 @@ public class KMSController {
         } else {
 	        k = new Key();
         }
+        sendExtKey(k, slaveSAEID);
+        String keyId = k.blockId + k.index;
+        CompletableFuture future = new CompletableFuture<>();
+        pendingAcks.put(keyId, future);
+        try {
+            future.get(60, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            logger.info("Exception while waiting ACK for key " + keyId + ", exception:" + e);
+            pendingAcks.remove(keyId);
+        } finally {
+            logger.info("Recv ACK for key " + keyId);
+            pendingAcks.remove(keyId);
+        }
         StringBuilder sb = new StringBuilder("{\"keys\":[");
         sb.append(k.toJsonString());
         sb.append("]}");
         return sb.toString();
+    }
+
+    String sendExtKey(Key k, String slaveSAEID) {
+        RestTemplate restClient = new RestTemplate();
+
+        ExtKeyRequest request = new ExtKeyRequest();
+
+        request.setInitiatorSaeId(slaveSAEID);
+
+        List<String> targetSaeIds = new LinkedList<String>();
+        targetSaeIds.add(slaveSAEID);
+        request.setTargetSaeIds(targetSaeIds);
+
+        ExtKeyInfo kInfo = new ExtKeyInfo();
+        kInfo.setKeyId(k.blockId + k.index);
+        kInfo.setValue(k.hexKey);
+        List<ExtKeyInfo> kList = new LinkedList<ExtKeyInfo>();
+        kList.add(kInfo);
+        request.setKeys(kList);
+
+        request.setAckCallbackUrl("http://localhost:8095/kmapi/v1/ext_keys/ack");
+
+        String response = restClient.postForObject(
+            "http://localhost:8095/kmapi/v1/ext_keys",
+            request,
+            String.class);
+        logger.info("SendExtKey with result: " + response);
+        return response;
+    }
+
+    void onAckExtKey(String keyId) {
+        CompletableFuture<String> future = pendingAcks.get(keyId);
+
+        if (future == null) {
+            return;
+        }
+        logger.info("ACK key with id " + keyId);
+        future.complete(keyId + "is ACKED");
+    }
+
+    @Async
+    void processExtKeyAsync(ExtKeyRequest request) {
+        String initiator = request.getInitiatorSaeId();
+        String ackUrl = request.getAckCallbackUrl();
+        logger.info("Processing ext key, initiator saeid: " + initiator);
+        logger.info("Processing ext key, ack url: " + ackUrl);
+
+        for (String targetSaeId : request.getTargetSaeIds()) {
+            logger.info("Processing ext key, target saeid: " + targetSaeId);
+        }
+
+        for (ExtKeyInfo key : request.getKeys()) {
+            String keyId = key.getKeyId();
+            String value = key.getValue();
+            logger.info("Processing ext key, key id:" + keyId + ", value:" +  value);
+        }
+
+        // send ACK Key request
+        RestTemplate restClient = new RestTemplate();
+
+        ExtKeyActRequest ack = new ExtKeyActRequest();
+        List<ExtKeyIdContainer> containers = new LinkedList<ExtKeyIdContainer>();
+        Map<String, Object> extensions = new HashMap<String, Object>();
+        for (ExtKeyInfo key : request.getKeys()) {
+            ExtKeyIdContainer idContainer = new ExtKeyIdContainer();
+            idContainer.setKeyId(key.getKeyId());
+            idContainer.setExtension(extensions);
+            containers.add(idContainer);
+        }
+        ack.setKeyIdContainer(containers);
+
+        ack.setInitiatorSaeId(request.getInitiatorSaeId());
+        ack.setTargetSaeIds(request.getTargetSaeIds());
+        ack.setAckStatus("relayed");
+        ack.setMessage("Key is relayed successfully");
+        ack.setExtension(extensions);
+
+        String response = restClient.postForObject(
+            ackUrl,
+            ack,
+            String.class);
+        logger.info("SendExtKeyAck with result: " + response);
     }
 }

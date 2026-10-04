@@ -9,5 +9,5 @@
   "target_sae_ids": [
     "encryptor2"
   ],
-  "ack_callback_url": "https://kme1/kmapi/v1/ext_keys/ack"
+  "ack_callback_url": "http://127.0.0.1:8095/kmapi/v1/ext_keys/ack"
 }
