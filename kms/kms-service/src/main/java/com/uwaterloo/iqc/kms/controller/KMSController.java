@@ -320,10 +320,12 @@ public class KMSController {
         kList.add(kInfo);
         request.setKeys(kList);
 
-        request.setAckCallbackUrl("http://localhost:8095/kmapi/v1/ext_keys/ack");
+        String myAckExtKeyUrl = policy.getETSI020BorderNode("myAckExtKeyUrl");
+        request.setAckCallbackUrl(myAckExtKeyUrl);
 
+        String peerSendExtKeyUrl = policy.getETSI020BorderNode("peerSendExtKeyUrl");
         String response = restClient.postForObject(
-            "http://localhost:8095/kmapi/v1/ext_keys",
+            peerSendExtKeyUrl,
             request,
             String.class);
         logger.info("SendExtKey with result: " + response);
