@@ -274,7 +274,7 @@ public class KMSController {
     }
 
     String getKeyWithETSI020(String siteID, String slaveSAEID) {
-        String border = policy.getETSI020BorderNode("local");
+        String border = policy.getETSI020BorderNode("myBorderNodeID");
         logger.info("ETSI020 Local Border Node:" + border);
         Key k;
         if (policy.check()) {
