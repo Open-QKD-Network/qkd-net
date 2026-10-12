@@ -193,7 +193,8 @@ public class KMSController {
 
     @PostMapping("/v1/ext_keys")
     public ResponseEntity<Void> recvExtKey(@RequestBody ExtKeyRequest request) {
-        processExtKeyAsync(request);
+        Thread thread = new Thread(() -> processExtKeyAsync(request));
+        thread.start();
         return ResponseEntity.accepted().build();
     }
 
@@ -339,8 +340,7 @@ public class KMSController {
         future.complete(keyId + "is ACKED");
     }
 
-    @Async
-    void processExtKeyAsync(ExtKeyRequest request) {
+    void processExtKeyAsync(final ExtKeyRequest request) {
         String initiator = request.getInitiatorSaeId();
         String ackUrl = request.getAckCallbackUrl();
         logger.info("Processing ext key, initiator saeid: " + initiator);
@@ -359,6 +359,8 @@ public class KMSController {
         // send ACK Key request
         RestTemplate restClient = new RestTemplate();
 
+        List<ExtKeyActRequest> acks = new LinkedList<ExtKeyActRequest>();
+
         ExtKeyActRequest ack = new ExtKeyActRequest();
         List<ExtKeyIdContainer> containers = new LinkedList<ExtKeyIdContainer>();
         Map<String, Object> extensions = new HashMap<String, Object>();
@@ -376,9 +378,11 @@ public class KMSController {
         ack.setMessage("Key is relayed successfully");
         ack.setExtension(extensions);
 
+        acks.add(ack);
+
         String response = restClient.postForObject(
             ackUrl,
-            ack,
+            acks,
             String.class);
         logger.info("SendExtKeyAck with result: " + response);
     }

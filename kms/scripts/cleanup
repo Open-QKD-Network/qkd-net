@@ -1,4 +1,5 @@
 rm -rf ~/.qkd/kms/pools
 rm -rf ~/.qkd/qnl/otp/keys
 rm -rf ~/.qkd/mapping.log
+rm -rf ~/.qkd/reverse_mapping.log
 rm -rf ~/qkd_logs/*.*
