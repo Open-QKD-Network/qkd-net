@@ -1,0 +1,45 @@
+1. Node A (192.168.2.106), Node B (192.168.2.105) are in network 1
+
+2. Node B is network 1's border node
+
+3. Node C (192.168.2.123), Node D (192.168.2.212) are in network 2
+
+4. Node C is network 2's border node
+
+5. etsi020-border.json on Node A
+{
+ "myBorderNodeID":"B",
+ "interSendExtKeyUrl":"http://192.168.2.105:8095/kmapi/v1/inter_relay_ext_keys",
+ "peerSendExtKeyUrl":"http://192.168.2.123:8095/kmapi/v1/ext_keys",
+ "myAckExtKeyUrl":"http://192.168.2.105:8095/kmapi/v1/ext_keys/ack"
+}
+
+6. etsi020-boder.json on Node B
+{
+"myBorderNodeID":"B",
+"interSendExtKeyUrl":"http://192.168.2.105:8095/kmapi/v1/inter_relay_ext_keys",
+"peerSendExtKeyUrl":"http://192.168.2.123:8095/kmapi/v1/ext_keys",
+"myAckExtKeyUrl":"http://192.168.2.105:8095/kmapi/v1/ext_keys/ack"
+}
+
+7. etsi020-boder.json on Node C
+{
+ "myBorderNodeID":"C",
+ "interSendExtKeyUrl":"http://192.168.2.123:8095/kmapi/v1/inter_relay_ext_keys",
+ "peerSendExtKeyUrl":"http://192.168.2.105:8095/kmapi/v1/ext_keys",
+ "myAckUrl":"http://192.168.2.123:8095/kmapi/v1/ext_keys/ack"
+}
+
+8. etsi020-boder.json on Node D
+{
+ "myBorderNodeID":"C",
+ "interSendExtKeyUrl":"http://192.168.2.123:8095/kmapi/v1/inter_relay_ext_keys",
+ "peerSendExtKeyUrl":"http://192.168.2.105:8095/kmapi/v1/ext_keys",
+ "myAckUrl":"http://192.168.2.123:8095/kmapi/v1/ext_keys/ack"
+}
+
+9. "664f2bb8-27a0-4c21-b943-fb1e8602fe8d":"D"
+
+10. On Node A
+
+curl http://192.168.2.106:8095/api/v1/keys/664f2bb8-27a0-4c21-b943-fb1e8602fe8d/enc_keys
