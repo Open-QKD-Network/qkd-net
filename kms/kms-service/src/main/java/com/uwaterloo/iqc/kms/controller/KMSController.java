@@ -217,6 +217,12 @@ public class KMSController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/v1/inter_relay_ext_keys")
+    public ResponseEntity<Void> recvInterRelayExtKey(@RequestBody ExtKeyRequest request) {
+        processInterRelayExtKey(request);
+        return ResponseEntity.ok().build();
+    }
+
     void printKey(Key k, boolean isNew) {
         String str = isNew ? "New Key:" : "Peer Key:";
         logger.info(str);
@@ -283,19 +289,8 @@ public class KMSController {
         } else {
 	        k = new Key();
         }
-        sendExtKey(k, slaveSAEID);
-        String keyId = k.blockId + k.index;
-        CompletableFuture future = new CompletableFuture<>();
-        pendingAcks.put(keyId, future);
-        try {
-            future.get(60, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            logger.info("Exception while waiting ACK for key " + keyId + ", exception:" + e);
-            pendingAcks.remove(keyId);
-        } finally {
-            logger.info("Recv ACK for key " + keyId);
-            pendingAcks.remove(keyId);
-        }
+        relayKeyToLocalBorder(k, slaveSAEID);
+
         StringBuilder sb = new StringBuilder("{\"keys\":[");
         sb.append(k.toJsonString());
         sb.append("]}");
@@ -303,25 +298,29 @@ public class KMSController {
     }
 
     String sendExtKey(Key k, String slaveSAEID) {
-        RestTemplate restClient = new RestTemplate();
+        ExtKeyInfo kInfo = new ExtKeyInfo();
+        kInfo.setKeyId(k.blockId + k.index);
+        kInfo.setValue(k.hexKey);
 
         ExtKeyRequest request = new ExtKeyRequest();
-
         request.setInitiatorSaeId(slaveSAEID);
 
         List<String> targetSaeIds = new LinkedList<String>();
         targetSaeIds.add(slaveSAEID);
         request.setTargetSaeIds(targetSaeIds);
 
-        ExtKeyInfo kInfo = new ExtKeyInfo();
-        kInfo.setKeyId(k.blockId + k.index);
-        kInfo.setValue(k.hexKey);
         List<ExtKeyInfo> kList = new LinkedList<ExtKeyInfo>();
         kList.add(kInfo);
         request.setKeys(kList);
 
         String myAckExtKeyUrl = policy.getETSI020BorderNode("myAckExtKeyUrl");
         request.setAckCallbackUrl(myAckExtKeyUrl);
+
+        return sendExtKey(request);
+    }
+
+    String sendExtKey(ExtKeyRequest request) {
+        RestTemplate restClient = new RestTemplate();
 
         String peerSendExtKeyUrl = policy.getETSI020BorderNode("peerSendExtKeyUrl");
         String response = restClient.postForObject(
@@ -387,5 +386,67 @@ public class KMSController {
             acks,
             String.class);
         logger.info("SendExtKeyAck with result: " + response);
+    }
+
+    String relayKeyToLocalBorder(Key k, String slaveSAEID) {
+        RestTemplate restClient = new RestTemplate();
+
+        ExtKeyRequest request = new ExtKeyRequest();
+
+        request.setInitiatorSaeId(slaveSAEID);
+
+        List<String> targetSaeIds = new LinkedList<String>();
+        targetSaeIds.add(slaveSAEID);
+        request.setTargetSaeIds(targetSaeIds);
+
+        ExtKeyInfo kInfo = new ExtKeyInfo();
+        kInfo.setKeyId(k.blockId + k.index);
+        kInfo.setValue(k.hexKey);
+        List<ExtKeyInfo> kList = new LinkedList<ExtKeyInfo>();
+        kList.add(kInfo);
+        request.setKeys(kList);
+
+        String myAckExtKeyUrl = policy.getETSI020BorderNode("myAckExtKeyUrl");
+        request.setAckCallbackUrl(myAckExtKeyUrl);
+
+        String interSendExtKeyUrl = policy.getETSI020BorderNode("interSendExtKeyUrl");
+        String response = restClient.postForObject(
+            interSendExtKeyUrl,
+            request,
+            String.class);
+        logger.info("RelayKeyToLocalBorder with result: " + response);
+        return response;
+    }
+
+    void processInterRelayExtKey(ExtKeyRequest request) {
+        String initiator = request.getInitiatorSaeId();
+        String ackUrl = request.getAckCallbackUrl();
+        logger.info("Processing interrelay ext key, initiator saeid: " + initiator);
+        logger.info("Processing interrelay ext key, ack url: " + ackUrl);
+
+        for (String targetSaeId : request.getTargetSaeIds()) {
+            logger.info("Processing interrelay ext key, target saeid: " + targetSaeId);
+        }
+
+        for (ExtKeyInfo key : request.getKeys()) {
+            String keyId = key.getKeyId();
+            String value = key.getValue();
+            logger.info("Processing interrelay ext key, key id:" + keyId + ", value:" +  value);
+        }
+        // send key to peer network's border node
+        String reponse = sendExtKey(request);
+        ExtKeyInfo firstKey = request.getKeys().get(0);
+        String firstKeyId = firstKey.getKeyId();
+        CompletableFuture future = new CompletableFuture<>();
+        pendingAcks.put(firstKeyId, future);
+        try {
+            future.get(60, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            logger.info("Exception while waiting ACK for key " + firstKeyId + ", exception:" + e);
+            pendingAcks.remove(firstKeyId);
+        } finally {
+            logger.info("Recv ACK for key " + firstKeyId);
+            pendingAcks.remove(firstKeyId);
+        }
     }
 }
