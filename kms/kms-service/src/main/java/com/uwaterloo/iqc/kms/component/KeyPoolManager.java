@@ -6,6 +6,10 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +94,27 @@ public class KeyPoolManager {
             key = new Key();
         }
         return key;
+    }
+
+    // Write ETSI020 Key
+    public boolean writeETSI020ExtKey(String peerSiteId,
+        String blockId, String keyValue) {
+        try {
+            Path filePath = Path.of(poolsDir, getLocalSiteId(), peerSiteId, blockId);
+            // Create directories if they don't exist
+            Files.createDirectories(filePath.getParent());
+            // Write the key to the file, creating it if necessary
+            Files.writeString(
+                filePath,
+                keyValue + System.lineSeparator(),
+                StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND
+            );
+            return true;
+        } catch (Exception e) {
+            logger.error("Fails to write ETSI020 key with exception " + e);
+            return false;
+        }
     }
 
     private Key fetchKey(String siteId, String inBlockId, long ind) throws Exception {

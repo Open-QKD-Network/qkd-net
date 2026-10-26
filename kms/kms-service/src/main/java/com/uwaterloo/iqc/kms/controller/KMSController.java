@@ -123,10 +123,10 @@ public class KMSController {
         return sb.toString();
     }
 
-    @RequestMapping("/v1/keys/{slaveSAEID}/dec_keys")
-    public String getDecKey(@PathVariable String slaveSAEID,
+    @RequestMapping("/v1/keys/{masterSAEID}/dec_keys")
+    public String getDecKey(@PathVariable String masterSAEID,
                             @RequestParam(value="key_ID") String keyID) {
-        String siteID = getSiteIDFromSAEID(slaveSAEID, URL);
+        String siteID = getSiteIDFromSAEID(masterSAEID, URL);
         Key k;
         if (policy.check()) {
             // KeyID: index-blockId
@@ -137,10 +137,14 @@ public class KMSController {
             logger.info("keyID:" + keyID);
             logger.info("index:" + index);
             logger.info("blockId:" + blockId);
-	    k = keyPoolMgr.getKey(siteID, blockId, Long.parseLong(index));
-	    printKey(k, false);
+            if (isInOurNetwork(siteID) == false) {
+                k = getETSI020DecKey(blockId);
+            } else {
+                k = keyPoolMgr.getKey(siteID, blockId, Long.parseLong(index));
+            }
+            printKey(k, false);
         } else {
-	    k = new Key();
+            k = new Key();
         }
         StringBuilder sb = new StringBuilder("{\"keys\":[");
         sb.append(k.toJsonString());
@@ -280,7 +284,7 @@ public class KMSController {
     }
 
     String getKeyWithETSI020(String siteID, String slaveSAEID) {
-        String border = policy.getETSI020BorderNode("myBorderNodeID");
+        String border = policy.getETSI020Config("myBorderNodeID");
         logger.info("ETSI020 Local Border Node:" + border);
         Key k;
         if (policy.check()) {
@@ -289,6 +293,7 @@ public class KMSController {
         } else {
 	        k = new Key();
         }
+ 
         relayKeyToLocalBorder(k, slaveSAEID);
 
         StringBuilder sb = new StringBuilder("{\"keys\":[");
@@ -313,7 +318,7 @@ public class KMSController {
         kList.add(kInfo);
         request.setKeys(kList);
 
-        String myAckExtKeyUrl = policy.getETSI020BorderNode("myAckExtKeyUrl");
+        String myAckExtKeyUrl = policy.getETSI020Config("myAckExtKeyUrl");
         request.setAckCallbackUrl(myAckExtKeyUrl);
 
         return sendExtKey(request);
@@ -322,7 +327,7 @@ public class KMSController {
     String sendExtKey(ExtKeyRequest request) {
         RestTemplate restClient = new RestTemplate();
 
-        String peerSendExtKeyUrl = policy.getETSI020BorderNode("peerSendExtKeyUrl");
+        String peerSendExtKeyUrl = policy.getETSI020Config("peerSendExtKeyUrl");
         String response = restClient.postForObject(
             peerSendExtKeyUrl,
             request,
@@ -344,18 +349,39 @@ public class KMSController {
     void processExtKeyAsync(final ExtKeyRequest request) {
         String initiator = request.getInitiatorSaeId();
         String ackUrl = request.getAckCallbackUrl();
+        String firstTargetSaeId = null;
+        String firstTargetSiteId = null;
+        String firstKeyId = null;
+        String firstKeyValue = null;
         logger.info("Processing ext key, initiator saeid: " + initiator);
         logger.info("Processing ext key, ack url: " + ackUrl);
 
         for (String targetSaeId : request.getTargetSaeIds()) {
             logger.info("Processing ext key, target saeid: " + targetSaeId);
+            if (firstTargetSaeId == null) {
+                firstTargetSaeId = targetSaeId;
+            }
         }
 
+        firstTargetSiteId = getSiteIDFromSAEID(firstTargetSaeId, URL);
         for (ExtKeyInfo key : request.getKeys()) {
             String keyId = key.getKeyId();
             String value = key.getValue();
             logger.info("Processing ext key, key id:" + keyId + ", value:" +  value);
+            if (firstKeyId == null) {
+                firstKeyId = keyId;
+                firstKeyValue = value;
+            }
         }
+
+        // KeyID: index-blockId
+        int i = firstKeyId.indexOf('-');
+        String index = firstKeyId.substring(0, i);
+        String blockId = firstKeyId.substring(i + 1);
+        // Write key to KMS key pool
+        logger.info("Write ETSI020ExtKey,index=" + index + ",blockId=" + blockId);
+        keyPoolMgr.writeETSI020ExtKey(firstTargetSiteId,
+            blockId, firstKeyValue);
 
         // send ACK Key request
         RestTemplate restClient = new RestTemplate();
@@ -406,10 +432,10 @@ public class KMSController {
         kList.add(kInfo);
         request.setKeys(kList);
 
-        String myAckExtKeyUrl = policy.getETSI020BorderNode("myAckExtKeyUrl");
+        String myAckExtKeyUrl = policy.getETSI020Config("myAckExtKeyUrl");
         request.setAckCallbackUrl(myAckExtKeyUrl);
 
-        String interSendExtKeyUrl = policy.getETSI020BorderNode("interSendExtKeyUrl");
+        String interSendExtKeyUrl = policy.getETSI020Config("interSendExtKeyUrl");
         String response = restClient.postForObject(
             interSendExtKeyUrl,
             request,
@@ -447,6 +473,60 @@ public class KMSController {
         } finally {
             logger.info("Recv ACK for key " + firstKeyId);
             pendingAcks.remove(firstKeyId);
+        }
+    }
+
+    String getAddressFromNodeID(String siteID) {
+        logger.info("getAddressFromNodeID " + siteID);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String filePath = System.getProperty("user.home") + "/.qkd/reverse_mapping.log";
+            String jsonContent = Files.readString(Path.of(filePath));
+            JsonNode json = objectMapper.readTree(jsonContent);
+            boolean exist = json.has(siteID);
+            if (exist) {
+                String address = json.get(siteID).asText();
+                logger.info("Site " + siteID + " address: " + address);
+                return address;
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            logger.info("Exception in getAddressFromNodeID " + e);
+            return null;
+        }
+    }
+
+    Key getETSI020DecKey(String blockId) {
+        String borderNodeID = policy.getETSI020Config("myBorderNodeID");
+        logger.info("My ETSI020 border node ID:" + borderNodeID);
+        // use uwaterloo API to get key from border node
+        String url = getAddressFromNodeID(borderNodeID);
+        Key key = new Key();
+        if (url == null) {
+            return key;
+        }
+        RestTemplate restClient = new RestTemplate();
+        url = url + ":8095/api/getkey?siteid=" +
+            keyPoolMgr.getLocalSiteId() +
+            "&blockid=" + blockId +
+            "&index=1";
+        logger.info("GET KEY URL " + url);
+        String response = restClient.getForObject(url, String.class);
+        logger.info("Response:" + response);
+        if (response == null) {
+            return key;
+        }
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonObject = objectMapper.readTree(response);
+            key.index = jsonObject.get("index").asInt();
+            key.blockId = blockId;
+            key.hexKey = jsonObject.get("key").asText();
+            return key;
+        } catch (Exception e) {
+            logger.error("Exception in getETSI020DecKey " + e);
+            return key;
         }
     }
 }

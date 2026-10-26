@@ -27,7 +27,7 @@ public class PolicyEngine {
         return true;
     }
 
-    public String getETSI020BorderNode(String key) {
+    public String getETSI020Config(String key) {
         // Read from etsi20-border.conf
         try {
             ObjectMapper objectMapper = new ObjectMapper();
