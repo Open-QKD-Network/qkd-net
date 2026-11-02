@@ -426,7 +426,8 @@ public class KMSController {
         request.setTargetSaeIds(targetSaeIds);
 
         ExtKeyInfo kInfo = new ExtKeyInfo();
-        kInfo.setKeyId(k.blockId + k.index);
+        // KeyID: index-blockId
+        kInfo.setKeyId(k.index + "-" + k.blockId);
         kInfo.setValue(k.hexKey);
         List<ExtKeyInfo> kList = new LinkedList<ExtKeyInfo>();
         kList.add(kInfo);
@@ -510,7 +511,7 @@ public class KMSController {
         url = url + ":8095/api/getkey?siteid=" +
             keyPoolMgr.getLocalSiteId() +
             "&blockid=" + blockId +
-            "&index=1";
+            "&index=0";
         logger.info("GET KEY URL " + url);
         String response = restClient.getForObject(url, String.class);
         logger.info("Response:" + response);
