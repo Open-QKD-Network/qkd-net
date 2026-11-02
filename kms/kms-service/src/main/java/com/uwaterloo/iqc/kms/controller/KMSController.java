@@ -508,7 +508,7 @@ public class KMSController {
             return key;
         }
         RestTemplate restClient = new RestTemplate();
-        url = url + ":8095/api/getkey?siteid=" +
+        url = "http://" + url + ":8095/api/getkey?siteid=" +
             keyPoolMgr.getLocalSiteId() +
             "&blockid=" + blockId +
             "&index=0";

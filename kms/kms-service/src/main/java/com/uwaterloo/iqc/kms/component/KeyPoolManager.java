@@ -100,7 +100,7 @@ public class KeyPoolManager {
     public boolean writeETSI020ExtKey(String peerSiteId,
         String blockId, String keyValue) {
         try {
-            Path filePath = Path.of(poolsDir, getLocalSiteId(), peerSiteId, blockId);
+            Path filePath = Path.of(poolsDir, peerSiteId, getLocalSiteId(), blockId);
             // Create directories if they don't exist
             Files.createDirectories(filePath.getParent());
             // Write the key to the file, creating it if necessary
