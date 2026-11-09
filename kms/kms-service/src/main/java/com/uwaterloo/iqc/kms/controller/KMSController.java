@@ -523,7 +523,7 @@ public class KMSController {
             JsonNode jsonObject = objectMapper.readTree(response);
             key.index = jsonObject.get("index").asInt();
             key.blockId = blockId;
-            key.hexKey = jsonObject.get("key").asText();
+            key.hexKey = jsonObject.get("hexKey").asText();
             return key;
         } catch (Exception e) {
             logger.error("Exception in getETSI020DecKey " + e);
