@@ -1,0 +1,41 @@
+1) Create server self-signed certificate
+
+openssl req -x509 -newkey rsa:4096 -keyout kms_b.key -out kms_b.crt -sha256 -days 365 -nodes -subj "/CN=192.168.2.105/O=IQC" -addext "subjectAltName=IP:192.168.2.105" -addext "extendedKeyUsage=serverAuth"
+
+openssl x509 -in kms_b.crt -text -noout
+
+
+2) create keystore for server to contain server's certificate and private key
+
+openssl pkcs12 -export -in kms_b.crt -inkey kms_b.key -out kms_b.p12 -name kms_b -passout pass:quantum
+
+3) create client self-signed certificate
+ 
+openssl req -x509 -newkey rsa:4096 -keyout sae_123456.key -out sae_123456.crt -sha256 -days 365 -nodes -subj "/CN=sae_123456/O=IQC" --addext "extendedKeyUsage=clientAuth"
+
+openssl x509 -in kms_b.crt -text -noout
+
+
+4) Create trust store for server to have client's certificate
+
+keytool -importcert -alias sae_123456 -file ./sae_123456.crt -keystore sae_truststore.jks -storepass quantum -noprompt
+
+5) curl command to test
+
+curl -v --cacert kms_b.crt --cert sae_123456.crt --key sae_123456.key https://192.168.2.105:8095/api/v1/keys/sae_123456
+
+6) KMS API gateway configuration
+
+#HTTPS server certificate
+server.ssl.enabled=true
+server.ssl.key-store=classpath:kms_b.p12
+server.ssl.key-store-password=quantum
+server.ssl.key-store-type=PKCS12
+server.ssl.key-alias=kms_b
+
+# Trust sae client certificate
+server.ssl.trust-store=classpath:sae_truststore.jks
+server.ssl.trust-store-password=quantum
+
+#Require client certificate
+server.ssl.client-auth=need
