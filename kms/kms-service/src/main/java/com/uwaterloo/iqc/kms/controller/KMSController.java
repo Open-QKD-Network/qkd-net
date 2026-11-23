@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -102,7 +103,9 @@ public class KMSController {
 
     //https://stackoverflow.com/questions/44839753/returning-json-object-as-response-in-spring-boot
     @RequestMapping("/v1/keys/{slaveSAEID}/enc_keys")
-    public String getEncKey(@PathVariable String slaveSAEID) {
+    public String getEncKey(@PathVariable String slaveSAEID,
+                            @RequestHeader(value = "X-Client-CN", required = false) String masterSAEID) {
+        logger.info("Master SAEID:" + masterSAEID);
         String siteID = getSiteIDFromSAEID(slaveSAEID, URL);
 
         // If siteID is not in our network, then invoke ETSI020 API
